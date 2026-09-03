@@ -1,0 +1,159 @@
+/* Identité transversale MAJA 13 — site, Hub, administration et M13 OS. */
+:root {
+  --maja-ink: #070708;
+  --maja-night: #0d0d10;
+  --maja-panel: rgba(18, 18, 22, .82);
+  --maja-panel-solid: #141419;
+  --maja-line: rgba(231, 224, 211, .105);
+  --maja-line-hot: rgba(211, 75, 94, .38);
+  --maja-ivory: #e7e0d3;
+  --maja-muted: #99948c;
+  --maja-accent: #9f2635;
+  --maja-accent-bright: #d34b5e;
+  --maja-metal: #b6a98e;
+  --red: var(--maja-accent-bright) !important;
+  --red-solid: var(--maja-accent) !important;
+  --red-dark: #741c28 !important;
+  --gold: var(--maja-metal) !important;
+  --bg: var(--maja-ink) !important;
+  --surface: var(--maja-night) !important;
+  --surface2: var(--maja-panel-solid) !important;
+  --border: var(--maja-line) !important;
+  --border-strong: rgba(231, 224, 211, .18) !important;
+  --text: var(--maja-ivory) !important;
+  --muted: var(--maja-muted) !important;
+  --text-muted: var(--maja-muted) !important;
+}
+
+html { background: var(--maja-ink); color-scheme: dark; }
+body {
+  background:
+    radial-gradient(900px 520px at 80% -10%, rgba(159, 38, 53, .16), transparent 68%),
+    radial-gradient(720px 460px at -10% 42%, rgba(182, 169, 142, .055), transparent 70%),
+    var(--maja-ink) !important;
+  color: var(--maja-ivory);
+  text-rendering: optimizeLegibility;
+}
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9000;
+  opacity: .028;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.9'/%3E%3C/svg%3E");
+}
+
+::selection { background: rgba(211, 75, 94, .34); color: #fff; }
+:focus-visible { outline: 2px solid var(--maja-accent-bright) !important; outline-offset: 4px; }
+
+nav, .sidebar, .topbar, .barre {
+  background: rgba(7, 7, 8, .78) !important;
+  border-color: var(--maja-line) !important;
+  backdrop-filter: blur(20px) saturate(125%);
+  -webkit-backdrop-filter: blur(20px) saturate(125%);
+}
+
+.logo, .brand, .sidebar-logo {
+  letter-spacing: .18em !important;
+  font-family: Inter, system-ui, sans-serif !important;
+  font-weight: 700 !important;
+}
+.logo span, .brand span, .sidebar-logo span { color: var(--maja-accent-bright) !important; }
+
+#accueil {
+  background-image:
+    linear-gradient(90deg, rgba(7,7,8,.9) 0%, rgba(7,7,8,.46) 48%, rgba(7,7,8,.76) 100%),
+    linear-gradient(0deg, var(--maja-ink) 0%, transparent 38%),
+    url('assets/visuals/hero-placeholder.svg') !important;
+  background-size: cover !important;
+  background-position: center !important;
+}
+#accueil::after {
+  content: 'PRIVATE NETWORK  /  LOS SANTOS';
+  position: absolute;
+  right: clamp(20px, 4vw, 64px);
+  bottom: 28px;
+  z-index: 2;
+  color: rgba(231, 224, 211, .42);
+  font: 600 9px/1 Inter, sans-serif;
+  letter-spacing: .34em;
+}
+.hero-grid { opacity: .18 !important; filter: grayscale(1); }
+.hero-content { max-width: 760px !important; }
+.hero-content h1 {
+  font-family: 'Playfair Display', Georgia, serif !important;
+  font-size: clamp(64px, 11vw, 150px) !important;
+  letter-spacing: -.055em !important;
+  line-height: .78 !important;
+  text-transform: uppercase;
+  text-shadow: 0 18px 70px rgba(0,0,0,.7);
+}
+.hero-content h1 em {
+  color: transparent !important;
+  -webkit-text-stroke: 1px rgba(231, 224, 211, .72);
+  font-style: normal !important;
+}
+.hero-sub { max-width: 600px !important; color: rgba(231, 224, 211, .72) !important; }
+.hero-tag {
+  background: rgba(15, 15, 18, .68) !important;
+  border: 1px solid var(--maja-line) !important;
+  box-shadow: 0 16px 42px rgba(0,0,0,.28);
+}
+.hero-tag img { border-radius: 7px; }
+
+.btn-red, .footer-btn, .auth-btn {
+  background: linear-gradient(135deg, var(--maja-accent-bright), var(--maja-accent)) !important;
+  box-shadow: 0 12px 34px rgba(159, 38, 53, .24);
+  border: 1px solid rgba(255,255,255,.08) !important;
+}
+.btn-red:hover, .footer-btn:hover, .auth-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 44px rgba(159, 38, 53, .34);
+}
+.btn-ghost, .footer-btn.ghost {
+  background: rgba(255,255,255,.025) !important;
+  border-color: var(--maja-line) !important;
+}
+
+.valeur-card, .membre-card, .regle-item, .discord-card, .event-card,
+.panel, .card, .kpi, .bloc, .auth-box, .login-box, .widget, .window {
+  background: linear-gradient(145deg, rgba(24,24,29,.88), rgba(12,12,15,.84)) !important;
+  border-color: var(--maja-line) !important;
+  box-shadow: 0 28px 80px rgba(0,0,0,.22);
+}
+.valeur-card:hover, .membre-card:hover, .regle-item:hover, .discord-card:hover,
+.card:hover, .kpi:hover {
+  border-color: var(--maja-line-hot) !important;
+  box-shadow: 0 30px 86px rgba(0,0,0,.3), 0 0 0 1px rgba(159,38,53,.06) !important;
+}
+.section-label { color: var(--maja-accent-bright) !important; letter-spacing: .28em !important; }
+.section-title { letter-spacing: -.035em !important; }
+.section-title em { color: var(--maja-metal) !important; }
+.stats-bar { background: #0b0b0d !important; border-color: var(--maja-line) !important; }
+
+.sidebar, .sb { box-shadow: 30px 0 80px rgba(0,0,0,.2); }
+.sb-item.active, .side-btn.active, .nav-item.active {
+  background: linear-gradient(90deg, rgba(159,38,53,.2), rgba(159,38,53,.04)) !important;
+  color: var(--maja-ivory) !important;
+  border-color: rgba(211,75,94,.28) !important;
+}
+input, textarea, select {
+  background: rgba(255,255,255,.035) !important;
+  border-color: var(--maja-line) !important;
+  color: var(--maja-ivory) !important;
+}
+input:focus, textarea:focus, select:focus { border-color: var(--maja-accent-bright) !important; }
+
+@media (max-width: 760px) {
+  #accueil { min-height: 100svh !important; background-position: 58% center !important; }
+  #accueil::after { font-size: 8px; letter-spacing: .2em; bottom: 18px; }
+  .hero-content h1 { font-size: clamp(60px, 22vw, 94px) !important; line-height: .82 !important; }
+  .hero-photos { display: none !important; }
+  .hero-btns { display: grid !important; grid-template-columns: 1fr !important; width: min(100%, 360px); }
+  .hero-btns a { justify-content: center; text-align: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}

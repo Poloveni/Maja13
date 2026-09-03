@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — MAJA 13</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" type="image/svg+xml" href="assets/brand/logo-mark.svg" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="dashboard.css?v=2026-08-01" />
+  <link rel="stylesheet" href="animations.css?v=2026-08-01" />
+  <style>
+    /* ══════════════════════════════════════════════════════════════════
+       Styles propres au panel admin.
+
+       Le socle (couleurs, boutons, champs, barre latérale, cartes,
+       tableaux, cartes de chiffres) vit dans dashboard.css, et les
+       animations dans animations.css — tous deux chargés juste au-dessus
+       et partagés avec l'espace membre. Ce bloc ne contient que ce qu'on
+       ne trouve QUE sur cette page.
+       ══════════════════════════════════════════════════════════════════ */
+
+    #admin-canvas { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; opacity: 0.42; }
+
+    /* ═══ ÉCRAN DE CONNEXION ═══════════════════════════════════════════ */
+    #login-screen { position: relative; z-index: 1; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+    .login-box {
+      position: relative;
+      background: linear-gradient(180deg, rgba(255,255,255,0.032), rgba(255,255,255,0) 140px), var(--panel);
+      border: 1px solid var(--border); border-radius: var(--r-md); padding: 40px 34px;
+      width: 100%; max-width: 412px; box-shadow: var(--sh-3);
+      animation: fadeUp 0.5s var(--ease);
+    }
+    .login-box h1 { font-family: 'Playfair Display', Georgia, serif; font-size: 30px; font-weight: 900; margin-bottom: 6px; letter-spacing: -0.8px; }
+    .login-box h1 span { color: var(--red); }
+    .login-sub { font-size: 10.5px; letter-spacing: 2.4px; text-transform: uppercase; font-weight: 700; color: var(--gold); margin-bottom: 28px; }
+    .login-error {
+      display: none; margin-top: 16px; font-size: 13px; color: #ff9084; border-radius: var(--r-sm);
+      background: rgba(192,57,43,0.14); border: 1px solid rgba(192,57,43,0.4); padding: 11px 14px; line-height: 1.55;
+    }
+
+    /* ═══ TABLEAU DE BORD ══════════════════════════════════════════════ */
+    #admin-screen { display: none; position: relative; z-index: 1; }
+
+    /* Le sous-titre du logo est une étiquette dorée ici (et non un simple
+       texte comme dans l'espace membre) : on distingue les deux pages
+       au premier coup d'œil. */
+    .sb-logo .t2 {
+      display: inline-block; font-size: 9px; letter-spacing: 2.4px; text-transform: uppercase;
+      color: #1a1206; background: linear-gradient(160deg, var(--gold-soft), #c39c52);
+      border-radius: 5px; padding: 3px 9px; margin-top: 7px; font-weight: 800;
+      box-shadow: 0 2px 8px -3px rgba(220,185,120,0.9);
+    }
+
+    /* Les cartes de chiffres de l'admin sont plus nombreuses et plus
+       étroites que celles de l'espace membre. */
+    .kpis { grid-template-columns: repeat(auto-fit, minmax(168px, 1fr)); }
+
+    /* ── Alerte inscriptions en attente ─────────────────────────────── */
+    .alerte {
+      display: none; cursor: pointer; align-items: center; gap: 13px; border-radius: var(--r-md);
+      background: linear-gradient(135deg, rgba(245,165,36,0.14), rgba(245,165,36,0.05));
+      border: 1px solid rgba(245,165,36,0.45);
+      padding: 16px 20px; margin-bottom: 20px;
+      box-shadow: var(--sh-2);
+      transition: background 0.2s ease, transform 0.2s var(--ease);
+    }
+    .alerte:hover { background: linear-gradient(135deg, rgba(245,165,36,0.22), rgba(245,165,36,0.08)); transform: translateY(-2px); }
+    .alerte b { color: var(--amber); font-size: 14.5px; }
+    .alerte .fleche { margin-left: auto; font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+    /* ── Liens rapides ──────────────────────────────────────────────── */
+    .liens { display: flex; gap: 11px; flex-wrap: wrap; }
+    .lien {
+      position: relative; display: flex; align-items: center; gap: 9px; text-decoration: none;
+      background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0) 60px), var(--panel);
+      border: 1px solid var(--border); border-radius: var(--r-md);
+      padding: 14px 19px; font-size: 13px; color: var(--muted);
+      box-shadow: var(--sh-1);
+      transition: transform 0.22s var(--ease), border-color 0.22s ease, color 0.22s ease, box-shadow 0.22s ease;
+    }
+    .lien:hover { transform: translateY(-3px); border-color: var(--red); color: var(--text); box-shadow: var(--sh-3); }
+
+    /* ── Gestion des membres ────────────────────────────────────────── */
+    .membre-row { display: grid; grid-template-columns: 1fr 200px 44px; gap: 11px; margin-bottom: 11px; align-items: center; }
+    .membre-row input, .membre-row select { margin-bottom: 0; }
+    .membre-row .btn.danger { padding: 12px 0; }
+
+    /* ── Inscriptions à valider ─────────────────────────────────────── */
+    .insc-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
+    .insc-count { font-size: 12px; color: var(--dim); }
+    .insc-row {
+      position: relative;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0) 60px), var(--panel2);
+      border: 1px solid var(--border); border-radius: var(--r-md);
+      padding: 15px 19px; margin-bottom: 9px;
+      transition: border-color 0.2s ease, transform 0.2s var(--ease);
+    }
+    .insc-row:hover { border-color: var(--border2); transform: translateX(3px); }
+    .insc-state { font-size: 12px; margin-top: 7px; }
+    .insc-state.attente { color: var(--amber); }
+    .insc-state.ok { color: var(--green); }
+
+    /* ── L'identité, à gauche de la ligne ────────────────────────────────
+       En grand : le nom du personnage s'il est connu, sinon l'email. En
+       dessous, tous les repères qui permettent de reconnaître quelqu'un :
+       email, pseudo Discord, date d'inscription, dernière visite. */
+    .insc-qui { min-width: 0; }
+    .insc-nom {
+      display: flex; align-items: center; gap: 9px; flex-wrap: wrap;
+      font-size: 15px; font-weight: 650; word-break: break-word;
+    }
+    .insc-rang, .insc-tag {
+      font-size: 9px; letter-spacing: 1.4px; text-transform: uppercase; font-weight: 800;
+      border-radius: 4px; padding: 3px 7px; white-space: nowrap;
+    }
+    .insc-rang { color: var(--gold); background: rgba(212,178,110,0.12); border: 1px solid rgba(212,178,110,0.34); }
+    .insc-tag  { color: #1a1206; background: linear-gradient(160deg, var(--gold-soft), #c39c52); }
+    .insc-meta {
+      display: flex; flex-wrap: wrap; gap: 3px 15px; margin-top: 8px;
+      font-size: 11.5px; color: var(--dim); line-height: 1.6;
+    }
+    .insc-meta .mail { color: var(--muted); word-break: break-all; }
+    /* Le violet de Discord : le pseudo se repère sans avoir à lire l'étiquette. */
+    .insc-meta .discord { color: #8b9bf5; font-weight: 600; }
+
+    /* Les commandes à droite de chaque ligne : niveau d'accès + bouton. */
+    .insc-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .insc-actions select {
+      margin-bottom: 0; width: auto; min-width: 178px;
+      padding: 11px 13px; font-size: 13px;
+    }
+    /* Repère visuel : un compte limité aux taxes se voit d'un coup d'œil. */
+    .insc-row.limite { border-color: rgba(212,178,110,0.5); }
+
+    /* La suppression définitive : volontairement discrète. On la trouve
+       quand on la cherche, on ne la clique pas par mégarde. */
+    .insc-suppr {
+      padding: 11px 15px; font-size: 12px;
+      background: transparent; border: 1px solid var(--border2); color: var(--dim);
+      box-shadow: none;
+    }
+    .insc-suppr:hover {
+      background: rgba(192,57,43,0.14); border-color: rgba(192,57,43,0.55); color: #ff9084;
+      box-shadow: none;
+    }
+
+    /* ── La barre du haut : compteur, recherche, rafraîchir ─────────────── */
+    .insc-outils { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .insc-outils input { margin-bottom: 0; width: 268px; padding: 10px 13px; font-size: 13px; }
+    .insc-rien { color: var(--dim); font-size: 13px; padding: 18px 2px; }
+
+    /* ── Export ─────────────────────────────────────────────────────── */
+    .export-pre {
+      display: none; margin-top: 16px; font-size: 11.5px; color: var(--muted);
+      background: rgba(0,0,0,0.4); border: 1px solid var(--border2); border-radius: var(--r-sm);
+      padding: 16px; overflow: auto; max-height: 320px; white-space: pre-wrap;
+      font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; line-height: 1.6;
+    }
+
+    /* ── Ajustements mobile propres à cette page ────────────────────── */
+    @media (max-width: 860px) {
+      .membre-row { grid-template-columns: 1fr; }
+      /* Sur téléphone, la ligne d'inscription se déplie en hauteur :
+         identité au-dessus, commandes en dessous sur toute la largeur. */
+      .insc-row { flex-direction: column; align-items: stretch; gap: 13px; }
+      .insc-actions { flex-direction: column; align-items: stretch; }
+      .insc-actions select, .insc-actions .btn { width: 100%; min-width: 0; }
+      .insc-outils { width: 100%; }
+      .insc-outils input { flex: 1; width: auto; min-width: 0; }
+    }
+  </style>
+  <link rel="stylesheet" href="maja-theme.css" />
+</head>
+<body class="rgb">
+<canvas id="admin-canvas"></canvas>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <h1>MAJA <span>13</span></h1>
+    <div class="login-sub">Accès administrateur</div>
+    <label>Email admin</label>
+    <input type="email" id="login-email" placeholder="ton@email.com" autocomplete="username" />
+    <label>Mot de passe</label>
+    <input type="password" id="pwd-input" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()" />
+    <button class="btn full" onclick="doLogin()">Connexion</button>
+    <div class="login-error" id="login-error">Identifiants incorrects.</div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="admin-screen">
+
+  <aside class="sb-nav">
+    <div class="sb-logo">
+      <div class="t1">MAJA <span>13</span></div>
+      <span class="t2">Admin</span>
+    </div>
+
+    <div class="sb-group">Pilotage</div>
+    <button type="button" class="sb-item active" data-panel="dashboard" data-title="Bienvenue, &lt;em&gt;Direction&lt;/em&gt; 👑" data-sub="Vue d'ensemble du site et de la famille." onclick="showPanel('dashboard', this)"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V9m5 10V5m5 14v-7m5 7V8"/></svg></span><span class="lbl">Dashboard</span></button>
+
+    <div class="sb-group">Contenu</div>
+    <button type="button" class="sb-item" data-panel="hero" data-title="Page d'&lt;em&gt;accueil&lt;/em&gt;" data-sub="Les textes principaux du site public." onclick="showPanel('hero', this)"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5L12 4l8 6.5"/><path d="M6 10v10h12V10"/><path d="M10 20v-5.5h4V20"/></svg></span><span class="lbl">Page d'accueil</span></button>
+    <button type="button" class="sb-item" data-panel="contenu" data-title="Histoire &amp; &lt;em&gt;contenu&lt;/em&gt;" data-sub="Textes publiés directement depuis Supabase." onclick="showPanel('contenu', this)"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3z"/><path d="M9 9h6M9 13h6"/></svg></span><span class="lbl">Histoire & textes</span></button>
+    <button type="button" class="sb-item" data-panel="membres" data-title="Les &lt;em&gt;membres&lt;/em&gt;" data-sub="La liste officielle : noms et rangs." onclick="showPanel('membres', this)"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9.5" cy="8.5" r="3.3"/><path d="M3.4 19.5a6.1 6.1 0 0112.2 0"/><path d="M16.2 6.1a3.3 3.3 0 010 5.4M17.4 14.6a6 6 0 013.2 4.9"/></svg></span><span class="lbl">Membres</span></button>
+
+    <div class="sb-group">Espace membre</div>
+    <button type="button" class="sb-item" id="side-inscriptions" data-panel="inscriptions" data-title="Les &lt;em&gt;inscriptions&lt;/em&gt;" data-sub="Approuve ou refuse les comptes créés sur l'espace membre." onclick="showPanel('inscriptions', this)"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M8.3 12.2l2.6 2.6 5-5.2"/></svg></span><span class="lbl">Inscriptions</span><span class="sb-badge" id="badge-attente"></span></button>
+
+    <div class="sb-group">Export</div>
+    <button type="button" class="sb-item" data-panel="export" data-title="&lt;em&gt;Exporter&lt;/em&gt;" data-sub="Récupère le code à coller dans config.js." onclick="showPanel('export', this)"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 4.5h11L19.5 8v11.5h-15z"/><path d="M8 4.5v5h6v-5M8 19.5v-5h8v5"/></svg></span><span class="lbl">Exporter</span></button>
+
+    <div class="sb-group">Système</div>
+    <a class="sb-item" href="index.html" target="_blank"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17"/><path d="M12 3.5a13 13 0 010 17 13 13 0 010-17z"/></svg></span><span class="lbl">Voir le site</span></a>
+    <a class="sb-item" href="espace-membre.html" target="_blank"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19h16"/><path d="M5.5 15.5l4-4.5 3.2 3 5.8-6.5"/><path d="M14 7.5h4.5V12"/></svg></span><span class="lbl">Espace membre</span></a>
+
+    <div class="sb-foot">
+      <div class="sb-user">Connectée : <b id="who-email"></b></div>
+      <div class="sb-out" onclick="doLogout()"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5v8"/><path d="M17.7 6.6a8 8 0 11-11.4 0"/></svg></span><span class="lbl">Déconnexion</span></div>
+    </div>
+  </aside>
+
+  <main class="dash">
+    <div class="dash-head">
+      <div>
+        <div class="dash-title" id="dash-titre">Bienvenue, <em>Direction</em> 👑</div>
+        <div class="dash-sub" id="dash-soustitre">Vue d'ensemble du site et de la famille.</div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="panel active" id="panel-dashboard">
+      <div class="alerte" id="dash-alerte" onclick="showPanel('inscriptions', document.getElementById('side-inscriptions'))">
+        <span style="font-size:18px;">⏳</span>
+        <b id="dash-alerte-txt"></b>
+        <span class="fleche">Cliquer pour valider →</span>
+      </div>
+
+      <div class="kpis">
+        <div class="kpi" style="--kc:#e0503f;"><div class="kpi-label">Membres officiels</div><div class="kpi-num" id="dash-membres">—</div></div>
+        <div class="kpi" style="--kc:#5865f2;"><div class="kpi-label">Comptes inscrits</div><div class="kpi-num" id="dash-comptes">—</div></div>
+        <div class="kpi" style="--kc:#e67e22;"><div class="kpi-label">En attente</div><div class="kpi-num" id="dash-attente" style="color:var(--amber);">—</div></div>
+        <div class="kpi" style="--kc:#2ecc71;"><div class="kpi-label">Présences à venir</div><div class="kpi-num" id="dash-presences">—</div></div>
+        <div class="kpi" style="--kc:#d4b26e;"><div class="kpi-label">Photos galerie</div><div class="kpi-num" id="dash-galerie">—</div></div>
+        <div class="kpi" style="--kc:#9b59b6;"><div class="kpi-label">Sync bot M13</div><div class="kpi-num small" id="dash-sync">—</div></div>
+      </div>
+
+      <div class="bloc">
+        <div class="bloc-t">Accès rapides</div>
+        <div class="liens">
+          <a class="lien" href="index.html" target="_blank">Voir le site</a>
+          <a class="lien" href="espace-membre.html" target="_blank">Espace membre</a>
+          <a class="lien" href="#" target="_blank" rel="noopener">Stats de visite</a>
+          <a class="lien" href="https://supabase.com/dashboard" target="_blank" rel="noopener">Base de données</a>
+        </div>
+      </div>
+
+      <div class="bloc">
+        <div class="bloc-t">Comment fonctionnent les modifications</div>
+        <p class="hint" style="line-height:1.7;">
+          Les <b style="color:var(--text);">inscriptions</b> se valident ici, en direct. Les <b style="color:var(--text);">événements, présences et annonces</b>
+          se gèrent sur Discord (synchronisation automatique). Les modifications de <b style="color:var(--text);">membres</b> et de la
+          <b style="color:var(--text);">page d'accueil</b> sont un brouillon local : passe par <b style="color:var(--text);">Exporter</b>,
+          colle le code dans le fichier du site, puis publie (publier.bat).
+        </p>
+        <button class="btn danger" style="margin-top:16px;" onclick="resetData()">↻ Réinitialiser le brouillon</button>
+      </div>
+    </div>
+
+    <!-- CONTENU PUBLIÉ -->
+    <div class="panel" id="panel-contenu">
+      <div class="bloc" style="max-width:760px;">
+        <div class="bloc-t">Histoire publique</div>
+        <p class="hint" style="margin-bottom:18px;">Ces textes sont enregistrés dans Supabase et apparaissent sur la page d’accueil sans republier les fichiers.</p>
+        <label>Introduction</label>
+        <textarea id="content-intro" rows="4"></textarea>
+        <label>Développement</label>
+        <textarea id="content-suite" rows="4"></textarea>
+        <label>Organisation</label>
+        <textarea id="content-structure" rows="4"></textarea>
+        <label>Citation</label>
+        <input id="content-citation" type="text">
+        <button class="btn green" onclick="saveContenu()">✓ Publier les textes</button>
+      </div>
+    </div>
+
+    <!-- PAGE D'ACCUEIL -->
+    <div class="panel" id="panel-hero">
+      <div class="bloc" style="max-width:640px;">
+        <label>Sous-titre du hero</label>
+        <input type="text" id="hero-sub" />
+        <label>Texte du bouton principal</label>
+        <input type="text" id="hero-btn" />
+        <button class="btn green" onclick="saveHero()">✓ Enregistrer l'accueil</button>
+      </div>
+    </div>
+
+    <!-- MEMBRES -->
+    <div class="panel" id="panel-membres">
+      <div class="bloc">
+        <button class="btn ghost" style="margin-bottom:16px;" onclick="addMembre()">+ Ajouter un membre</button>
+        <div id="membre-list"></div>
+        <button class="btn green" style="margin-top:8px;" onclick="saveMembres()">✓ Enregistrer les membres</button>
+      </div>
+    </div>
+
+    <!-- INSCRIPTIONS -->
+    <div class="panel" id="panel-inscriptions">
+      <div class="bloc">
+        <p class="hint" style="line-height:1.7;margin-bottom:18px;">
+          <b style="color:var(--text);">Approuver</b> ouvre l'accès au compte. Le menu déroulant choisit ensuite
+          <b style="color:var(--text);">ce qu'il voit</b> : soit tout l'espace membre, soit uniquement le panneau
+          <b style="color:var(--gold);">Taxes</b>. Le changement est immédiat — la personne le verra à sa prochaine connexion.
+        </p>
+        <div id="insc-list"><div class="hint">Chargement…</div></div>
+      </div>
+    </div>
+
+    <!-- EXPORT -->
+    <div class="panel" id="panel-export">
+      <div class="bloc">
+        <div class="bloc-t">📋 Code prêt à coller dans config.js</div>
+        <p class="hint" style="margin-bottom:16px;">
+          Le site lit la liste des membres dans <b style="color:var(--text);">config.js</b>. Copie le bloc ci-dessous,
+          colle-le à la place du bloc <code style="color:var(--gold);">window.MAJA_MEMBRES</code> existant, puis publie avec publier.bat.
+        </p>
+        <button class="btn" onclick="exportData()">Copier les données</button>
+        <pre class="export-pre" id="export-preview"></pre>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script>
+  // Connexion : via le compte Supabase admin (vérifié côté serveur).
+  const DATA_VERSION = 4;
+  const RANGS = (window.MAJA_RANGS || []).map(r => r.nom);
+
+  let data = {
+    hero: {
+      sub: "La familia sobre todo. Un réseau privé, une structure, un territoire.",
+      btn: "Rejoindre le Discord"
+    },
+    // Membres chargés depuis config.js (source unique de vérité)
+    membres: (window.MAJA_MEMBRES || []).map(m => ({ nom: m.nom, rang: m.rang }))
+  };
+
+  const savedVer = parseInt(localStorage.getItem('maja-admin-version') || '0', 10);
+  const saved = localStorage.getItem('maja-admin-data');
+  if (saved && savedVer >= DATA_VERSION) { try { data = JSON.parse(saved); } catch(e) {} }
+
+  // Neutralise le HTML contenu dans un texte venu de la base ou d'un utilisateur.
+  // Sans ça, un membre pouvait glisser du code dans son email et le faire
+  // exécuter ici, dans TA session d'administratrice.
+  function escHTML(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  // Prépare un texte destiné à un onclick="maFonction('ici')" : on neutralise
+  // d'abord les caractères qui casseraient la chaîne JavaScript, puis ceux qui
+  // casseraient l'attribut HTML. Un nom contenant une apostrophe (« O'Neil »)
+  // ou du code passe alors sans danger.
+  function escJS(s) {
+    return escHTML(String(s == null ? '' : s).replace(/\\/g, '\\\\').replace(/'/g, "\\'"));
+  }
+
+  const SB = (window.supabase && window.SUPABASE_URL)
+    ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY) : null;
+
+  function loginFail(msg) {
+    const err = document.getElementById('login-error');
+    err.textContent = msg || 'Identifiants incorrects.';
+    err.style.display = 'block';
+    document.getElementById('pwd-input').value = '';
+    setTimeout(() => err.style.display = 'none', 4000);
+  }
+
+  function enterAdmin(email) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('admin-screen').style.display = 'block';
+    if (email) document.getElementById('who-email').textContent = email;
+    initAdmin();
+  }
+
+  async function doLogin() {
+    if (!SB) { loginFail('Connexion Supabase indisponible.'); return; }
+    const email = document.getElementById('login-email').value.trim();
+    const pwd = document.getElementById('pwd-input').value;
+    if (!email || !pwd) { loginFail('Email et mot de passe requis.'); return; }
+    const { data: d, error } = await SB.auth.signInWithPassword({ email, password: pwd });
+    if (error) { loginFail('Identifiants incorrects.'); return; }
+    const { data: canAdmin, error: roleError } = await SB.rpc('est_admin');
+    if (roleError || !canAdmin) {
+      await SB.auth.signOut();
+      loginFail("Ce compte n'a pas les droits d'administration.");
+      return;
+    }
+    enterAdmin(d.user.email);
+  }
+
+  async function doLogout() {
+    if (SB) await SB.auth.signOut();
+    document.getElementById('admin-screen').style.display = 'none';
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('pwd-input').value = '';
+  }
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    if (!SB) return;
+    const { data: d } = await SB.auth.getSession();
+    if (d.session) { const { data: canAdmin } = await SB.rpc('est_admin'); if (canAdmin) enterAdmin(d.session.user.email); }
+  });
+
+  function showPanel(id, el) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.sb-item[data-panel]').forEach(s => s.classList.remove('active'));
+    document.getElementById('panel-' + id).classList.add('active');
+    if (el) {
+      el.classList.add('active');
+      if (el.dataset.title) document.getElementById('dash-titre').innerHTML = el.dataset.title.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+      if (el.dataset.sub) document.getElementById('dash-soustitre').textContent = el.dataset.sub;
+    }
+    if (id === 'inscriptions') renderInscriptions();
+  }
+
+  // ── INSCRIPTIONS (approbation des comptes) ──
+  // COMPTES garde la dernière liste reçue : la recherche filtre en mémoire,
+  // sans rappeler la base à chaque lettre tapée.
+  var COMPTES = [];
+  var FILTRE = '';
+  var NOTE_INSC = '';
+
+  // « il y a 3 jours », « hier »… plus parlant qu'une date brute pour savoir
+  // qui est encore actif.
+  function depuis(v) {
+    if (!v) return null;
+    var j = Math.floor((Date.now() - new Date(v).getTime()) / 86400000);
+    if (j < 0) return null;
+    if (j === 0) return "aujourd'hui";
+    if (j === 1) return 'hier';
+    if (j < 31) return 'il y a ' + j + ' jours';
+    var m = Math.round(j / 30);
+    return 'il y a ' + m + ' mois';
+  }
+  function dateCourte(v) {
+    if (!v) return null;
+    return new Date(v).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  async function renderInscriptions() {
+    const list = document.getElementById('insc-list');
+    if (!SB) { list.innerHTML = '<p class="hint">Supabase non chargé.</p>'; return; }
+
+    // On demande d'abord la version enrichie (pseudo Discord, personnage,
+    // dates). Si comptes-details.sql n'a pas encore été exécuté, on retombe
+    // sur la liste simple : le panneau continue de fonctionner.
+    NOTE_INSC = '';
+    var comptes = null;
+    const rpc = await SB.rpc('comptes_details');
+    if (!rpc.error && rpc.data && rpc.data.length) {
+      comptes = rpc.data;
+    } else {
+      const q = await SB.from('comptes').select('*').order('created_at', { ascending: false });
+      if (q.error) {
+        list.innerHTML = '<p style="color:var(--red);font-size:13px;">Erreur : ' + escHTML(q.error.message) + '</p>';
+        return;
+      }
+      comptes = q.data || [];
+      if (comptes.length) {
+        NOTE_INSC = 'Pour voir aussi le <b style="color:var(--text);">pseudo Discord</b> et le ' +
+          '<b style="color:var(--text);">nom du personnage</b>, exécute <code style="color:var(--gold);">comptes-details.sql</code> dans Supabase.';
+      }
+    }
+
+    COMPTES = comptes;
+    dessineInscriptions();
+  }
+
+  function dessineInscriptions() {
+    const list = document.getElementById('insc-list');
+    if (!list) return;
+
+    if (!COMPTES.length) {
+      list.innerHTML = '<p class="hint">Aucune inscription pour le moment. Les comptes apparaîtront ici dès que des membres s\'inscriront sur l\'espace membre.</p>';
+      return;
+    }
+
+    const enAttente = COMPTES.filter(c => !c.approuve).length;
+    const q = FILTRE.trim().toLowerCase();
+    // La recherche regarde partout : email, pseudo Discord, personnage, rang.
+    const vus = q
+      ? COMPTES.filter(c => [c.email, c.discord_pseudo, c.nom, c.rang]
+          .some(v => String(v || '').toLowerCase().indexOf(q) !== -1))
+      : COMPTES;
+
+    list.innerHTML =
+      (NOTE_INSC ? '<p class="hint" style="margin-bottom:16px;line-height:1.7;">' + NOTE_INSC + '</p>' : '') +
+      '<div class="insc-bar">' +
+        '<div class="insc-count">' + COMPTES.length + ' compte(s) — ' + enAttente + ' en attente' +
+          (q ? ' · ' + vus.length + ' résultat(s)' : '') + '</div>' +
+        '<div class="insc-outils">' +
+          '<input type="search" id="insc-q" placeholder="Chercher un email, un pseudo, un personnage…" ' +
+            'value="' + escHTML(FILTRE) + '" oninput="FILTRE = this.value; dessineInscriptions();" />' +
+          '<button class="btn ghost" style="padding:10px 16px;" onclick="renderInscriptions()">↻ Rafraîchir</button>' +
+        '</div>' +
+      '</div>' +
+      (vus.length ? vus.map(ligneInscription).join('')
+                  : '<div class="insc-rien">Aucun compte ne correspond à « ' + escHTML(FILTRE) + ' ».</div>');
+
+    // Le curseur revient dans le champ de recherche : on peut continuer à
+    // taper alors que la liste vient d'être redessinée.
+    if (q) {
+      const inp = document.getElementById('insc-q');
+      if (inp) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
+    }
+  }
+
+  function ligneInscription(c) {
+    // « acces » vaut 'complet' ou 'taxes'. Si la colonne n'existe pas encore
+    // (acces-comptes.sql pas exécuté), on retombe sur 'complet'.
+    var acces = (c.acces === 'taxes') ? 'taxes' : 'complet';
+    var role = c.role || 'membre';
+    var id = escHTML(c.id);
+    var email = c.email || '(sans email)';
+
+    // En grand : le personnage si on le connaît, sinon l'email.
+    var titre = c.nom ? escHTML(c.nom) : escHTML(email);
+
+    var meta = [];
+    if (c.nom) meta.push('<span class="mail">' + escHTML(email) + '</span>');
+    if (c.discord_pseudo) meta.push('<span class="discord">Discord : ' + escHTML(c.discord_pseudo) + '</span>');
+    // Chaque repère dans son propre <span> : sans ça, deux textes voisins
+    // fusionnent en un seul bloc et s'affichent collés l'un à l'autre.
+    if (c.created_at) meta.push('<span>Inscrit le ' + escHTML(dateCourte(c.created_at)) + '</span>');
+    var vu = depuis(c.derniere_connexion);
+    if (vu) meta.push('<span>Vu ' + escHTML(vu) + '</span>');
+
+    return '<div class="insc-row' + (acces === 'taxes' ? ' limite' : '') + '">' +
+      '<div class="insc-qui">' +
+        '<div class="insc-nom">' + titre +
+          (c.rang ? '<span class="insc-rang">' + escHTML(c.rang) + '</span>' : '') +
+          (acces === 'taxes' ? '<span class="insc-tag">Taxes</span>' : '') +
+        '</div>' +
+        (meta.length ? '<div class="insc-meta">' + meta.join('') + '</div>' : '') +
+        '<div class="insc-state ' + (c.approuve ? 'ok' : 'attente') + '">' +
+          (c.approuve ? '✅ Approuvé' : '⏳ En attente') + '</div>' +
+      '</div>' +
+      '<div class="insc-actions">' +
+        '<select aria-label="Rôle applicatif" onchange="setRole(\'' + id + '\', this.value)">' +
+          ['membre','membre_confirme','responsable','haut_grade','direction','administrateur'].map(function (r) {
+            return '<option value="' + r + '"' + (role === r ? ' selected' : '') + '>' +
+              ({membre:'Membre',membre_confirme:'Membre confirmé',responsable:'Responsable',haut_grade:'Haut gradé',direction:'Direction',administrateur:'Administrateur'}[r]) + '</option>';
+          }).join('') +
+        '</select>' +
+        '<select aria-label="Niveau d\'accès" onchange="setAcces(\'' + id + '\', this.value)">' +
+          '<option value="complet"' + (acces === 'complet' ? ' selected' : '') + '>Tout l\'espace membre</option>' +
+          '<option value="taxes"' + (acces === 'taxes' ? ' selected' : '') + '>Taxes uniquement</option>' +
+        '</select>' +
+        '<button class="btn ' + (c.approuve ? 'danger' : 'green') + '" style="padding:11px 16px;" onclick="setApprouve(\'' + id + '\', ' + (!c.approuve) + ')">' +
+          (c.approuve ? 'Révoquer' : 'Approuver') + '</button>' +
+        // La suppression définitive n'apparaît que sur un compte sans accès :
+        // impossible de faire disparaître quelqu'un d'actif d'un clic de trop.
+        (c.approuve ? '' :
+          '<button class="btn insc-suppr" title="Supprimer définitivement ce compte" ' +
+            'onclick="supprimerCompte(\'' + id + '\', \'' + escJS(c.nom || email) + '\')">Supprimer</button>') +
+      '</div></div>';
+  }
+
+  // Supprime le compte pour de bon : connexion, profil, photo, abonnements.
+  // La base applique ses propres garde-fous — ce n'est pas le navigateur qui
+  // décide, une page trafiquée n'obtiendrait rien de plus.
+  async function supprimerCompte(id, qui) {
+    if (!confirm('Supprimer définitivement le compte de ' + qui + ' ?\n\n' +
+                 'Sa connexion, sa fiche de profil et sa photo seront effacées.\n' +
+                 'Ses photos de la galerie sont conservées.\n\n' +
+                 'Cette action est irréversible.')) return;
+
+    // La photo de profil part par le chemin officiel de Supabase : depuis
+    // 2026, les fichiers ne peuvent plus être effacés en SQL. Si cette étape
+    // échoue, on continue quand même — l'essentiel est que le compte parte,
+    // et une photo orpheline ne donne accès à rien.
+    try {
+      const { data: fichiers } = await SB.storage.from('photos').list(id);
+      if (fichiers && fichiers.length) {
+        await SB.storage.from('photos').remove(fichiers.map(f => id + '/' + f.name));
+      }
+    } catch (e) { console.warn('[suppression] photo non retirée :', e); }
+
+    const { data, error } = await SB.rpc('supprimer_compte', { p_id: id });
+    if (error) {
+      showToast(/supprimer_compte/i.test(error.message)
+        ? "Fonction absente : exécute supprimer-compte.sql dans Supabase."
+        : 'Suppression refusée : ' + error.message);
+      return;
+    }
+    showToast('Compte supprimé' + (data ? ' : ' + data : '') + '.');
+    renderInscriptions();
+    updateDashLive();
+  }
+
+  async function setApprouve(id, val) {
+    const { error } = await SB.from('comptes').update({ approuve: val }).eq('id', id);
+    if (error) { showToast('Erreur : ' + error.message); return; }
+    showToast(val ? 'Compte approuvé !' : 'Accès révoqué.');
+    renderInscriptions();
+    updateDashLive();
+  }
+
+  // Niveau d'accès du compte : tout l'espace membre, ou seulement les taxes.
+  // C'est la base qui fait respecter ce choix (fonction est_gerant_taxes),
+  // pas seulement l'affichage du site.
+  async function setAcces(id, val) {
+    const { error } = await SB.from('comptes').update({ acces: val }).eq('id', id);
+    if (error) {
+      showToast(/acces/i.test(error.message)
+        ? "La colonne « acces » n'existe pas encore : exécute acces-comptes.sql dans Supabase."
+        : 'Erreur : ' + error.message);
+      renderInscriptions();
+      return;
+    }
+    showToast(val === 'taxes'
+      ? 'Ce compte ne verra plus que le panneau Taxes.'
+      : "Ce compte a de nouveau accès à tout l'espace membre.");
+    renderInscriptions();
+  }
+
+  async function setRole(id, role) {
+    const autorises = ['membre','membre_confirme','responsable','haut_grade','direction','administrateur'];
+    if (!autorises.includes(role)) return;
+    const { error } = await SB.from('comptes').update({ role: role }).eq('id', id);
+    if (error) { showToast('Rôle refusé : ' + error.message); renderInscriptions(); return; }
+    showToast('Rôle mis à jour. Les permissions sont appliquées par Supabase.');
+    renderInscriptions();
+  }
+
+  function initAdmin() {
+    renderMembres();
+    renderHero();
+    loadContenu();
+    updateDash();
+    updateDashLive();
+  }
+
+  function updateDash() {
+    document.getElementById('dash-membres').textContent = data.membres.length;
+  }
+
+  // Statistiques en direct depuis Supabase (chaque bloc échoue en silence si indisponible)
+  async function updateDashLive() {
+    if (!SB) return;
+    try {
+      const { data: comptes } = await SB.from('comptes').select('approuve');
+      if (comptes) {
+        document.getElementById('dash-comptes').textContent = comptes.length;
+        const att = comptes.filter(c => !c.approuve).length;
+        document.getElementById('dash-attente').textContent = att;
+        const alerte = document.getElementById('dash-alerte');
+        const badge = document.getElementById('badge-attente');
+        if (att > 0) {
+          document.getElementById('dash-alerte-txt').textContent =
+            att + ' compte' + (att > 1 ? 's' : '') + ' en attente de validation';
+          alerte.style.display = 'flex';
+          badge.textContent = att; badge.style.display = 'flex';
+        } else {
+          alerte.style.display = 'none';
+          badge.style.display = 'none';
+        }
+      }
+    } catch (e) {}
+    try {
+      const { data: pres } = await SB.from('bot_presences').select('date_evt');
+      if (pres) document.getElementById('dash-presences').textContent =
+        pres.filter(p => p.date_evt && new Date(p.date_evt) > new Date()).length;
+    } catch (e) {}
+    try {
+      const { data: gal } = await SB.from('galerie_photos').select('id');
+      if (gal) document.getElementById('dash-galerie').textContent = gal.length;
+    } catch (e) {}
+    try {
+      const { data: meta } = await SB.from('bot_meta').select('value').eq('key', 'last_sync').maybeSingle();
+      if (meta && meta.value) {
+        const min = Math.max(0, Math.round((Date.now() - new Date(meta.value).getTime()) / 60000));
+        document.getElementById('dash-sync').textContent = min < 1 ? "à l'instant" : 'il y a ' + min + ' min';
+      } else {
+        document.getElementById('dash-sync').textContent = 'en attente';
+      }
+    } catch (e) {}
+  }
+
+  // ── PAGE D'ACCUEIL ──
+  function renderHero() {
+    document.getElementById('hero-sub').value = data.hero.sub;
+    document.getElementById('hero-btn').value = data.hero.btn;
+  }
+  function saveHero() {
+    data.hero.sub = document.getElementById('hero-sub').value;
+    data.hero.btn = document.getElementById('hero-btn').value;
+    saveData(); showToast('Accueil sauvegardé !');
+  }
+
+  async function loadContenu() {
+    if (!SB) return;
+    const { data: row } = await SB.from('site_contenu').select('valeur').eq('cle', 'accueil').maybeSingle();
+    const value = (row && row.valeur) || {};
+    document.getElementById('content-intro').value = value.histoire_intro || '';
+    document.getElementById('content-suite').value = value.histoire_suite || '';
+    document.getElementById('content-structure').value = value.histoire_structure || '';
+    document.getElementById('content-citation').value = value.citation || '';
+  }
+
+  async function saveContenu() {
+    if (!SB) return;
+    const valeur = {
+      histoire_intro: document.getElementById('content-intro').value.trim(),
+      histoire_suite: document.getElementById('content-suite').value.trim(),
+      histoire_structure: document.getElementById('content-structure').value.trim(),
+      citation: document.getElementById('content-citation').value.trim()
+    };
+    const { error } = await SB.from('site_contenu').upsert({ cle: 'accueil', valeur: valeur, est_public: true, updated_by: (await SB.auth.getUser()).data.user.id });
+    if (error) { showToast('Publication refusée : ' + error.message); return; }
+    showToast('Textes publiés sur la page d’accueil.');
+  }
+
+  // ── MEMBRES ──
+  function renderMembres() {
+    const list = document.getElementById('membre-list');
+    list.innerHTML = data.membres.map((m, i) => `
+      <div class="membre-row">
+        <input type="text" value="${m.nom}" placeholder="Nom du membre" onchange="data.membres[${i}].nom=this.value" />
+        <select onchange="data.membres[${i}].rang=this.value">
+          ${RANGS.map(r => `<option value="${r}" ${m.rang===r?'selected':''}>${r}</option>`).join('')}
+        </select>
+        <button class="btn danger" onclick="removeMembre(${i})">✕</button>
+      </div>
+    `).join('');
+  }
+  function addMembre() {
+    data.membres.push({ nom: "", rang: "Membre" });
+    renderMembres(); updateDash();
+  }
+  function removeMembre(i) {
+    if (confirm('Supprimer ce membre ?')) { data.membres.splice(i, 1); renderMembres(); updateDash(); }
+  }
+  function saveMembres() {
+    document.querySelectorAll('.membre-row').forEach((row, i) => {
+      if (data.membres[i]) {
+        data.membres[i].nom = row.querySelector('input').value;
+        data.membres[i].rang = row.querySelector('select').value;
+      }
+    });
+    saveData(); showToast('Membres sauvegardés !'); updateDash();
+  }
+
+  // ── SAVE / EXPORT ──
+  function saveData() {
+    localStorage.setItem('maja-admin-data', JSON.stringify(data));
+    localStorage.setItem('maja-admin-version', String(DATA_VERSION));
+  }
+
+  function resetData() {
+    if (confirm('Réinitialiser toutes les données avec le contenu par défaut du site ?\nLes modifications non exportées seront perdues.')) {
+      localStorage.removeItem('maja-admin-data');
+      localStorage.removeItem('maja-admin-version');
+      location.reload();
+    }
+  }
+
+  function exportData() {
+    const NL = '\n';
+    const bloc =
+      '// Liste officielle des membres (nom -> rang).' + NL +
+      'window.MAJA_MEMBRES = [' + NL +
+      data.membres.map(m => "  { nom: '" + String(m.nom).replace(/'/g, "\\'") + "', rang: '" + m.rang + "' }").join(',' + NL) +
+      NL + '];';
+    const txt = bloc + NL + NL +
+      "/* Textes de la page d'accueil (à reporter dans index.html si modifiés) :" + NL +
+      JSON.stringify(data.hero, null, 2) + NL + '*/';
+    const preview = document.getElementById('export-preview');
+    preview.textContent = txt;
+    preview.style.display = 'block';
+    navigator.clipboard.writeText(txt).then(() => {
+      showToast('Code copié ! Colle le bloc window.MAJA_MEMBRES dans config.js, puis publie.');
+    }).catch(() => {
+      showToast('Copie automatique refusée par le navigateur — sélectionne le texte ci-dessous et fais Ctrl+C.');
+    });
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+</script>
+
+<script src="starfield.js"></script>
+<script>
+  // Fond étoilé : le code est partagé avec l'espace membre (starfield.js).
+  starfield('admin-canvas', { max: 120, densite: 16000 });
+</script>
+  <script src="brand-runtime.js"></script>
+</body>
+</html>

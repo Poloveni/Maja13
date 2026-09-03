@@ -1,0 +1,26 @@
+{
+  "name": "MAJA 13 — M13 Hub",
+  "short_name": "M13",
+  "description": "Réseau privé de MAJA 13 — univers fictif GTA RP / FiveM.",
+  "start_url": "./espace-membre.html",
+  "scope": "./",
+  "id": "./m13-hub",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#070708",
+  "theme_color": "#070708",
+  "lang": "fr",
+  "categories": ["entertainment", "social", "utilities"],
+  "icons": [
+    {
+      "src": "assets/brand/logo-mark.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    { "name": "M13 Hub", "url": "./espace-membre.html", "icons": [{ "src": "assets/brand/logo-mark.svg", "sizes": "any", "type": "image/svg+xml" }] },
+    { "name": "M13 OS", "url": "./os.html", "icons": [{ "src": "assets/brand/logo-mark.svg", "sizes": "any", "type": "image/svg+xml" }] }
+  ]
+}
