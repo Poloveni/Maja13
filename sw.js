@@ -1,11 +1,12 @@
 /* Service Worker — MAJA 13 (PWA) */
-const CACHE = 'maja13-v1';
+const CACHE = 'maja13-v2';
 const CORE = [
   './', './index.html', './os.html', './espace-membre.html',
   './admin.html', './membre.html', './manifest.json', './404.html',
   './config.js', './brand-runtime.js', './maja-theme.css',
   './dashboard.css', './animations.css', './starfield.js',
   './assets/brand/logo-mark.svg',
+  './assets/visuals/hero-maja13.webp',
   './assets/visuals/hero-placeholder.svg',
   './assets/visuals/story-placeholder.svg',
   './assets/visuals/map-placeholder.svg'
