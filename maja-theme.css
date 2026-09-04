@@ -153,6 +153,30 @@ nav, .sidebar, .topbar, .barre {
 }
 .story-art img { display: block; width: 100%; height: auto; }
 
+.hierarchie-art {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.35);
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+.hierarchie-art:hover {
+  transform: translateY(-3px);
+  border-color: var(--border-strong);
+}
+.hierarchie-art img { display: block; width: 100%; height: auto; }
+.membres-title { margin-top: 64px; margin-bottom: 12px; }
+
+@media (max-width: 640px) {
+  .hierarchie-art { border-radius: 10px; }
+  .membres-title { margin-top: 44px; }
+}
+
 .sidebar, .sb { box-shadow: 30px 0 80px rgba(0,0,0,.2); }
 .sb-item.active, .side-btn.active, .nav-item.active {
   background: linear-gradient(90deg, rgba(159,38,53,.2), rgba(159,38,53,.04)) !important;

@@ -1,5 +1,5 @@
 /* Service Worker — MAJA 13 (PWA) */
-const CACHE = 'maja13-v4';
+const CACHE = 'maja13-v5';
 const CORE = [
   './', './index.html', './os.html', './espace-membre.html',
   './admin.html', './membre.html', './manifest.json', './404.html',
@@ -9,6 +9,7 @@ const CORE = [
   './assets/visuals/hero-maja13.webp',
   './assets/visuals/hero-placeholder.svg',
   './assets/visuals/story-maja13.webp',
+  './assets/visuals/hierarchie-maja13.webp',
   './assets/visuals/map-placeholder.svg'
 ];
 
