@@ -7,7 +7,7 @@
   <meta name="robots" content="noindex, nofollow" />
   <link rel="icon" type="image/svg+xml" href="assets/brand/logo-mark.svg" />
   <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#0b0c10" />
+  <meta name="theme-color" content="#f3ead5" />
   <link rel="apple-touch-icon" href="assets/brand/logo-mark.svg" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
@@ -497,6 +497,30 @@
     .file-label:hover { border-color: var(--muted); }
     input[type=file] { display: none; }
 
+    /* Documento de Identidad (DA Salvador) — pièce mise en scène de la fiche */
+    .da-card {
+      display: grid; grid-template-columns: 96px 1fr; gap: 18px; align-items: center;
+      max-width: 460px; padding: 20px 22px; border-radius: 12px;
+      background: linear-gradient(160deg, rgba(173,138,78,.14), rgba(159,38,53,.05)), var(--panel2);
+      border: 1px solid var(--border2);
+      position: relative; overflow: hidden;
+    }
+    .da-card::after {
+      content: 'REPÚBLICA DE EL SALVADOR'; position: absolute; right: 14px; bottom: 8px;
+      font-size: 8px; letter-spacing: .2em; color: var(--dim); text-transform: uppercase;
+    }
+    .da-photo { width: 96px; height: 96px; border-radius: 8px; overflow: hidden; background: var(--panel3); border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 700; color: var(--gold); }
+    .da-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .da-nom { font-family: 'Playfair Display', Georgia, serif; font-size: 20px; font-weight: 700; }
+    .da-grade { font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--gold); margin-top: 2px; }
+    .da-matricule { font-size: 11px; color: var(--muted); margin-top: 8px; letter-spacing: .06em; }
+
+    #prison-banniere {
+      display: flex; align-items: center; gap: 12px; padding: 14px 18px; margin-bottom: 14px;
+      border-radius: 10px; background: rgba(159,38,53,.1); border: 1px solid rgba(159,38,53,.35);
+      color: var(--red); font-size: 13px; font-weight: 600;
+    }
+
     /* Événements */
     .events-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
     .event-card { display: flex; gap: 16px; background: var(--panel2); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
@@ -506,7 +530,13 @@
     .event-title { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
     .event-time { font-size: 12px; color: var(--red); margin-bottom: 4px; }
     .event-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
-    .event-type { display: inline-block; font-size: 9px; letter-spacing: 1px; text-transform: uppercase; padding: 2px 7px; border-radius: 5px; background: rgba(192,57,43,0.15); color: var(--red); margin-bottom: 4px; }
+    .event-type { display: inline-block; font-size: 9px; letter-spacing: 1px; text-transform: uppercase; padding: 2px 7px; border-radius: 5px; background: rgba(159,38,53,0.15); color: var(--red); margin-bottom: 4px; }
+    .event-type.gros { background: rgba(159,38,53,0.85); color: #fff; }
+    .dispo-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .dispo-btn { flex: 1; min-width: 84px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border2); background: var(--panel2); color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; cursor: pointer; transition: .15s; }
+    .dispo-btn.on.dispo { background: rgba(31,138,76,.16); border-color: #1f8a4c; color: #1f8a4c; }
+    .dispo-btn.on.indispo { background: rgba(159,38,53,.14); border-color: var(--red); color: var(--red); }
+    .dispo-btn.on.incertain { background: rgba(168,103,15,.16); border-color: var(--amber); color: var(--amber); }
 
     /* Mobile : la sidebar devient une barre horizontale défilante */
     @media (max-width: 860px) {
@@ -800,7 +830,7 @@
       body:not(.tv-mode) .dash { margin-left: 0; padding: 18px 14px calc(86px + env(safe-area-inset-bottom)); }
       body:not(.tv-mode) #nav-mobile {
         display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
-        background: rgba(9,10,11,0.97); backdrop-filter: blur(12px);
+        background: rgba(255,253,246,0.97); backdrop-filter: blur(12px);
         border-top: 1px solid var(--border2);
         padding: 6px max(10px, env(safe-area-inset-left)) calc(8px + env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-right));
         justify-content: space-around; gap: 2px;
@@ -1000,6 +1030,7 @@
     <button type="button" class="sb-item req-approve" data-panel="braquages" data-title="Braquages &amp; &lt;em&gt;cooldowns&lt;/em&gt;"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5l9 16H3z"/><path d="M12 10v4"/><circle cx="12" cy="16.8" r=".9" fill="currentColor" stroke="none"/></svg></span><span class="lbl">Braquages</span></button>
     <button type="button" class="sb-item req-approve" data-panel="armurerie" data-sub="Les armes de la famille et qui les tient." data-title="L'&lt;em&gt;armurerie&lt;/em&gt;"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="7.5"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/></svg></span><span class="lbl">Armurerie</span></button>
     <button type="button" id="sb-taxes" class="sb-item req-approve" data-panel="taxes" data-sub="Créer des taxes en masse depuis un fichier Excel." data-title="Taxes &amp; &lt;em&gt;racket&lt;/em&gt;"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 3.5h13v17l-2.2-1.5-2.2 1.5-2.1-1.5L9.9 20.5 7.7 19l-2.2 1.5z"/><path d="M9 8h6M9 12h6"/></svg></span><span class="lbl">Taxes</span></button>
+    <button type="button" class="sb-item req-approve" data-panel="logs" data-sub="Le stock du coffre et ses derniers mouvements, en direct." data-title="&lt;em&gt;Logs&lt;/em&gt; &amp; stock"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4.5h16v15H4z"/><path d="M4 9.5h16M8 4.5v15"/></svg></span><span class="lbl">Logs</span></button>
 
     <div class="sb-group">Système</div>
     <button type="button" class="sb-item req-approve" id="tv-btn"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8.5 20.5h7"/></svg></span><span class="lbl">Mode TV</span></button>
@@ -1153,6 +1184,10 @@
 
     <!-- ARMURERIE -->
     <div class="panel" id="panel-armurerie">
+      <div class="bloc" style="margin-bottom:14px;">
+        <div class="bloc-t">Stock d'armes <small>(quantités en réserve, hors prêts en cours)</small></div>
+        <div id="bd-stock-armes"><div class="locked">Chargement…</div></div>
+      </div>
       <div class="bloc"><div id="bd-armurerie"><div class="locked">Chargement…</div></div></div>
     </div>
 
@@ -1184,6 +1219,8 @@
 
       <!-- Écran d'accueil : quelle taxe veux-tu regarder ? -->
       <div class="bloc" id="bloc-taxes-choix">
+        <div class="bloc-t">États des taxes <small>(toutes taxes actives confondues)</small></div>
+        <div id="taxes-resume" class="kpis" style="margin-bottom:18px;"></div>
         <div class="bloc-t">Quelle taxe veux-tu regarder ?</div>
         <div id="taxes-choix" class="tx-choix"><div class="locked">Chargement…</div></div>
       </div>
@@ -1196,6 +1233,18 @@
         </div>
         <div id="taxes-kpis"></div>
         <div id="taxes-liste"></div>
+      </div>
+    </div>
+
+    <!-- LOGS & STOCK EN DIRECT -->
+    <div class="panel" id="panel-logs">
+      <div class="bloc" style="margin-bottom:14px;">
+        <div class="bloc-t">Stock du coffre <small>(niveau actuel)</small></div>
+        <div id="logs-stock"><div class="locked">Chargement…</div></div>
+      </div>
+      <div class="bloc">
+        <div class="bloc-t">Mouvements <small>(en direct — dépôts et retraits)</small></div>
+        <div id="logs-feed"><div class="locked">Chargement…</div></div>
       </div>
     </div>
 
@@ -1235,6 +1284,14 @@
     <!-- BRAQUAGES & COOLDOWNS -->
     <div class="panel" id="panel-braquages">
       <div class="bloc" style="margin-bottom:14px;">
+        <div class="bloc-t">Petite Frappe <small>(seul braquage paramétrable — quota selon ton grade)</small></div>
+        <div id="bd-pf"><div class="locked">Chargement…</div></div>
+      </div>
+      <div class="bloc" style="margin-bottom:14px;">
+        <div class="bloc-t">Disponibilité des labos <small>(état en direct)</small></div>
+        <div id="bd-labos"><div class="locked">Chargement…</div></div>
+      </div>
+      <div class="bloc" style="margin-bottom:14px;">
         <div class="bloc-t">Braquages disponibles <small>(fenêtre glissante de 7 jours)</small></div>
         <div id="bd-braquages"><div class="locked">Chargement…</div></div>
       </div>
@@ -1245,7 +1302,7 @@
     </div>
 
     <!-- ÉVÉNEMENTS : PLANNING HEBDOMADAIRE -->
-    <!-- LA CARTE — points posés par la Direction, zones colorées par leur bonus -->
+    <!-- LA CARTE — points posés par la hiérarchie, zones colorées par leur bonus -->
     <div class="panel" id="panel-carte">
       <div class="bloc">
         <div class="bloc-t">La carte de Los Santos <span class="hint" id="carte-note" style="text-transform:none;letter-spacing:0;"></span></div>
@@ -1256,7 +1313,7 @@
         <div class="carte-legende" id="carte-legende"></div>
         <div id="carte-fiche" class="carte-fiche" style="display:none;"></div>
 
-        <!-- Mode édition — visible pour la Direction uniquement -->
+        <!-- Mode édition — visible pour la hiérarchie uniquement -->
         <div id="carte-admin" style="display:none;margin-top:14px;">
           <div id="carte-boutons" style="display:flex;gap:10px;flex-wrap:wrap;">
             <button type="button" class="btn carte-btn" id="carte-edit-btn" onclick="carteToggleEdition()">Modifier la carte</button>
@@ -1305,6 +1362,11 @@
 
     <!-- PROFIL -->
     <div class="panel" id="panel-profil">
+      <div id="prison-banniere" style="display:none;"></div>
+      <div class="bloc" style="margin-bottom:14px;">
+        <div class="bloc-t">Documento de Identidad <small>(mis en scène — fiche officielle du personnage)</small></div>
+        <div id="da-salvador"></div>
+      </div>
       <div class="bloc">
         <div class="profil-grid">
           <div>
@@ -1374,6 +1436,7 @@
   let pendingFile = null;
   let currentPhotoUrl = null;
   let currentNom = '';
+  let currentMatricule = '';
   let isApproved = false;
   let currentIsAdmin = false;
 
@@ -1736,8 +1799,162 @@
     loadCarte();
     loadTaxes();
     loadNotifs();
+    loadModulesMaja();
+    loadLogs();
     if (panneau === 'chronique') loadChronique();
     if (panneau === 'bilan') loadBilan();
+  }
+
+  // ── Grade, PF officiel, labos, stock d'armes, prison, Documento ──
+  // Un seul aller-retour groupé : ces modules sont propres à MAJA 13 (pas du
+  // bot) et vivent dans leurs propres tables, éditables depuis l'admin.
+  let MON_GRADE = null;
+  let GRADES_MAP = {};
+  async function loadModulesMaja() {
+    const [compteQ, gradesQ, pfQ, labosQ, armesQ, prisonQ] = await Promise.all([
+      sb.from('comptes').select('role').eq('id', currentUser.id).maybeSingle(),
+      sb.from('grades_config').select('*').order('ordre', { ascending: false }),
+      sb.from('pf_config').select('*').eq('id', 1).maybeSingle(),
+      sb.from('labos').select('*').order('nom'),
+      sb.from('stock_armes').select('*').order('arme'),
+      sb.from('prison').select('*').eq('user_id', currentUser.id).maybeSingle(),
+    ]);
+    const grades = gradesQ.data || [];
+    GRADES_MAP = {}; grades.forEach(g => { GRADES_MAP[g.role] = g; });
+    MON_GRADE = (compteQ.data && compteQ.data.role) || 'soldado';
+    const monGradeInfo = grades.find(g => g.role === MON_GRADE) || null;
+
+    // Bannière prison, visible sur son propre profil.
+    const banniere = document.getElementById('prison-banniere');
+    if (banniere) {
+      const p = prisonQ.data;
+      if (p && p.actif) {
+        const fin = p.jusqua ? new Date(p.jusqua).toLocaleString('fr-FR') : 'libération manuelle';
+        banniere.style.display = 'flex';
+        banniere.innerHTML = '🔒 <div>Tu es actuellement <b>en prison</b>' + (p.motif ? ' — ' + escT(p.motif) : '') + '. Sortie prévue : ' + escT(fin) + '.</div>';
+      } else banniere.style.display = 'none';
+    }
+
+    // Petite Frappe (PF officiel)
+    const bdPf = document.getElementById('bd-pf');
+    if (bdPf) {
+      if (pfQ.error || !pfQ.data) {
+        bdPf.innerHTML = '<div class="locked">Pas encore configuré — exécute la migration Supabase à jour.</div>';
+      } else {
+        const pf = pfQ.data;
+        const quota = monGradeInfo ? monGradeInfo.quota_pf_hebdo : 0;
+        bdPf.innerHTML =
+          '<div class="kpis" style="margin-bottom:0;">' +
+            '<div class="kpi" style="--kc:#ad8a4e;"><div class="kpi-label">Gain par coup</div><div class="kpi-num small">' + fmtArgent(pf.gain_min) + ' – ' + fmtArgent(pf.gain_max) + '</div></div>' +
+            '<div class="kpi" style="--kc:#9f2635;"><div class="kpi-label">Cooldown</div><div class="kpi-num small">' + pf.cooldown_minutes + ' min</div></div>' +
+            '<div class="kpi" style="--kc:#1f8a4c;"><div class="kpi-label">Ton quota hebdo (' + escT(monGradeInfo ? monGradeInfo.label : MON_GRADE) + ')</div><div class="kpi-num small">' + quota + ' / semaine</div></div>' +
+            '<div class="kpi"><div class="kpi-label">Limite serveur</div><div class="kpi-num small">' + pf.limite_semaine + ' / semaine</div></div>' +
+          '</div>';
+      }
+    }
+
+    // Dispo des labos
+    const bdLabos = document.getElementById('bd-labos');
+    if (bdLabos) {
+      const labos = labosQ.data || [];
+      if (labosQ.error) bdLabos.innerHTML = '<div class="locked">Module labos indisponible.</div>';
+      else if (!labos.length) bdLabos.innerHTML = '<div class="locked">Aucun labo enregistré pour le moment.</div>';
+      else {
+        const peutGerer = MON_GRADE && ['commandante', 'palabrero', 'segundo', 'jefe'].indexOf(MON_GRADE) !== -1;
+        bdLabos.innerHTML = '<table class="vd-table"><thead><tr><th>Labo</th><th>Statut</th><th>Occupé par</th><th>Libre à</th>' + (peutGerer ? '<th></th>' : '') + '</tr></thead><tbody>' +
+          labos.map(l => {
+            const cls = l.statut === 'libre' ? '#1f8a4c' : (l.statut === 'occupe' ? '#9f2635' : '#a8670f');
+            const label = l.statut === 'libre' ? 'Libre' : (l.statut === 'occupe' ? 'Occupé' : 'Maintenance');
+            return '<tr><td>' + escT(l.nom) + '</td><td style="color:' + cls + ';font-weight:700;">' + label + '</td>' +
+              '<td>' + (l.occupe_par ? escT(l.occupe_par) : '—') + '</td>' +
+              '<td>' + (l.dispo_a ? new Date(l.dispo_a).toLocaleString('fr-FR') : '—') + '</td>' +
+              (peutGerer ? '<td><button class="btn ghost" style="padding:6px 10px;font-size:10px;" onclick="toggleLabo(\'' + l.id + '\',\'' + (l.statut === 'libre' ? 'occupe' : 'libre') + '\')">' + (l.statut === 'libre' ? 'Occuper' : 'Libérer') + '</button></td>' : '') +
+              '</tr>';
+          }).join('') + '</tbody></table>';
+      }
+    }
+
+    // Stock d'armes
+    const bdArmes = document.getElementById('bd-stock-armes');
+    if (bdArmes) {
+      const armes = armesQ.data || [];
+      if (armesQ.error) bdArmes.innerHTML = '<div class="locked">Module stock d\'armes indisponible.</div>';
+      else if (!armes.length) bdArmes.innerHTML = '<div class="locked">Aucune arme enregistrée pour le moment.</div>';
+      else {
+        bdArmes.innerHTML = '<table class="vd-table"><thead><tr><th>Arme</th><th>Catégorie</th><th class="num">Quantité</th></tr></thead><tbody>' +
+          armes.map(a => {
+            const bas = a.seuil_alerte && a.quantite <= a.seuil_alerte;
+            return '<tr><td>' + escT(a.arme) + '</td><td>' + escT(a.categorie || '—') + '</td>' +
+              '<td class="num" style="' + (bas ? 'color:var(--red);font-weight:700;' : '') + '">' + a.quantite + (bas ? ' ⚠' : '') + '</td></tr>';
+          }).join('') + '</tbody></table>';
+      }
+    }
+
+    // Documento de Identidad (DA Salvador)
+    const da = document.getElementById('da-salvador');
+    if (da) {
+      const photo = document.getElementById('avatar-big');
+      const photoHTML = (photo && photo.querySelector('img')) ? photo.querySelector('img').outerHTML : (currentNom ? currentNom.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '?');
+      da.innerHTML =
+        '<div class="da-card">' +
+          '<div class="da-photo">' + photoHTML + '</div>' +
+          '<div>' +
+            '<div class="da-nom">' + escT(currentNom || 'Membre') + '</div>' +
+            '<div class="da-grade">' + escT(monGradeInfo ? monGradeInfo.label : MON_GRADE) + ' — MAJA 13</div>' +
+            '<div class="da-matricule">N° ' + escT(currentMatricule || genererMatricule(currentUser.id)) + '</div>' +
+          '</div>' +
+        '</div>';
+    }
+  }
+
+  function genererMatricule(uid) {
+    let h = 0;
+    for (let i = 0; i < uid.length; i++) h = (h * 31 + uid.charCodeAt(i)) >>> 0;
+    return 'SV-' + String(h % 100000).padStart(5, '0');
+  }
+
+  async function toggleLabo(id, statut) {
+    const { error } = await sb.from('labos').update({ statut: statut, updated_at: new Date().toISOString() }).eq('id', id);
+    if (error) { toast('Action refusée : ' + error.message); return; }
+    loadModulesMaja();
+  }
+
+  // ── Logs & stock en direct ──
+  let logsRealtimeArme = false;
+  async function loadLogs() {
+    const [stocksQ, histoQ] = await Promise.all([
+      sb.from('bot_stocks').select('*').order('item'),
+      sb.from('bot_stock_history').select('*').order('ts', { ascending: false }).limit(40),
+    ]);
+    const elStock = document.getElementById('logs-stock');
+    if (elStock) {
+      const stocks = (stocksQ.data || []).filter(s => (Number(s.quantite) || 0) > 0);
+      elStock.innerHTML = !stocks.length ? '<div class="locked">Coffre vide.</div>' :
+        '<div class="kpis" style="margin-bottom:0;">' + stocks.map(s =>
+          '<div class="kpi"><div class="kpi-label">' + escT(cap(s.item)) + '</div><div class="kpi-num small">' + Number(s.quantite).toLocaleString('fr-FR') + '</div></div>'
+        ).join('') + '</div>';
+    }
+    const elFeed = document.getElementById('logs-feed');
+    if (elFeed) renderLogsFeed(histoQ.data || []);
+
+    if (!logsRealtimeArme) {
+      logsRealtimeArme = true;
+      sb.channel('logs-stock-history')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'bot_stock_history' }, payload => {
+          loadLogs();
+        })
+        .subscribe();
+    }
+  }
+  function renderLogsFeed(rows) {
+    const elFeed = document.getElementById('logs-feed');
+    if (!elFeed) return;
+    if (!rows.length) { elFeed.innerHTML = '<div class="locked">Aucun mouvement récent.</div>'; return; }
+    elFeed.innerHTML = '<table class="vd-table"><thead><tr><th>Horodatage</th><th>Joueur</th><th>Action</th><th>Objet</th><th class="num">Quantité</th><th class="num">Stock après</th></tr></thead><tbody>' +
+      rows.map(r => '<tr><td>' + new Date(r.ts).toLocaleString('fr-FR') + '</td><td>' + escT(r.joueur || '—') + '</td>' +
+        '<td>' + (r.action === 'depose' ? '⬆ Dépôt' : '⬇ Retrait') + '</td><td>' + escT(cap(r.item)) + '</td>' +
+        '<td class="num">' + r.quantite + '</td><td class="num">' + r.stock_apres + '</td></tr>').join('') +
+      '</tbody></table>';
   }
 
   async function loadProfil() {
@@ -1755,6 +1972,7 @@
       document.getElementById('spec-input').value = data.specialite || '';
       document.getElementById('citation-input').value = data.citation || '';
       document.getElementById('bio-input').value = data.bio || '';
+      currentMatricule = data.matricule || '';
     }
   }
 
@@ -1773,11 +1991,13 @@
       currentPhotoUrl = pub.data.publicUrl;
       pendingFile = null;
     }
+    if (!currentMatricule) currentMatricule = genererMatricule(currentUser.id);
     const row = {
       id: currentUser.id, nom, rang, photo_url: currentPhotoUrl,
       specialite: document.getElementById('spec-input').value.trim() || null,
       citation: document.getElementById('citation-input').value.trim() || null,
       bio: document.getElementById('bio-input').value.trim() || null,
+      matricule: currentMatricule,
       updated_at: new Date().toISOString()
     };
     const { error } = await sb.from('profils').upsert(row);
@@ -1786,6 +2006,7 @@
     if (currentPhotoUrl) setAvatarPhoto(currentPhotoUrl + '?t=' + Date.now());
     toast('Profil enregistré !');
     showMsg('profil-msg', 'Ton profil est à jour. Ta fiche apparaît sur le site.', true);
+    loadModulesMaja();
   }
 
   // ── GALERIE ──
@@ -1839,24 +2060,38 @@
     return new Date(an, mn - 1, j, hm ? Math.min(23, +hm[1]) : 21, hm && hm[2] ? +hm[2] : 0);
   }
 
+  function estGrosBraquage(type) { return /gros[\s_-]*braquage/i.test(type || ''); }
+
   async function loadEvents() {
     const grid = document.getElementById('cal-grid');
     if (!grid) return;
-    const [ev, parts, pres] = await Promise.all([
+    const [ev, parts, pres, dispoQ] = await Promise.all([
       sb.from('evenements').select('*'),
       sb.from('participations').select('event_id, user_id'),
       sb.from('bot_presences').select('*'),
+      sb.from('disponibilites_gros_braquage').select('*'),
     ]);
     const counts = {}, mine = {};
     ((parts && parts.data) || []).forEach(p => {
       counts[p.event_id] = (counts[p.event_id] || 0) + 1;
       if (currentUser && p.user_id === currentUser.id) mine[p.event_id] = true;
     });
+    const dispoCompte = {}, monDispo = {};
+    ((dispoQ && dispoQ.data) || []).forEach(d => {
+      dispoCompte[d.event_id] = dispoCompte[d.event_id] || { dispo: 0, indispo: 0, incertain: 0 };
+      dispoCompte[d.event_id][d.statut] = (dispoCompte[d.event_id][d.statut] || 0) + 1;
+      if (currentUser && d.user_id === currentUser.id) monDispo[d.event_id] = d.statut;
+    });
     calItems = [];
     ((ev && ev.data) || []).forEach(e => {
       const d = eventDate(e);
       if (!d) return;
-      calItems.push({ kind: 'ev', d, titre: e.titre || 'Événement', texte: e.texte || '', heure: e.heure || '', type: e.type || '', id: e.id, count: counts[e.id] || 0, going: !!mine[e.id] });
+      const gros = estGrosBraquage(e.type);
+      calItems.push({
+        kind: 'ev', d, titre: e.titre || 'Événement', texte: e.texte || '', heure: e.heure || '', type: e.type || '', id: e.id,
+        count: counts[e.id] || 0, going: !!mine[e.id], gros: gros,
+        dispoCompte: dispoCompte[e.id] || { dispo: 0, indispo: 0, incertain: 0 }, monDispo: monDispo[e.id] || null,
+      });
     });
     ((pres && pres.data) || []).forEach(p => {
       if (!p.date_evt) return;
@@ -1939,6 +2174,18 @@
       box.innerHTML = '<div class="cal-card pr"><h3>🟢 ' + escT(it.titre) + '</h3>' +
         '<div class="meta">' + escT(quand) + (it.auteur ? ' · posté par ' + escT(it.auteur) : '') + '</div>' +
         '<p>' + escT(it.texte) + '</p>' + reacHtml + '</div>';
+    } else if (it.gros) {
+      const dc = it.dispoCompte;
+      box.innerHTML = '<div class="cal-card"><h3>🔴 ' + escT(it.titre) + ' <span class="event-type gros">' + escT(it.type) + '</span></h3>' +
+        '<div class="meta">' + escT(quand) + '</div>' +
+        '<p>' + escT(it.texte) + '</p>' +
+        '<div class="hint" style="margin-top:12px;">Gros braquage : indique ta disponibilité, ne laisse pas « Incertain » si tu sais déjà.</div>' +
+        '<div class="dispo-row">' +
+          ['dispo', 'indispo', 'incertain'].map(s => {
+            const lbl = s === 'dispo' ? '✅ Dispo' : (s === 'indispo' ? '❌ Pas dispo' : '❓ Incertain');
+            return '<button type="button" class="dispo-btn ' + s + (it.monDispo === s ? ' on' : '') + '" onclick="setDispoGrosBraquage(' + idx + ',\'' + s + '\')">' + lbl + ' (' + (dc[s] || 0) + ')</button>';
+          }).join('') +
+        '</div></div>';
     } else {
       box.innerHTML = '<div class="cal-card"><h3>🔴 ' + escT(it.titre) + (it.type ? ' <span style="font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;">· ' + escT(it.type) + '</span>' : '') + '</h3>' +
         '<div class="meta">' + escT(quand) + '</div>' +
@@ -1954,6 +2201,17 @@
     if (!currentUser || !it || it.kind !== 'ev') return;
     if (it.going) await sb.from('participations').delete().eq('event_id', it.id).eq('user_id', currentUser.id);
     else await sb.from('participations').insert({ event_id: it.id, user_id: currentUser.id });
+    await loadEvents();
+  }
+
+  async function setDispoGrosBraquage(idx, statut) {
+    const it = calItems[idx];
+    if (!currentUser || !it || it.kind !== 'ev') return;
+    const { error } = await sb.from('disponibilites_gros_braquage').upsert({
+      event_id: it.id, user_id: currentUser.id, statut: statut, updated_at: new Date().toISOString(),
+    });
+    if (error) { toast('Action refusée : ' + error.message); return; }
+    calSelected = idx;
     await loadEvents();
   }
 
@@ -2532,8 +2790,12 @@
         const jm = joueurs[monId] || { ventes: 0, recolte: 0, activites: 0, detail: [] };
         const vM = Math.round(jm.ventes);
         const rangM = ids.indexOf(monId);
-        const salaireM = Number(metaMap.salaire_par_vente || 30) || 30;
-        const bonusM = (rangM >= 0 && rangM < 3 && vM > 0) ? [30000, 20000, 15000][rangM] : 0;
+        // Paie au pourcentage : le taux vient du grade (grades_config), la base
+        // est ce que j'ai réellement généré en ventes confirmées cette semaine.
+        const montantSemaineM = vRows.filter(x => x.discord_id === monId && x.confirmed && new Date(x.ts) >= lundi)
+          .reduce((t, x) => t + (x.montant || 0), 0);
+        const pourcentageM = (GRADES_MAP[MON_GRADE] && GRADES_MAP[MON_GRADE].pourcentage_paie) || 10;
+        const paieM = Math.round(montantSemaineM * pourcentageM / 100);
         const pctM = Math.min(100, Math.round(vM / quotaVente * 100));
         window.__quotaMoi = { v: vM, quota: quotaVente };
         try { majNotifs(); } catch (e) {}
@@ -2594,8 +2856,8 @@
 
         elMoi.innerHTML =
           '<div class="kpis">' +
-            '<div class="kpi" style="--kc:#e0503f;"><div class="kpi-label">Mes ventes</div><div class="kpi-num">' + vM + '<small> / ' + quotaVente + '</small></div><div class="kpi-foot">' + (vM >= quotaVente ? '✅ quota atteint, la Direction est fière' : (quotaVente - vM) + ' restantes cette semaine') + '</div></div>' +
-            '<div class="kpi" style="--kc:#d4b26e;"><div class="kpi-label">Ma paie estimée</div><div class="kpi-num" style="color:var(--gold);">' + fmtArgent(vM * salaireM + bonusM) + '</div><div class="kpi-foot">' + (bonusM ? 'dont bonus podium ' + fmtArgent(bonusM) : salaireM + ' $ par vente') + '</div></div>' +
+            '<div class="kpi" style="--kc:#e0503f;"><div class="kpi-label">Mes ventes</div><div class="kpi-num">' + vM + '<small> / ' + quotaVente + '</small></div><div class="kpi-foot">' + (vM >= quotaVente ? '✅ quota atteint, le Palabrero est fier' : (quotaVente - vM) + ' restantes cette semaine') + '</div></div>' +
+            '<div class="kpi" style="--kc:#d4b26e;"><div class="kpi-label">Ma paie (' + pourcentageM + '%)</div><div class="kpi-num" style="color:var(--gold);">' + fmtArgent(paieM) + '</div><div class="kpi-foot">' + pourcentageM + '% de ' + fmtArgent(montantSemaineM) + ' générés cette semaine</div></div>' +
             '<div class="kpi" style="--kc:#5865f2;"><div class="kpi-label">Mon rang</div><div class="kpi-num">' + (rangM >= 0 ? '#' + (rangM + 1) : '—') + '</div><div class="kpi-foot">sur ' + ids.length + ' membres actifs</div></div>' +
             '<div class="kpi" style="--kc:#2ecc71;"><div class="kpi-label">Récolte · activités</div><div class="kpi-num">' + Math.round(jm.recolte) + ' <small>· ' + Math.round(jm.activites) + '</small></div><div class="kpi-foot" title="' + escT(jm.detail.join(', ')) + '">' + escT(jm.detail.slice(0, 2).join(', ') || 'aucune activité') + '</div></div>' +
           '</div>' +
@@ -3267,6 +3529,18 @@
     choix.innerHTML =
       types.map(ty => carte(ty, __taxesLabels[ty] || ty, "'" + String(ty).replace(/'/g, "\\'") + "'", '')).join('') +
       carte(null, 'Toutes les taxes', 'null', ' tx-toutes');
+
+    // États des taxes : compteur global par statut, en tuiles.
+    const resume = document.getElementById('taxes-resume');
+    if (resume) {
+      const compte = { payee: 0, ok: 0, urgent: 0, retard: 0, attente: 0 };
+      __taxes.forEach(x => { compte[x.e.k] = (compte[x.e.k] || 0) + 1; });
+      resume.innerHTML =
+        '<div class="kpi" style="--kc:#1f8a4c;"><div class="kpi-label">Payées</div><div class="kpi-num">' + compte.payee + '</div></div>' +
+        '<div class="kpi" style="--kc:#ad8a4e;"><div class="kpi-label">À jour</div><div class="kpi-num">' + compte.ok + '</div></div>' +
+        '<div class="kpi" style="--kc:#a8670f;"><div class="kpi-label">Urgentes (&lt; 48h)</div><div class="kpi-num">' + compte.urgent + '</div></div>' +
+        '<div class="kpi" style="--kc:#9f2635;"><div class="kpi-label">En retard</div><div class="kpi-num" style="color:var(--red);">' + compte.retard + '</div></div>';
+    }
   }
 
   // Affiche le détail d'un type (null = toutes les taxes).
@@ -3495,7 +3769,7 @@
         const d = Math.round((total - prev) / prev * 100);
         phr.push(pick([
           'Cette semaine, la Famille a écoulé <b>' + total.toLocaleString('fr-FR') + '</b> ventes — ' + (d >= 0 ? 'en hausse de <b>' + d + '%</b> sur la semaine passée. Les affaires reprennent des couleurs.' : 'en retrait de <b>' + Math.abs(d) + '%</b>. La rue a été moins généreuse, ou les soldats moins affamés.'),
-          'Le registre affiche <b>' + total.toLocaleString('fr-FR') + '</b> ventes. ' + (d >= 0 ? 'C\'est <b>' + d + '%</b> de mieux que la semaine d\'avant — la machine tourne.' : 'C\'est <b>' + Math.abs(d) + '%</b> de moins qu\'avant — la Direction a remarqué.'),
+          'Le registre affiche <b>' + total.toLocaleString('fr-FR') + '</b> ventes. ' + (d >= 0 ? 'C\'est <b>' + d + '%</b> de mieux que la semaine d\'avant — la machine tourne.' : 'C\'est <b>' + Math.abs(d) + '%</b> de moins qu\'avant — la hiérarchie a remarqué.'),
         ]));
       } else {
         phr.push('Cette semaine, la Famille a écoulé <b>' + total.toLocaleString('fr-FR') + '</b> ventes.');
@@ -3514,7 +3788,7 @@
       // Les quotas
       phr.push(pick([
         '<b>' + nbQ + '</b> membre(s) sur ' + rows.length + ' ont atteint le quota des ' + quota + ' ventes. ' + (nbQ >= rows.length / 2 ? 'La discipline paie.' : 'Les autres savent ce qu\'il leur reste à prouver.'),
-        'Côté quotas : <b>' + nbQ + '</b> sur ' + rows.length + ' au rendez-vous des ' + quota + ' ventes. ' + (nbQ === 0 ? 'Semaine à oublier — vite.' : nbQ >= rows.length / 2 ? 'La famille tient son rang.' : 'Peut mieux faire, et la Direction le sait.'),
+        'Côté quotas : <b>' + nbQ + '</b> sur ' + rows.length + ' au rendez-vous des ' + quota + ' ventes. ' + (nbQ === 0 ? 'Semaine à oublier — vite.' : nbQ >= rows.length / 2 ? 'La famille tient son rang.' : 'Peut mieux faire, et la hiérarchie le sait.'),
       ]));
       if (estRecord) phr.push('🏆 Et que l\'histoire le retienne : c\'est le <b>meilleur total jamais enregistré</b> par la Famille.');
       phr.push(pick([
@@ -3644,7 +3918,7 @@
         ctx.strokeStyle = 'rgba(211,172,104,0.35)'; ctx.lineWidth = 1; ctx.strokeRect(34, 34, 1132, 607);
         if (logo) { ctx.globalAlpha = 0.9; ctx.drawImage(logo, 950, 60, 180, 180); ctx.globalAlpha = 1; }
         ctx.fillStyle = '#d3ac68'; ctx.font = '600 22px Inter, sans-serif';
-        ctx.fillText('F A M I L L E   M O N I', 70, 96);
+        ctx.fillText('M A J A   1 3', 70, 96);
         ctx.fillStyle = '#9ba0a8'; ctx.font = '500 26px Inter, sans-serif';
         ctx.fillText('Bilan de ' + lblMois(mo), 70, 138);
         ctx.fillStyle = '#f7f8f8'; ctx.font = '700 58px Inter, sans-serif';
@@ -3672,7 +3946,7 @@
           trOk.forEach((t, i) => ctx.fillText(t.ico, 700 + i * 44, 545));
         }
         ctx.fillStyle = '#63676f'; ctx.font = '500 20px Inter, sans-serif';
-        ctx.fillText('maja13.example — Los Santos, FiveM', 70, 610);
+        ctx.fillText('MAJA 13 — Los Santos, FiveM', 70, 610);
       };
       const img = new Image();
       img.onload = () => dessiner(img);
@@ -3964,12 +4238,12 @@
       '<div class="hint" style="margin-top:14px;line-height:1.75;">' +
         'Le <b>barème</b> est la note officielle du serveur : le prix qu\'un PNJ paie l\'unité selon la pureté. ' +
         'Le <b>bonus de zone</b> vient du dernier relevé du bot et s\'y ajoute. ' +
-        'Le <b>bénéfice</b> déduit le prix d\'achat fixé par la Direction, plus bas dans la page. ' +
+        'Le <b>bénéfice</b> déduit le prix d\'achat fixé par le Segundo, plus bas dans la page. ' +
         'Ces montants sont des estimations : le jeu tire un prix au hasard dans la fourchette.' +
       '</div>';
   }
 
-  /* L'éditeur du barème — réservé à la Direction. Quand le serveur change ses
+  /* L'éditeur du barème — réservé au Segundo. Quand le serveur change ses
      prix, elle les corrige ici : pas besoin de repasser par Supabase. */
   function rendreEditeurBareme() {
     const zone = document.getElementById('calc-admin-zone');
@@ -4156,13 +4430,13 @@
       '<div class="hint" style="margin-top:14px;line-height:1.75;">' +
         '<b>Prix de vente au PNJ</b> : le dernier relevé automatique du bot, en lecture seule — ' +
         'ce que rapporte une unité revendue en jeu. ' +
-        '<b>Prix d\'achat</b> : ce que la famille paie l\'unité, saisi par la Direction. ' +
+        '<b>Prix d\'achat</b> : ce que la famille paie l\'unité, saisi par le Segundo. ' +
         '<b>Marge</b> : la différence, recalculée à chaque relevé du bot. ' +
         'La valeur du stock est calculée sur le prix d\'achat.' +
       '</div>' +
       (estAdmin
         ? '<button class="btn green" style="margin-top:16px;" onclick="savePrix()">Enregistrer les prix</button><div class="msg" id="prix-msg"></div>'
-        : '<div class="hint" style="margin-top:12px;">Les prix sont fixés par la Direction.</div>');
+        : '<div class="hint" style="margin-top:12px;">Les prix sont fixés par le Segundo.</div>');
   }
 
   async function savePrix() {
@@ -4229,7 +4503,7 @@
      dont l'épaisseur suit le bonus en cours — et le pourcentage est
      toujours écrit à côté, la couleur ne porte jamais l'info toute seule.
 
-     Le mode édition (Direction uniquement) travaille en local : rien ne part
+     Le mode édition (hiérarchie uniquement) travaille en local : rien ne part
      vers la base avant le clic sur « Enregistrer la carte ».
      ══════════════════════════════════════════════════════════════════════ */
   const CARTE_TYPES = {

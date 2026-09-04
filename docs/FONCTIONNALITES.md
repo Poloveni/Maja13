@@ -1,12 +1,16 @@
 # Fonctionnalités
 
+## Hiérarchie
+
+Six grades, du plus haut au plus bas : **Jefe → Segundo → Palabrero → Commandante → Sicario → Soldado**. Cette hiérarchie est la source unique pour l'affichage public (`config.js` → `MAJA_RANGS`/`MAJA_MEMBRES`), les permissions Supabase (`comptes.role`, RLS) et les quotas/paie (`grades_config`). L'inscription reste soumise à l'approbation manuelle d'un Palabrero et au-dessus ; le rôle Discord d'un membre peut seulement être affiché en suggestion (voir `docs/DISCORD.md`).
+
 ## Site public
 
-Hero premium, histoire éditable, valeurs et règles, cartes membres, organigramme, recrutement, galerie avec lightbox, QG/territoire, événements, statut FiveM, liens Discord, SEO, responsive et préférences de réduction des animations.
+Hero premium (photo mise en scène), histoire éditable, valeurs et règles, cartes membres, organigramme, recrutement, galerie avec lightbox, QG/territoire, événements, statut FiveM, liens Discord, SEO, responsive, thème blanc/beige et préférences de réduction des animations.
 
 ## M13 Hub
 
-Authentification e-mail et Discord, inscription avec approbation, récupération de mot de passe, profil personnage, statistiques, semaine individuelle, bilan, planning, vue d'ensemble, classement, palmarès, chronique, carte, galerie, prix, coffre, activités, armurerie, taxes, import/historique, notifications et mode TV.
+Authentification e-mail et Discord, inscription avec approbation, récupération de mot de passe, profil personnage avec carte d'identité mise en scène (« Documento », matricule), statistiques, semaine individuelle avec paie au pourcentage du grade, bilan, planning (avec disponibilité à 3 états sur les gros braquages), vue d'ensemble, classement, palmarès, chronique, carte, galerie, prix, coffre, logs de stock en direct, Petite Frappe (seul braquage paramétrable, quotas par grade), disponibilité des labos, armurerie et stock d'armes, taxes (avec tuiles d'état), import/historique, notifications et mode TV.
 
 ## M13 OS
 
@@ -14,7 +18,7 @@ Authentification e-mail et Discord, inscription avec approbation, récupération
 
 ## Administration
 
-Vue d'ensemble, contenu public, textes d'accueil, liste et rangs des membres, inscriptions, approbation/refus/suppression de comptes, attribution de rôles et export de configuration.
+Vue d'ensemble, contenu public, textes d'accueil, liste et rangs des membres, inscriptions (avec grade suggéré depuis Discord), approbation/refus/suppression de comptes, boutons prison, attribution de grades, configuration des quotas et de la paie par grade, paramètres de Petite Frappe et export de configuration.
 
 ## Infrastructure
 

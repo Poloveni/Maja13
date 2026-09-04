@@ -1,7 +1,7 @@
 -- Remplacez l'adresse ci-dessous, puis exécutez ce fichier dans le SQL Editor.
 -- Cette opération doit rester manuelle et côté serveur.
 update public.comptes
-set approuve = true, role = 'administrateur', acces = 'complet', updated_at = now()
+set approuve = true, role = 'jefe', acces = 'complet', updated_at = now()
 where email = 'VOTRE_EMAIL_ADMIN';
 
 -- Vérification : doit renvoyer exactement le compte choisi.

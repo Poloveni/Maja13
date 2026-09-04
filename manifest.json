@@ -7,8 +7,8 @@
   "id": "./m13-hub",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#070708",
-  "theme_color": "#070708",
+  "background_color": "#f3ead5",
+  "theme_color": "#f3ead5",
   "lang": "fr",
   "categories": ["entertainment", "social", "utilities"],
   "icons": [

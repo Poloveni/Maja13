@@ -35,3 +35,7 @@ Les noms exacts attendus sont aussi visibles au début de chaque fichier `supaba
 
 Le workflow `.github/workflows/sync-discord.yml` appelle les trois synchronisations toutes les cinq minutes. Ajoutez `SUPABASE_URL` et `CRON_SECRET` dans les secrets du repository GitHub.
 
+## Grade suggéré depuis le rôle Discord
+
+L'approbation d'un compte reste toujours manuelle (écran **Inscriptions** de `admin.html`), mais l'admin peut voir un grade suggéré à côté du sélecteur si la table `public.bot_grade_mapping` (`discord_id text primary key, grade text`) contient une ligne pour ce membre. Cette table suit le même principe que `bot_user_mapping.is_admin` : elle n'est écrite que par le bot (via la `service_role`, qui contourne les RLS), jamais par le navigateur. Pour l'activer, faites écrire votre bot dans cette table à chaque changement de rôle Discord, avec l'un des six slugs suivants : `jefe`, `segundo`, `palabrero`, `commandante`, `sicario`, `soldado`.
+

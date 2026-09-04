@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://maja13.example/os.html" />
 <link rel="icon" type="image/svg+xml" href="assets/brand/logo-mark.svg" />
 <link rel="manifest" href="manifest.json" />
-<meta name="theme-color" content="#0a0b0e" />
+<meta name="theme-color" content="#f3ead5" />
 <link rel="apple-touch-icon" href="assets/brand/logo-mark.svg" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
@@ -20,17 +20,17 @@
 <style>
   *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
   :root{
-    --bg:#0a0b0e; --panel:#14161c; --panel2:#1b1e26; --border:rgba(255,255,255,.09);
-    --text:#eceef2; --muted:#9aa0b0; --dim:#8b93a5;
-    --red:#c0392b; --green:#0b8c45; --gold:#d4b26e;
+    --bg:#f3ead5; --panel:#fffdf6; --panel2:#f1e7d2; --border:rgba(60,45,20,.16);
+    --text:#241d15; --muted:#6b5f4c; --dim:#8a7b62;
+    --red:#9f2635; --green:#1f8a4c; --gold:#ad8a4e;
   }
   html,body{height:100%}
   body{
     font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; color:var(--text);
     background:
-      radial-gradient(1200px 700px at 70% -10%, rgba(11,140,69,.10), transparent 60%),
-      radial-gradient(1000px 700px at 10% 110%, rgba(192,57,43,.12), transparent 60%),
-      #06070a;
+      radial-gradient(1200px 700px at 70% -10%, rgba(173,138,78,.12), transparent 60%),
+      radial-gradient(1000px 700px at 10% 110%, rgba(159,38,53,.08), transparent 60%),
+      var(--bg);
     background-size:cover; background-position:center; overflow:hidden; user-select:none;
   }
   #bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5}
@@ -56,32 +56,32 @@
   .tb-flag i{flex:1}.tb-flag .g{background:var(--green)}.tb-flag .w{background:#f2f2f2}.tb-flag .r{background:var(--red)}
 
   /* ── MENU DÉMARRER ── */
-  #startmenu{position:fixed;left:12px;top:44px;z-index:1500;width:244px;background:rgba(20,22,28,.97);
-    backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:12px;padding:10px;display:none;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+  #startmenu{position:fixed;left:12px;top:44px;z-index:1500;width:244px;background:rgba(255,253,246,.97);
+    backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:12px;padding:10px;display:none;box-shadow:0 20px 60px rgba(60,45,20,.22)}
   #startmenu.open{display:block;animation:winIn .15s}
   .sm-title{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);padding:8px 8px 4px}
   .sm-item{display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:8px;cursor:pointer;font-size:13px}
-  .sm-item:hover{background:rgba(255,255,255,.06)}
+  .sm-item:hover{background:rgba(36,29,21,.06)}
   .sm-item svg{width:18px;height:18px;stroke:var(--gold);fill:none;stroke-width:1.7}
-  .sm-item.quit{color:#ff6b6b;margin-top:8px;padding-top:12px;border-top:1px solid var(--border)}
-  .sm-item.quit svg{stroke:#ff6b6b}
+  .sm-item.quit{color:#c0392b;margin-top:8px;padding-top:12px;border-top:1px solid var(--border)}
+  .sm-item.quit svg{stroke:#c0392b}
 
   /* ── MENU CONTEXTUEL ── */
-  #ctx{position:fixed;z-index:1600;background:rgba(20,22,28,.98);border:1px solid var(--border);border-radius:10px;
-    padding:6px;display:none;min-width:196px;box-shadow:0 16px 40px rgba(0,0,0,.6)}
+  #ctx{position:fixed;z-index:1600;background:rgba(255,253,246,.98);border:1px solid var(--border);border-radius:10px;
+    padding:6px;display:none;min-width:196px;box-shadow:0 16px 40px rgba(60,45,20,.22)}
   #ctx.open{display:block;animation:winIn .12s}
   .ctx-item{padding:9px 12px;border-radius:7px;font-size:13px;cursor:pointer;display:flex;gap:9px;align-items:center}
-  .ctx-item:hover{background:rgba(255,255,255,.07)}
+  .ctx-item:hover{background:rgba(36,29,21,.07)}
 
   /* ── ICÔNES BUREAU ── */
   .desktop{position:fixed;inset:0;z-index:10;pointer-events:none}
   .icon{position:absolute;pointer-events:auto;width:88px;padding:12px 6px;border-radius:12px;cursor:grab;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;transition:background .15s}
   .icon:active{cursor:grabbing}
-  .icon:hover{background:rgba(255,255,255,.06)}
-  .icon.active{background:rgba(212,178,110,.14)}
+  .icon:hover{background:rgba(36,29,21,.06)}
+  .icon.active{background:rgba(173,138,78,.18)}
   .icon .glyph{width:46px;height:46px;border:1px solid var(--border);border-radius:12px;background:var(--panel);display:flex;align-items:center;justify-content:center;color:var(--text)}
   .icon .glyph svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.7}
-  .icon span{font-size:11px;color:var(--text);text-shadow:0 1px 3px #000}
+  .icon span{font-size:11px;color:var(--text);text-shadow:0 1px 3px rgba(255,253,246,.6)}
 
   /* ── FENÊTRES ── */
   .win{position:fixed;z-index:100;min-width:260px;min-height:160px;background:var(--panel);border:1px solid var(--border);
@@ -94,7 +94,7 @@
   .win-btns button{width:13px;height:13px;border-radius:50%;border:none;cursor:pointer}
   .b-min{background:#f0b429}.b-max{background:#3ba55d}.b-close{background:#ed4245}
   .win-body{flex:1;overflow:auto;padding:18px 20px}
-  .win-body::-webkit-scrollbar{width:9px}.win-body::-webkit-scrollbar-thumb{background:#2a2e38;border-radius:6px}
+  .win-body::-webkit-scrollbar{width:9px}.win-body::-webkit-scrollbar-thumb{background:rgba(36,29,21,.22);border-radius:6px}
   .resize{position:absolute;right:0;bottom:0;width:18px;height:18px;cursor:nwse-resize;z-index:2}
   .resize::after{content:'';position:absolute;right:3px;bottom:3px;width:7px;height:7px;border-right:2px solid var(--dim);border-bottom:2px solid var(--dim)}
 
@@ -132,7 +132,7 @@
   .game-hud b{color:var(--gold)}
   #g-canvas{background:#05070a;border:1px solid var(--border);border-radius:8px;max-width:100%;cursor:crosshair}
   /* Widget bureau (horloge + citation) */
-  #widget{position:fixed;top:56px;right:16px;z-index:8;width:230px;background:rgba(20,22,28,.55);backdrop-filter:blur(8px);
+  #widget{position:fixed;top:56px;right:16px;z-index:8;width:230px;background:rgba(255,253,246,.6);backdrop-filter:blur(8px);
     border:1px solid var(--border);border-radius:14px;padding:16px 18px;text-align:right;pointer-events:none}
   #widget .w-time{font-size:34px;font-weight:800;letter-spacing:1px;line-height:1}
   #widget .w-date{font-size:11px;color:var(--muted);text-transform:capitalize;margin-top:2px}
@@ -153,7 +153,7 @@
 
   /* ── DOCK ── */
   .dock{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);z-index:1000;display:flex;gap:8px;padding:8px 10px;
-    background:rgba(20,22,28,.8);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:16px;min-height:52px;align-items:center;max-width:92vw;overflow-x:auto}
+    background:rgba(255,253,246,.82);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:16px;min-height:52px;align-items:center;max-width:92vw;overflow-x:auto}
   .dock:empty{display:none}
   .dock-item{width:40px;height:40px;flex:0 0 auto;border-radius:10px;background:var(--panel2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;color:var(--text)}
   .dock-item svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7}
@@ -162,17 +162,17 @@
 
   /* ── ÉCRAN DE CONNEXION ── */
   #lock{position:fixed;inset:0;z-index:6000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
-    background:radial-gradient(900px 600px at 50% 30%, rgba(212,178,110,.10), transparent 60%), #05060a;transition:opacity .5s}
+    background:radial-gradient(900px 600px at 50% 30%, rgba(212,178,110,.10), transparent 60%), #05060a;color:#f3ead5;transition:opacity .5s}
   .lock-time{font-size:66px;font-weight:800;letter-spacing:2px}
-  .lock-date{color:var(--muted);font-size:14px;text-transform:capitalize;margin-bottom:26px}
+  .lock-date{color:rgba(243,234,213,.7);font-size:14px;text-transform:capitalize;margin-bottom:26px}
   .lock-crest{width:70px;height:70px;border-radius:50%;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:var(--gold);margin-bottom:10px}
   .lock-name{font-size:18px;font-weight:700;letter-spacing:1px}
-  .lock-sub{color:var(--muted);font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:26px}
+  .lock-sub{color:rgba(243,234,213,.7);font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:26px}
   #enter-btn{background:var(--gold);color:#1a1206;border:none;border-radius:10px;padding:13px 30px;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.5px;transition:transform .15s,box-shadow .2s}
   #enter-btn:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(212,178,110,.3)}
 
   /* boot */
-  #boot{position:fixed;inset:0;z-index:5000;background:#06070a;display:none;flex-direction:column;align-items:center;justify-content:center;gap:22px;transition:opacity .6s}
+  #boot{position:fixed;inset:0;z-index:5000;background:#06070a;color:#f3ead5;display:none;flex-direction:column;align-items:center;justify-content:center;gap:22px;transition:opacity .6s}
   #boot .logo{font-size:34px;font-weight:800;letter-spacing:3px}
   #boot .logo b{color:var(--gold)}
   #boot .bar{width:200px;height:3px;background:#1b1e26;border-radius:3px;overflow:hidden}
@@ -224,8 +224,8 @@
   .toggle.on .sw-t{background:var(--green)}.toggle.on .sw-t i{left:20px}
   /* Notifications */
   #notifs{position:fixed;right:16px;bottom:72px;z-index:1800;display:flex;flex-direction:column;gap:10px;align-items:flex-end}
-  .notif{background:rgba(20,22,28,.97);backdrop-filter:blur(10px);border:1px solid var(--border);border-left:3px solid var(--gold);
-    border-radius:10px;padding:12px 16px;max-width:300px;box-shadow:0 14px 40px rgba(0,0,0,.5);animation:notifIn .3s ease-out}
+  .notif{background:rgba(255,253,246,.97);backdrop-filter:blur(10px);border:1px solid var(--border);border-left:3px solid var(--gold);
+    border-radius:10px;padding:12px 16px;max-width:300px;box-shadow:0 14px 40px rgba(60,45,20,.2);animation:notifIn .3s ease-out}
   @keyframes notifIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}
   .notif .nt{font-size:12.5px;font-weight:700;margin-bottom:3px}
   .notif .nb{font-size:12px;color:var(--muted);line-height:1.5}
@@ -344,8 +344,8 @@ const EVENTS = [
   { j:26, m:'Entretiens', d:'Canal recrutement — 21h00', t:'Recrutement' },
 ];
 const MESSAGES = [
-  { from:'Direction M13', rank:'Direction', subj:'Bienvenue sur le réseau', body:'Ce contenu est un exemple. Remplacez-le par vos annonces RP depuis la configuration ou votre future source de données.' },
-  { from:'Consejo', rank:'Consejo', subj:'Briefing', body:'Réunion au QG à 21h. Les détails seront transmis sur le canal interne.' },
+  { from:'Jefe M13', rank:'Jefe', subj:'Bienvenue sur le réseau', body:'Ce contenu est un exemple. Remplacez-le par vos annonces RP depuis la configuration ou votre future source de données.' },
+  { from:'Palabrero', rank:'Palabrero', subj:'Briefing', body:'Réunion au QG à 21h. Les détails seront transmis sur le canal interne.' },
 ];
 const DOCS = [
   { title:'Le Code M13', body:'I. RP sérieux et respect du règlement.\nII. Présence et communication.\nIII. Loyauté et confidentialité.\nIV. Respect des membres et des joueurs.\nV. Jeu collectif.' },

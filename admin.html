@@ -200,12 +200,15 @@
     </div>
 
     <div class="sb-group">Pilotage</div>
-    <button type="button" class="sb-item active" data-panel="dashboard" data-title="Bienvenue, &lt;em&gt;Direction&lt;/em&gt; 👑" data-sub="Vue d'ensemble du site et de la famille." onclick="showPanel('dashboard', this)"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V9m5 10V5m5 14v-7m5 7V8"/></svg></span><span class="lbl">Dashboard</span></button>
+    <button type="button" class="sb-item active" data-panel="dashboard" data-title="Bienvenue, &lt;em&gt;Jefe&lt;/em&gt; 👑" data-sub="Vue d'ensemble du site et de la famille." onclick="showPanel('dashboard', this)"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V9m5 10V5m5 14v-7m5 7V8"/></svg></span><span class="lbl">Dashboard</span></button>
 
     <div class="sb-group">Contenu</div>
     <button type="button" class="sb-item" data-panel="hero" data-title="Page d'&lt;em&gt;accueil&lt;/em&gt;" data-sub="Les textes principaux du site public." onclick="showPanel('hero', this)"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5L12 4l8 6.5"/><path d="M6 10v10h12V10"/><path d="M10 20v-5.5h4V20"/></svg></span><span class="lbl">Page d'accueil</span></button>
     <button type="button" class="sb-item" data-panel="contenu" data-title="Histoire &amp; &lt;em&gt;contenu&lt;/em&gt;" data-sub="Textes publiés directement depuis Supabase." onclick="showPanel('contenu', this)"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3z"/><path d="M9 9h6M9 13h6"/></svg></span><span class="lbl">Histoire & textes</span></button>
     <button type="button" class="sb-item" data-panel="membres" data-title="Les &lt;em&gt;membres&lt;/em&gt;" data-sub="La liste officielle : noms et rangs." onclick="showPanel('membres', this)"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9.5" cy="8.5" r="3.3"/><path d="M3.4 19.5a6.1 6.1 0 0112.2 0"/><path d="M16.2 6.1a3.3 3.3 0 010 5.4M17.4 14.6a6 6 0 013.2 4.9"/></svg></span><span class="lbl">Membres</span></button>
+
+    <div class="sb-group">Économie</div>
+    <button type="button" class="sb-item" data-panel="grades" data-title="&lt;em&gt;Grades&lt;/em&gt;, quotas &amp; paie" data-sub="Quotas de Petite Frappe et pourcentage de paie par grade." onclick="showPanel('grades', this)"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5l9 16H3z"/><path d="M12 10v4"/><circle cx="12" cy="16.8" r=".9" fill="currentColor" stroke="none"/></svg></span><span class="lbl">Grades &amp; PF</span></button>
 
     <div class="sb-group">Espace membre</div>
     <button type="button" class="sb-item" id="side-inscriptions" data-panel="inscriptions" data-title="Les &lt;em&gt;inscriptions&lt;/em&gt;" data-sub="Approuve ou refuse les comptes créés sur l'espace membre." onclick="showPanel('inscriptions', this)"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M8.3 12.2l2.6 2.6 5-5.2"/></svg></span><span class="lbl">Inscriptions</span><span class="sb-badge" id="badge-attente"></span></button>
@@ -226,7 +229,7 @@
   <main class="dash">
     <div class="dash-head">
       <div>
-        <div class="dash-title" id="dash-titre">Bienvenue, <em>Direction</em> 👑</div>
+        <div class="dash-title" id="dash-titre">Bienvenue, <em>Jefe</em> 👑</div>
         <div class="dash-sub" id="dash-soustitre">Vue d'ensemble du site et de la famille.</div>
       </div>
     </div>
@@ -304,6 +307,20 @@
         <button class="btn ghost" style="margin-bottom:16px;" onclick="addMembre()">+ Ajouter un membre</button>
         <div id="membre-list"></div>
         <button class="btn green" style="margin-top:8px;" onclick="saveMembres()">✓ Enregistrer les membres</button>
+      </div>
+    </div>
+
+    <!-- GRADES, QUOTAS & PETITE FRAPPE -->
+    <div class="panel" id="panel-grades">
+      <div class="bloc" style="margin-bottom:16px;">
+        <div class="bloc-t">Petite Frappe (PF officiel) <small>— seul braquage paramétrable côté site</small></div>
+        <p class="hint" style="margin-bottom:14px;">Ces valeurs s'affichent telles quelles dans le Hub, à tous les membres approuvés.</p>
+        <div id="pf-form"><div class="hint">Chargement…</div></div>
+      </div>
+      <div class="bloc">
+        <div class="bloc-t">Grades <small>— quota Petite Frappe hebdo et pourcentage de paie</small></div>
+        <p class="hint" style="margin-bottom:14px;">Le pourcentage s'applique aux ventes confirmées de la semaine pour calculer la paie affichée dans « Ma semaine ».</p>
+        <div id="grades-list"><div class="hint">Chargement…</div></div>
       </div>
     </div>
 
@@ -430,6 +447,71 @@
       if (el.dataset.sub) document.getElementById('dash-soustitre').textContent = el.dataset.sub;
     }
     if (id === 'inscriptions') renderInscriptions();
+    if (id === 'grades') renderGrades();
+  }
+
+  // ── GRADES, QUOTAS & PETITE FRAPPE ──
+  var GRADE_LABELS = { soldado: 'Soldado', sicario: 'Sicario', commandante: 'Commandante', palabrero: 'Palabrero', segundo: 'Segundo', jefe: 'Jefe' };
+
+  async function renderGrades() {
+    const pfEl = document.getElementById('pf-form');
+    const gradesEl = document.getElementById('grades-list');
+    if (!SB) { pfEl.innerHTML = gradesEl.innerHTML = '<p class="hint">Supabase non chargé.</p>'; return; }
+    const [pfQ, gradesQ] = await Promise.all([
+      SB.from('pf_config').select('*').eq('id', 1).maybeSingle(),
+      SB.from('grades_config').select('*').order('ordre', { ascending: false }),
+    ]);
+    if (pfQ.error) { pfEl.innerHTML = '<p class="hint">Table pf_config absente — exécute la migration Supabase à jour.</p>'; }
+    else {
+      const pf = pfQ.data || { nom: 'Petite Frappe', gain_min: 0, gain_max: 0, cooldown_minutes: 0, limite_semaine: 0 };
+      pfEl.innerHTML =
+        '<label>Nom affiché</label><input type="text" id="pf-nom" value="' + escHTML(pf.nom || 'Petite Frappe') + '" />' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">' +
+          '<div><label>Gain minimum ($)</label><input type="number" id="pf-min" value="' + (pf.gain_min || 0) + '" min="0" /></div>' +
+          '<div><label>Gain maximum ($)</label><input type="number" id="pf-max" value="' + (pf.gain_max || 0) + '" min="0" /></div>' +
+          '<div><label>Cooldown (minutes)</label><input type="number" id="pf-cd" value="' + (pf.cooldown_minutes || 0) + '" min="0" /></div>' +
+          '<div><label>Limite / semaine (serveur)</label><input type="number" id="pf-limite" value="' + (pf.limite_semaine || 0) + '" min="0" /></div>' +
+        '</div>' +
+        '<button class="btn green" onclick="savePfConfig()">✓ Enregistrer Petite Frappe</button>' +
+        '<div class="msg" id="pf-msg"></div>';
+    }
+    if (gradesQ.error) { gradesEl.innerHTML = '<p class="hint">Table grades_config absente — exécute la migration Supabase à jour.</p>'; return; }
+    const grades = gradesQ.data || [];
+    gradesEl.innerHTML = grades.map(g =>
+      '<div class="membre-row" style="grid-template-columns:120px 1fr 1fr 90px;align-items:end;">' +
+        '<div style="font-weight:700;color:' + escHTML(g.couleur || 'var(--text)') + ';">' + escHTML(GRADE_LABELS[g.role] || g.role) + '</div>' +
+        '<div><label style="margin-bottom:4px;">Quota PF / semaine</label><input type="number" min="0" value="' + (g.quota_pf_hebdo || 0) + '" onchange="setGradeChamp(\'' + g.role + '\',\'quota_pf_hebdo\',this.value)" /></div>' +
+        '<div><label style="margin-bottom:4px;">Paie (%)</label><input type="number" min="0" max="100" step="0.5" value="' + (g.pourcentage_paie || 0) + '" onchange="setGradeChamp(\'' + g.role + '\',\'pourcentage_paie\',this.value)" /></div>' +
+        '<div></div>' +
+      '</div>'
+    ).join('');
+  }
+
+  async function savePfConfig() {
+    const row = {
+      id: 1,
+      nom: document.getElementById('pf-nom').value.trim() || 'Petite Frappe',
+      gain_min: Number(document.getElementById('pf-min').value) || 0,
+      gain_max: Number(document.getElementById('pf-max').value) || 0,
+      cooldown_minutes: Number(document.getElementById('pf-cd').value) || 0,
+      limite_semaine: Number(document.getElementById('pf-limite').value) || 0,
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = await SB.from('pf_config').upsert(row);
+    const msg = document.getElementById('pf-msg');
+    if (error) { msg.textContent = 'Erreur : ' + error.message; msg.style.color = 'var(--red)'; return; }
+    msg.textContent = 'Enregistré.'; msg.style.color = 'var(--green)';
+    showToast('Petite Frappe mise à jour.');
+  }
+
+  // Chaque champ s'enregistre au changement — pas de bouton "tout enregistrer"
+  // qui oublierait une ligne oubliée plus haut dans le tableau.
+  async function setGradeChamp(role, champ, valeur) {
+    const patch = { updated_at: new Date().toISOString() };
+    patch[champ] = Number(valeur) || 0;
+    const { error } = await SB.from('grades_config').update(patch).eq('role', role);
+    if (error) { showToast('Erreur : ' + error.message); return; }
+    showToast(GRADE_LABELS[role] + ' mis à jour.');
   }
 
   // ── INSCRIPTIONS (approbation des comptes) ──
@@ -438,6 +520,7 @@
   var COMPTES = [];
   var FILTRE = '';
   var NOTE_INSC = '';
+  var PRISON = {};
 
   // « il y a 3 jours », « hier »… plus parlant qu'une date brute pour savoir
   // qui est encore actif.
@@ -482,6 +565,15 @@
     }
 
     COMPTES = comptes;
+
+    // Statut prison, chargé à part : la policy RLS le réserve aux grades
+    // Palabrero et au-dessus, donc ça échoue silencieusement pour les autres.
+    PRISON = {};
+    try {
+      const pr = await SB.from('prison').select('*');
+      (pr.data || []).forEach(function (row) { PRISON[row.user_id] = row; });
+    } catch (e) { /* pas les droits, ou table absente : on continue sans */ }
+
     dessineInscriptions();
   }
 
@@ -524,13 +616,17 @@
     }
   }
 
+  var GRADES = { soldado: 'Soldado', sicario: 'Sicario', commandante: 'Commandante', palabrero: 'Palabrero', segundo: 'Segundo', jefe: 'Jefe' };
+
   function ligneInscription(c) {
     // « acces » vaut 'complet' ou 'taxes'. Si la colonne n'existe pas encore
     // (acces-comptes.sql pas exécuté), on retombe sur 'complet'.
     var acces = (c.acces === 'taxes') ? 'taxes' : 'complet';
-    var role = c.role || 'membre';
+    var role = c.role || 'soldado';
     var id = escHTML(c.id);
     var email = c.email || '(sans email)';
+    var pr = PRISON[c.id];
+    var enPrison = !!(pr && pr.actif);
 
     // En grand : le personnage si on le connaît, sinon l'email.
     var titre = c.nom ? escHTML(c.nom) : escHTML(email);
@@ -543,11 +639,18 @@
     if (c.created_at) meta.push('<span>Inscrit le ' + escHTML(dateCourte(c.created_at)) + '</span>');
     var vu = depuis(c.derniere_connexion);
     if (vu) meta.push('<span>Vu ' + escHTML(vu) + '</span>');
+    // Grade proposé par le rôle Discord (table bot_grade_mapping) : une
+    // suggestion affichée à côté du sélecteur, jamais appliquée toute seule —
+    // c'est toujours un Palabrero+ qui clique pour valider.
+    if (c.grade_suggere && c.grade_suggere !== role) {
+      meta.push('<span class="discord">Discord suggère : ' + escHTML(GRADES[c.grade_suggere] || c.grade_suggere) + '</span>');
+    }
 
     return '<div class="insc-row' + (acces === 'taxes' ? ' limite' : '') + '">' +
       '<div class="insc-qui">' +
         '<div class="insc-nom">' + titre +
           (c.rang ? '<span class="insc-rang">' + escHTML(c.rang) + '</span>' : '') +
+          (enPrison ? '<span class="insc-rang" style="color:var(--red);border-color:var(--red);">🔒 En prison</span>' : '') +
           (acces === 'taxes' ? '<span class="insc-tag">Taxes</span>' : '') +
         '</div>' +
         (meta.length ? '<div class="insc-meta">' + meta.join('') + '</div>' : '') +
@@ -555,10 +658,9 @@
           (c.approuve ? '✅ Approuvé' : '⏳ En attente') + '</div>' +
       '</div>' +
       '<div class="insc-actions">' +
-        '<select aria-label="Rôle applicatif" onchange="setRole(\'' + id + '\', this.value)">' +
-          ['membre','membre_confirme','responsable','haut_grade','direction','administrateur'].map(function (r) {
-            return '<option value="' + r + '"' + (role === r ? ' selected' : '') + '>' +
-              ({membre:'Membre',membre_confirme:'Membre confirmé',responsable:'Responsable',haut_grade:'Haut gradé',direction:'Direction',administrateur:'Administrateur'}[r]) + '</option>';
+        '<select aria-label="Grade" onchange="setRole(\'' + id + '\', this.value)">' +
+          Object.keys(GRADES).map(function (r) {
+            return '<option value="' + r + '"' + (role === r ? ' selected' : '') + '>' + GRADES[r] + '</option>';
           }).join('') +
         '</select>' +
         '<select aria-label="Niveau d\'accès" onchange="setAcces(\'' + id + '\', this.value)">' +
@@ -567,12 +669,37 @@
         '</select>' +
         '<button class="btn ' + (c.approuve ? 'danger' : 'green') + '" style="padding:11px 16px;" onclick="setApprouve(\'' + id + '\', ' + (!c.approuve) + ')">' +
           (c.approuve ? 'Révoquer' : 'Approuver') + '</button>' +
+        '<button class="btn ' + (enPrison ? 'green' : 'danger') + '" style="padding:11px 16px;" onclick="togglePrison(\'' + id + '\', ' + (!enPrison) + ', \'' + escJS(c.nom || email) + '\')">' +
+          (enPrison ? 'Libérer' : 'Envoyer en prison') + '</button>' +
         // La suppression définitive n'apparaît que sur un compte sans accès :
         // impossible de faire disparaître quelqu'un d'actif d'un clic de trop.
         (c.approuve ? '' :
           '<button class="btn insc-suppr" title="Supprimer définitivement ce compte" ' +
             'onclick="supprimerCompte(\'' + id + '\', \'' + escJS(c.nom || email) + '\')">Supprimer</button>') +
       '</div></div>';
+  }
+
+  // Bouton Prison : réservé côté base aux grades Palabrero et au-dessus
+  // (policy `prison_gestion`). Une durée en heures est optionnelle — laissée
+  // vide, la détention reste active jusqu'à libération manuelle.
+  async function togglePrison(id, val, qui) {
+    var motif = null, jusqua = null;
+    if (val) {
+      motif = prompt('Motif de l\'incarcération de ' + qui + ' (optionnel) :', '') || null;
+      var heures = prompt('Durée en heures (laisser vide = jusqu\'à libération manuelle) :', '');
+      if (heures && !isNaN(Number(heures)) && Number(heures) > 0) {
+        jusqua = new Date(Date.now() + Number(heures) * 3600000).toISOString();
+      }
+    }
+    const moi = (await SB.auth.getUser()).data.user;
+    const { error } = await SB.from('prison').upsert({
+      user_id: id, actif: val, motif: motif, jusqua: jusqua,
+      depuis: new Date().toISOString(), par: (moi && moi.id) || null,
+      updated_at: new Date().toISOString()
+    });
+    if (error) { showToast('Action refusée : ' + error.message); return; }
+    showToast(val ? (qui + ' envoyé(e) en prison.') : (qui + ' libéré(e).'));
+    renderInscriptions();
   }
 
   // Supprime le compte pour de bon : connexion, profil, photo, abonnements.
@@ -634,7 +761,7 @@
   }
 
   async function setRole(id, role) {
-    const autorises = ['membre','membre_confirme','responsable','haut_grade','direction','administrateur'];
+    const autorises = ['soldado','sicario','commandante','palabrero','segundo','jefe'];
     if (!autorises.includes(role)) return;
     const { error } = await SB.from('comptes').update({ role: role }).eq('id', id);
     if (error) { showToast('Rôle refusé : ' + error.message); renderInscriptions(); return; }

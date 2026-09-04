@@ -106,6 +106,7 @@ function findTitle(text: string): string {
 }
 
 function detectType(text: string): string {
+  if (/gros\s*braquage/i.test(text)) return "Gros braquage";
   if (/recrut/i.test(text)) return "Recrutement";
   if (/soir[ée]e|\bbar\b|\bbal\b|f[êe]te/i.test(text)) return "Social";
   return "RP";

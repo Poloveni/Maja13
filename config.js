@@ -17,9 +17,8 @@
     },
     brand: {
       accent: '#9f2635',
-      accentBright: '#d34b5e',
-      metal: '#b6a98e',
-      ink: '#070708',
+      accentBright: '#c1394a',
+      metal: '#ad8a4e',
       logo: 'assets/brand/logo-mark.svg',
       hero: 'assets/visuals/hero-maja13.webp',
       story: 'assets/visuals/story-maja13.webp',
@@ -46,27 +45,43 @@
       vapidPublicKey: ''
     },
     gameplay: {
+      // Valeur de repli uniquement (avant configuration Supabase). Une fois
+      // la base installée, le quota réel de Petite Frappe par grade vit dans
+      // la table `grades_config` et prime sur cette valeur.
       weeklySalesTarget: 200
     }
   };
 
+  // Hiérarchie officielle MAJA 13 — doit rester alignée avec les 6 rôles
+  // de `comptes.role` (supabase/migrations/001_initial_schema.sql) et avec
+  // les valeurs de départ de `grades_config`. quotaPf/pourcentagePaie ne
+  // servent qu'avant la connexion à Supabase (le Hub lit ensuite la base).
   const ranks = [
-    { nom: 'Direction',       color: '#c9b992', desc: 'Pilotage de l’organisation et décisions stratégiques.' },
-    { nom: 'Consejo',         color: '#c55362', desc: 'Conseil, coordination et transmission des décisions.' },
-    { nom: 'Responsable',     color: '#b17e62', desc: 'Gestion d’un pôle, d’une équipe ou d’une opération.' },
-    { nom: 'Membre confirmé', color: '#8f9a92', desc: 'Membre expérimenté et référent opérationnel.' },
-    { nom: 'Membre',          color: '#7f8588', desc: 'Membre actif de MAJA 13.' },
-    { nom: 'Prospect',        color: '#666b70', desc: 'Période d’intégration et de découverte du groupe.' }
+    { nom: 'Jefe',        role: 'jefe',        color: '#9f2635', quotaPf: 0,  pourcentagePaie: 35, desc: 'Chef suprême de MAJA 13. Décide seul des affaires qui engagent la famille.' },
+    { nom: 'Segundo',     role: 'segundo',     color: '#b6512f', quotaPf: 0,  pourcentagePaie: 30, desc: 'Bras droit du Jefe. Fait appliquer les décisions et gère les affaires courantes.' },
+    { nom: 'Palabrero',   role: 'palabrero',   color: '#ad8a4e', quotaPf: 5,  pourcentagePaie: 25, desc: 'Porte-parole et arbitre. Transmet la parole du sommet aux commandants.' },
+    { nom: 'Commandante', role: 'commandante', color: '#8a7654', quotaPf: 8,  pourcentagePaie: 20, desc: 'Chef d’escouade. Encadre les sicarios et répond de leurs actes.' },
+    { nom: 'Sicario',     role: 'sicario',     color: '#6d6151', quotaPf: 12, pourcentagePaie: 15, desc: 'Soldat de confiance, opérationnel sur le terrain.' },
+    { nom: 'Soldado',     role: 'soldado',     color: '#5a5142', quotaPf: 15, pourcentagePaie: 10, desc: 'Nouvelle recrue. Fait ses preuves avant de gagner la confiance de la famille.' }
   ];
 
-  // Données de démonstration, à remplacer par vos personnages RP.
+  // Données de démonstration (repère du dossier fourni), à remplacer par vos
+  // personnages RP réels depuis l'administration.
   const members = [
-    { nom: 'Membre 01', rang: 'Direction', placeholder: true },
-    { nom: 'Membre 02', rang: 'Consejo', placeholder: true },
-    { nom: 'Membre 03', rang: 'Responsable', placeholder: true },
-    { nom: 'Membre 04', rang: 'Membre confirmé', placeholder: true },
-    { nom: 'Membre 05', rang: 'Membre', placeholder: true },
-    { nom: 'Membre 06', rang: 'Prospect', placeholder: true }
+    { nom: 'Hector',          rang: 'Jefe' },
+    { nom: 'Santiago C.',     rang: 'Segundo' },
+    { nom: 'Dante',           rang: 'Palabrero' },
+    { nom: 'Commandant 01',   rang: 'Commandante', placeholder: true },
+    { nom: 'Commandant 02',   rang: 'Commandante', placeholder: true },
+    { nom: 'Commandant 03',   rang: 'Commandante', placeholder: true },
+    { nom: 'Mac',             rang: 'Sicario' },
+    { nom: 'Santiago M.',     rang: 'Sicario' },
+    { nom: 'Aguera',          rang: 'Sicario' },
+    { nom: 'Diablo',          rang: 'Sicario' },
+    { nom: 'Emilio',          rang: 'Sicario' },
+    { nom: 'Hannah',          rang: 'Soldado' },
+    { nom: 'kARL',            rang: 'Soldado' },
+    { nom: 'Soldado 01',      rang: 'Soldado', placeholder: true }
   ];
 
   window.MAJA_CONFIG = Object.freeze(config);
@@ -79,6 +94,11 @@
   window.SUPABASE_URL = config.supabase.url;
   window.SUPABASE_KEY = config.supabase.anonKey;
 
+  // Seuls ces trois-là sont pilotables depuis config.js : ce sont les accents
+  // de marque. Le reste de la palette (fond parchemin, cartes, texte) vit
+  // dans maja-theme.css sous les mêmes noms de variable (--maja-ink,
+  // --maja-panel, --maja-ivory…) — ne pas les redéfinir ici, sous peine de
+  // collision avec leur rôle déjà établi dans cette feuille de style.
   document.documentElement.style.setProperty('--maja-accent', config.brand.accent);
   document.documentElement.style.setProperty('--maja-accent-bright', config.brand.accentBright);
   document.documentElement.style.setProperty('--maja-metal', config.brand.metal);
