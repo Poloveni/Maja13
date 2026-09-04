@@ -4,7 +4,8 @@ Suivez uniquement cette liste, dans l'ordre.
 
 - [ ] Remplacer `assets/brand/logo-mark.svg` par le logo officiel MAJA 13, en conservant ce nom de fichier.
 - [ ] Valider l’image Hero déjà installée dans `assets/visuals/hero-maja13.webp`.
-- [ ] Remplacer les trois autres images temporaires dans `assets/visuals/` par vos visuels officiels, en conservant leurs noms.
+- [ ] Valider l’affiche Histoire déjà installée dans `assets/visuals/story-maja13.webp`.
+- [ ] Remplacer les deux autres images temporaires dans `assets/visuals/` par vos visuels officiels, en conservant leurs noms.
 - [ ] Remplacer les membres temporaires dans `config.js` par vos personnages RP.
 - [ ] Compléter l'histoire temporaire depuis `admin.html` après installation de Supabase.
 - [ ] Renseigner l'URL publique finale dans les métadonnées de `index.html`, `os.html`, `robots.txt` et `sitemap.xml`.

@@ -22,7 +22,7 @@
       ink: '#070708',
       logo: 'assets/brand/logo-mark.svg',
       hero: 'assets/visuals/hero-maja13.webp',
-      story: 'assets/visuals/story-placeholder.svg',
+      story: 'assets/visuals/story-maja13.webp',
       map: 'assets/visuals/map-placeholder.svg',
       ogImage: 'assets/visuals/og-placeholder.svg'
     },
