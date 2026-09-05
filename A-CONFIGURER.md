@@ -5,9 +5,8 @@ Suivez uniquement cette liste, dans l'ordre.
 - [ ] Remplacer `assets/brand/logo-mark.svg` par le logo officiel MAJA 13, en conservant ce nom de fichier.
 - [ ] Valider l’image Hero déjà installée dans `assets/visuals/hero-maja13.webp`.
 - [ ] Valider l’affiche Histoire déjà installée dans `assets/visuals/story-maja13.webp`.
-- [ ] Valider l’organigramme déjà installé dans `assets/visuals/hierarchie-maja13.webp`.
 - [ ] Remplacer les images temporaires restantes dans `assets/visuals/` par vos visuels officiels, en conservant leurs noms.
-- [ ] Remplacer les membres temporaires dans `config.js` par vos personnages RP (hiérarchie Jefe / Segundo / Palabrero / Commandante / Sicario / Soldado).
+- [ ] Remplacer les membres temporaires dans `config.js` par vos personnages RP (hiérarchie Jefe / Segundo / Palabrero / Commandante / Sicario / Soldado). Le champ `sous` de chaque membre indique son supérieur direct : c'est lui qui dessine l'organigramme interactif de la page d'accueil.
 - [ ] Remplacer les photos temporaires par de vraies captures RP mises en scène (hero, histoire, profils) — le thème est prévu pour des photos cinématographiques, pas des placeholders.
 - [ ] Compléter l'histoire temporaire depuis `admin.html` après installation de Supabase.
 - [ ] Renseigner l'URL publique finale dans les métadonnées de `index.html`, `os.html`, `robots.txt` et `sitemap.xml`.

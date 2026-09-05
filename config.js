@@ -22,7 +22,6 @@
       logo: 'assets/brand/logo-mark.svg',
       hero: 'assets/visuals/hero-maja13.webp',
       story: 'assets/visuals/story-maja13.webp',
-      hierarchy: 'assets/visuals/hierarchie-maja13.webp',
       map: 'assets/visuals/map-placeholder.svg',
       ogImage: 'assets/visuals/og-placeholder.svg'
     },
@@ -67,21 +66,25 @@
 
   // Données de démonstration (repère du dossier fourni), à remplacer par vos
   // personnages RP réels depuis l'administration.
+  // `sous` : nom du supérieur direct, utilisé pour dessiner l'organigramme de
+  // la page d'accueil. Sans ce champ, le membre est rattaché automatiquement
+  // au grade du dessus. `placeholder: true` affiche une case « À pourvoir ».
   const members = [
     { nom: 'Hector',          rang: 'Jefe' },
-    { nom: 'Santiago C.',     rang: 'Segundo' },
-    { nom: 'Dante',           rang: 'Palabrero' },
-    { nom: 'Commandant 01',   rang: 'Commandante', placeholder: true },
-    { nom: 'Commandant 02',   rang: 'Commandante', placeholder: true },
-    { nom: 'Commandant 03',   rang: 'Commandante', placeholder: true },
-    { nom: 'Mac',             rang: 'Sicario' },
-    { nom: 'Santiago M.',     rang: 'Sicario' },
-    { nom: 'Aguera',          rang: 'Sicario' },
-    { nom: 'Diablo',          rang: 'Sicario' },
-    { nom: 'Emilio',          rang: 'Sicario' },
-    { nom: 'Hannah',          rang: 'Soldado' },
-    { nom: 'kARL',            rang: 'Soldado' },
-    { nom: 'Soldado 01',      rang: 'Soldado', placeholder: true }
+    { nom: 'Santiago C.',     rang: 'Segundo',     sous: 'Hector' },
+    { nom: 'Dante',           rang: 'Palabrero',   sous: 'Santiago C.' },
+    { nom: 'Commandant 01',   rang: 'Commandante', sous: 'Dante', placeholder: true },
+    { nom: 'Commandant 02',   rang: 'Commandante', sous: 'Dante', placeholder: true },
+    { nom: 'Commandant 03',   rang: 'Commandante', sous: 'Dante', placeholder: true },
+    { nom: 'Mac',             rang: 'Sicario',     sous: 'Commandant 01' },
+    { nom: 'Santiago M.',     rang: 'Sicario',     sous: 'Commandant 01' },
+    { nom: 'Aguera',          rang: 'Sicario',     sous: 'Commandant 02' },
+    { nom: 'Diablo',          rang: 'Sicario',     sous: 'Commandant 03' },
+    { nom: 'Emilio',          rang: 'Sicario',     sous: 'Commandant 03' },
+    { nom: 'Soldado 01',      rang: 'Soldado',     sous: 'Mac', placeholder: true },
+    { nom: 'Hannah',          rang: 'Soldado',     sous: 'Santiago M.' },
+    { nom: 'kARL',            rang: 'Soldado',     sous: 'Diablo' },
+    { nom: 'Soldado 02',      rang: 'Soldado',     sous: 'Emilio', placeholder: true }
   ];
 
   window.MAJA_CONFIG = Object.freeze(config);

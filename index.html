@@ -97,34 +97,90 @@
       font-size: 26px; font-weight: 700; letter-spacing: 0.2px;
     }
     .org-title em { color: var(--red); font-style: italic; font-weight: 900; }
-    .org-tree { display: flex; flex-direction: column; align-items: center; }
-    .org-tier { display: flex; flex-direction: column; align-items: center; position: relative; }
-    .org-tier + .org-tier { margin-top: 40px; }
-    /* trait vertical reliant les niveaux */
-    .org-tier + .org-tier::before {
-      content: ''; position: absolute; top: -40px; left: 50%; transform: translateX(-50%);
-      width: 2px; height: 40px; background: linear-gradient(var(--border), rgba(159,38,53,0.5));
+    /* ── ORGANIGRAMME INTERACTIF ── */
+    .orga-frame {
+      position: relative; padding: 36px 20px 18px;
+      background:
+        radial-gradient(ellipse at 20% 0%, color-mix(in srgb, var(--gold, #ad8a4e) 14%, transparent), transparent 55%),
+        radial-gradient(ellipse at 90% 100%, color-mix(in srgb, var(--red) 8%, transparent), transparent 50%),
+        var(--surface);
+      border: 1px solid var(--border); border-radius: 14px;
+      box-shadow: 0 18px 45px rgba(60, 45, 20, .16);
     }
-    .org-rank { font-size: 11px; letter-spacing: 1.6px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 14px; }
-    .org-nodes { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
-    .org-node {
-      display: flex; flex-direction: column; align-items: center; gap: 9px; width: 108px;
-      padding: 16px 8px; background: var(--surface); border: 1px solid var(--border);
-      border-radius: 12px; transition: transform 0.2s ease, border-color 0.2s ease;
+    .orga-frame::before {
+      content: ''; position: absolute; inset: 8px; pointer-events: none;
+      border: 1px solid color-mix(in srgb, var(--gold, #ad8a4e) 35%, transparent); border-radius: 10px;
     }
-    .org-node:hover { transform: translateY(-4px); border-color: var(--red); }
-    .org-ava {
-      width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center;
-      justify-content: center; font-weight: 700; font-size: 15px; color: #fff;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+    .orga-scroll { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; padding-bottom: 6px; }
+    .orga-hint { text-align: center; font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-dim); margin-top: 14px; }
+
+    .orga-chart { --line: color-mix(in srgb, var(--text-dim) 55%, transparent); --lw: 2px; --gap: 26px; display: flex; justify-content: center; min-width: max-content; margin: 0 auto; }
+    .orga-chart ul { list-style: none; margin: 0; padding: var(--gap) 0 0; position: relative; display: flex; justify-content: center; }
+    .orga-chart > ul { padding-top: 0; }
+    .orga-chart li { position: relative; padding: var(--gap) 10px 0; display: flex; flex-direction: column; align-items: center; }
+    .orga-chart > ul > li { padding-top: 0; }
+    /* Traits : horizontal au-dessus de chaque enfant, vertical descendant du parent. */
+    .orga-chart li::before, .orga-chart li::after {
+      content: ''; position: absolute; top: 0; right: 50%; width: 50%; height: var(--gap);
+      border-top: var(--lw) solid var(--line);
     }
-    .org-node-name { font-size: 12.5px; font-weight: 600; text-align: center; line-height: 1.3; }
-    .org-node-role { font-size: 10px; color: var(--text-dim); }
-    /* Le chef, mis en avant */
-    .org-node.donna { width: 132px; padding: 20px 10px; border-color: rgba(212,178,110,0.5); background: linear-gradient(180deg, rgba(212,178,110,0.10), var(--surface)); }
-    .org-node.donna .org-ava { width: 58px; height: 58px; font-size: 18px; box-shadow: 0 6px 20px rgba(212,178,110,0.4); }
-    .org-node.donna .org-node-name { font-size: 14px; }
-    @media (max-width: 560px) { .org-node { width: 88px; } .org-node.donna { width: 108px; } }
+    .orga-chart li::after { right: auto; left: 50%; border-left: var(--lw) solid var(--line); }
+    .orga-chart li:only-child::before, .orga-chart li:only-child::after { border-top: 0; }
+    .orga-chart li:first-child::before, .orga-chart li:last-child::after { border-top: 0; }
+    .orga-chart li:last-child::before { border-right: var(--lw) solid var(--line); border-radius: 0 8px 0 0; }
+    .orga-chart li:first-child::after { border-radius: 8px 0 0 0; }
+    .orga-chart > ul > li::before, .orga-chart > ul > li::after { display: none; }
+    .orga-chart ul ul::before {
+      content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+      width: var(--lw); height: var(--gap); background: var(--line);
+    }
+
+    .orga-node {
+      appearance: none; -webkit-appearance: none; cursor: pointer; font: inherit;
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      min-width: 128px; max-width: 200px; padding: 11px 22px 10px;
+      background: var(--surface2); color: var(--text);
+      border: 1px solid var(--border-strong); border-bottom: 3px solid var(--rc, var(--border-strong));
+      border-radius: 999px; position: relative;
+      box-shadow: 0 6px 16px rgba(60, 45, 20, .12);
+      transition: transform 0.25s cubic-bezier(0.16,1,0.3,1), box-shadow 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+    }
+    .orga-node:hover, .orga-node:focus-visible {
+      transform: translateY(-3px);
+      border-color: var(--rc, var(--red));
+      background: color-mix(in srgb, var(--rc, var(--red)) 7%, var(--surface2));
+      box-shadow: 0 12px 26px color-mix(in srgb, var(--rc, var(--red)) 24%, transparent);
+      outline: none;
+    }
+    .orga-node:focus-visible { box-shadow: 0 0 0 3px color-mix(in srgb, var(--rc, var(--red)) 40%, transparent), 0 12px 26px rgba(60,45,20,.18); }
+    .orga-rank {
+      font-family: 'Playfair Display', Georgia, serif; font-weight: 900;
+      font-size: 13px; letter-spacing: 1.6px; text-transform: uppercase; color: var(--text); line-height: 1.1;
+    }
+    .orga-name { font-size: 10.5px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase; color: var(--rc, var(--text-muted)); line-height: 1.2; }
+    .orga-node.chef { min-width: 150px; padding: 13px 26px 12px; border-color: #c39c52; background: linear-gradient(180deg, #fff9ea, var(--surface2)); }
+    .orga-node.chef .orga-rank { font-size: 16px; color: #6e1620; }
+    .orga-node.chef::before {
+      content: '\2605'; position: absolute; top: -9px; left: 50%; transform: translateX(-50%);
+      font-size: 10px; color: #1a1206; width: 18px; height: 18px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(160deg, #e6c887, #c39c52); box-shadow: 0 2px 6px rgba(60,45,20,.25);
+    }
+    .orga-node.lvl-2 .orga-rank { font-size: 14.5px; }
+    .orga-node.vacant { cursor: default; border-style: dashed; background: transparent; box-shadow: none; opacity: 0.75; }
+    .orga-node.vacant:hover { transform: none; box-shadow: none; border-color: var(--border-strong); background: transparent; }
+    .orga-node.vacant .orga-name { color: var(--text-dim); font-style: italic; text-transform: none; letter-spacing: 0.4px; font-weight: 500; }
+
+    @media (max-width: 760px) {
+      .orga-frame { padding: 26px 12px 14px; }
+      .orga-chart { --gap: 20px; }
+      .orga-chart li { padding-left: 6px; padding-right: 6px; }
+      .orga-node { min-width: 104px; padding: 9px 14px 8px; }
+      .orga-rank { font-size: 11px; letter-spacing: 1.2px; }
+      .orga-name { font-size: 9.5px; letter-spacing: 1px; }
+      .orga-node.chef { min-width: 124px; }
+      .orga-node.chef .orga-rank { font-size: 13px; }
+    }
 
     body {
       font-family: 'Inter', sans-serif;
@@ -891,7 +947,7 @@
     .valeur-icon { border-radius: 10px; }
     .membre-card, .event-card, .discord-card, .discord-stat, .recrutement-cta,
     .contact-box, .online-wall, .server-live, .histoire-quote, .qg-placeholder,
-    .events-locked, .events-empty, .galerie-empty, .org-node { border-radius: 14px; }
+    .events-locked, .events-empty, .galerie-empty { border-radius: 14px; }
     .hierarchie-list { gap: 8px; }
     .hierarchie-item { border-radius: 12px; }
     .rang-badge { border-radius: 9px; }
@@ -1065,10 +1121,15 @@
   <p class="section-desc">L’organisation officielle de MAJA 13, du Jefe jusqu’aux Soldados.</p>
 
   <!-- HIÉRARCHIE -->
+  <!-- Organigramme interactif : généré depuis config.js (MAJA_MEMBRES + champ `sous`),
+       chaque case est un bouton qui ouvre la fiche du membre. -->
   <div class="hierarchie-section reveal">
-    <a class="hierarchie-art" href="assets/visuals/hierarchie-maja13.webp" target="_blank" rel="noopener" aria-label="Agrandir l’organigramme de MAJA 13">
-      <img src="assets/visuals/hierarchie-maja13.webp" alt="Hiérarchie officielle de MAJA 13" loading="lazy" decoding="async" width="1854" height="1056">
-    </a>
+    <div class="orga-frame">
+      <div class="orga-scroll">
+        <div class="orga-chart" id="orga-chart" role="tree" aria-label="Organigramme de MAJA 13"></div>
+      </div>
+      <div class="orga-hint">Cliquez sur un membre pour ouvrir sa fiche.</div>
+    </div>
   </div>
 
   <!-- MEMBRES — cartes générées automatiquement depuis config.js -->
@@ -1648,26 +1709,60 @@
   })();
 
   // ── ORGANIGRAMME DE LA FAMILLE (généré depuis config.js) ──
+  // Chaque membre peut déclarer `sous: 'Nom du supérieur'` dans config.js.
+  // Sans ce champ, il est rattaché automatiquement (à tour de rôle) aux
+  // membres du grade juste au-dessus. Chaque case est un bouton → fiche.
   (function initOrganigramme() {
-    var tree = document.getElementById('org-tree');
-    if (!tree) return;
-    var initials = function (n) { return n.split(/\s+/).map(function (w) { return w[0]; }).slice(0, 2).join('').toUpperCase(); };
-    var tiers = (window.MAJA_RANGS || []).map(function (r) {
-      return {
-        rank: r.nom, color: r.color, donna: r.nom === 'Jefe',
-        members: (window.MAJA_MEMBRES || []).filter(function (m) { return m.rang === r.nom; }).map(function (m) { return m.nom; })
-      };
-    }).filter(function (t) { return t.members.length; });
-    tree.innerHTML = tiers.map(function (tier) {
-      var nodes = tier.members.map(function (m) {
-        return '<div class="org-node' + (tier.donna ? ' donna' : '') + '">' +
-          '<div class="org-ava" style="background:' + tier.color + (tier.donna ? ';color:#1a1206' : '') + '">' + initials(m) + '</div>' +
-          '<div class="org-node-name">' + escHTML(m) + '</div>' +
-          '<div class="org-node-role" style="color:' + tier.color + '">' + escHTML(tier.rank) + '</div>' +
-        '</div>';
-      }).join('');
-      return '<div class="org-tier"><div class="org-rank">' + escHTML(tier.rank) + '</div><div class="org-nodes">' + nodes + '</div></div>';
-    }).join('');
+    var chart = document.getElementById('orga-chart');
+    if (!chart) return;
+    var RANGS = window.MAJA_RANGS || [];
+    var MEMBRES = window.MAJA_MEMBRES || [];
+    var rangIndex = {}; RANGS.forEach(function (r, i) { rangIndex[r.nom] = i; });
+    var byName = {}; MEMBRES.forEach(function (m) { byName[m.nom] = m; });
+    var children = {}; var roots = [];
+    var lastFilled = []; // membres du dernier grade non vide déjà placé
+    var rr = 0;
+
+    RANGS.forEach(function (r) {
+      var tier = MEMBRES.filter(function (m) { return m.rang === r.nom; });
+      if (!tier.length) return;
+      tier.forEach(function (m) {
+        var parent = (m.sous && byName[m.sous] && m.sous !== m.nom) ? m.sous : null;
+        if (!parent && lastFilled.length) { parent = lastFilled[rr % lastFilled.length]; rr++; }
+        if (parent) { (children[parent] = children[parent] || []).push(m.nom); }
+        else roots.push(m.nom);
+      });
+      lastFilled = tier.map(function (m) { return m.nom; }); rr = 0;
+    });
+
+    function node(nom, depth) {
+      var m = byName[nom] || { nom: nom, rang: '' };
+      var i = rangIndex[m.rang]; var r = RANGS[i] || {};
+      var chef = m.rang === 'Jefe';
+      var color = chef ? '#d4b26e' : (r.color || '#8e8e8e');
+      var cls = 'orga-node lvl-' + ((i || 0) + 1) + (chef ? ' chef' : '') + (m.placeholder ? ' vacant' : '');
+      var label = m.placeholder ? '\u00c0 pourvoir' : m.nom;
+      var btn = '<button type="button" class="' + cls + '" style="--rc:' + color + '"' +
+        (m.placeholder ? ' disabled aria-disabled="true"' : ' data-nom="' + escHTML(m.nom) + '" aria-label="Voir la fiche de ' + escHTML(m.nom) + ' (' + escHTML(m.rang) + ')"') + '>' +
+        '<span class="orga-rank">' + escHTML(m.rang) + '</span>' +
+        '<span class="orga-name">' + escHTML(label) + '</span></button>';
+      var kids = children[nom] || [];
+      var sub = kids.length ? '<ul role="group">' + kids.map(function (k) { return node(k, depth + 1); }).join('') + '</ul>' : '';
+      return '<li role="treeitem"' + (kids.length ? ' aria-expanded="true"' : '') + '>' + btn + sub + '</li>';
+    }
+    chart.innerHTML = roots.length ? '<ul>' + roots.map(function (n) { return node(n, 0); }).join('') + '</ul>' : '';
+
+    chart.addEventListener('click', function (e) {
+      var b = e.target.closest('.orga-node[data-nom]');
+      if (b) openFiche(b.getAttribute('data-nom'));
+    });
+    // Centrer le tableau au chargement sur mobile (défilement horizontal).
+    var sc = chart.closest('.orga-scroll');
+    if (sc && sc.scrollWidth > sc.clientWidth) {
+      sc.scrollLeft = (sc.scrollWidth - sc.clientWidth) / 2;
+      var hint = chart.closest('.orga-frame').querySelector('.orga-hint');
+      if (hint) hint.textContent = 'Faites d\u00e9filer horizontalement \u2014 cliquez sur un membre pour ouvrir sa fiche.';
+    }
   })();
 
   // ── SECTION LE QG ──

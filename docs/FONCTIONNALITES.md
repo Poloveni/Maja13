@@ -6,7 +6,7 @@ Six grades, du plus haut au plus bas : **Jefe → Segundo → Palabrero → Comm
 
 ## Site public
 
-Hero premium (photo mise en scène), histoire éditable, valeurs et règles, cartes membres, organigramme, recrutement, galerie avec lightbox, QG/territoire, événements, statut FiveM, liens Discord, SEO, responsive, thème blanc/beige et préférences de réduction des animations.
+Hero premium (photo mise en scène), histoire éditable, valeurs et règles, cartes membres, organigramme interactif (cases cliquables générées depuis `config.js`), recrutement, galerie avec lightbox, QG/territoire, événements, statut FiveM, liens Discord, SEO, responsive, thème blanc/beige et préférences de réduction des animations.
 
 ## M13 Hub
 
