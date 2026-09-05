@@ -25,6 +25,7 @@
     <a href="chat.html">Le Salon</a>
     <a href="galerie.html" class="is-active">Galerie</a>
     <a href="admin.html" id="adminLink" hidden>Administration</a>
+    <a href="tableau.html" id="dashLink" hidden>Tableau de bord</a>
     <a href="organigramme.html" id="orgLink" hidden>Hiérarchie</a>
     <a href="../">Le site</a>
     <button class="nav__cta casa-logout" id="logout">Déconnexion</button>
@@ -87,7 +88,7 @@
   async function load() {
     me = await api('../api/me');
     if (me.status !== 'approved') { location.replace('espera.html'); return; }
-    if (me.isAdmin) $('adminLink').hidden = false; if (['jefe', 'devweb'].includes(me.rank)) $('orgLink').hidden = false;
+    if (me.isAdmin) { $('adminLink').hidden = false; $('dashLink').hidden = false; } if (['jefe', 'devweb'].includes(me.rank)) $('orgLink').hidden = false;
     render(await api('../api/gallery?limit=200')); $('loading').hidden = true; $('uploadBlock').hidden = false;
   }
 

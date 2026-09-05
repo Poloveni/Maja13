@@ -24,6 +24,7 @@
     <a href="chat.html">Le Salon</a>
     <a href="galerie.html">Galerie</a>
     <a href="admin.html" id="adminLink" hidden>Administration</a>
+    <a href="tableau.html" id="dashLink" hidden>Tableau de bord</a>
     <a href="organigramme.html" id="orgLink" hidden>Hiérarchie</a>
     <a href="../">Le site</a>
     <button class="nav__cta casa-logout" id="logout">Déconnexion</button>
@@ -61,6 +62,26 @@
       </div>
     </form>
   </section>
+
+  <section class="semaine" id="semaine" hidden>
+    <div class="semaine__head">
+      <div><p class="eyebrow">Ma semaine</p><h2 class="semaine__title">Quotas &amp; paie</h2></div>
+      <p class="semaine__reset">Remise à zéro <b id="resetIn">—</b></p>
+    </div>
+    <div class="semaine__grid">
+      <div class="semaine__quotas" id="quotas"></div>
+      <div class="semaine__side">
+        <div class="stat"><span class="stat__label">Paie estimée</span><b class="stat__value" id="salaire">0 $</b><small id="salaireNote"></small></div>
+        <div class="stat"><span class="stat__label">Déclarations</span><ul class="stat__list" id="activities"><li class="muted">Rien de déclaré cette semaine</li></ul></div>
+      </div>
+    </div>
+    <div class="semaine__grid semaine__grid--3">
+      <div class="stat"><span class="stat__label">Cooldowns</span><ul class="stat__list" id="cooldowns"><li class="muted">Aucun cooldown en cours</li></ul></div>
+      <div class="stat"><span class="stat__label">Armes en ma possession</span><ul class="stat__list" id="armes"><li class="muted">Aucune arme prêtée</li></ul></div>
+      <div class="stat"><span class="stat__label">Ventes en attente</span><ul class="stat__list" id="ventes"><li class="muted">Aucune</li></ul></div>
+    </div>
+    <p class="semaine__hint">Ces chiffres viennent du bot Discord de la familia : déclare tes activités dans le salon quotas, elles apparaissent ici.</p>
+  </section>
 </main>
 
 <script>
@@ -82,8 +103,32 @@
   }
   fetch('../api/me', { credentials: 'same-origin' })
     .then(r => { if (r.status === 401) { location.replace('./'); throw 0; } return r.json(); })
-    .then(m => { if (m.status !== 'approved') { location.replace('espera.html'); return; } if (m.isAdmin) $('adminLink').hidden = false; if (['jefe','devweb'].includes(m.rank)) $('orgLink').hidden = false; render(m); $('loading').hidden = true; $('perfil').hidden = false; })
+    .then(m => { if (m.status !== 'approved') { location.replace('espera.html'); return; } if (m.isAdmin) { $('adminLink').hidden = false; $('dashLink').hidden = false; } if (['jefe','devweb'].includes(m.rank)) $('orgLink').hidden = false; render(m); $('loading').hidden = true; $('perfil').hidden = false; loadSemaine(); })
     .catch(() => {});
+
+  // ---- Ma semaine (données du bot Discord)
+  const money = n => Math.round(n).toLocaleString('fr-FR') + ' $';
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const countdown = iso => { const ms = new Date(iso) - Date.now(); if (ms <= 0) return 'maintenant'; const h = Math.floor(ms / 3.6e6), m = Math.floor(ms % 3.6e6 / 6e4); return h >= 24 ? `dans ${Math.floor(h / 24)} j ${h % 24} h` : h ? `dans ${h} h ${m} min` : `dans ${m} min`; };
+  async function loadSemaine() {
+    let d; try { d = await (await fetch('../api/bot/me', { credentials: 'same-origin' })).json(); } catch { return; }
+    if (!d || !d.configured) return;
+    $('semaine').hidden = false;
+    $('resetIn').textContent = countdown(d.nextReset) + ' (dimanche 19 h)';
+    $('quotas').innerHTML = d.quotas.map(q => {
+      const pct = q.target ? Math.min(100, Math.round(q.count / q.target * 100)) : 0;
+      return `<div class="quota ${q.target && q.count >= q.target ? 'is-done' : ''}">
+        <div class="quota__head"><span>${q.label}</span><b>${q.count}${q.target ? ` / ${q.target}` : ''}</b></div>
+        <div class="quota__bar"><i style="width:${q.target ? pct : (q.count ? 100 : 0)}%"></i></div>
+        <small>${q.target ? (q.count >= q.target ? 'Objectif atteint ✦' : `${q.target - q.count} restant${q.target - q.count > 1 ? 's' : ''}`) : 'Pas d’objectif fixé'}${q.rate ? ` · ${q.rate} $ / unité` : ''}</small>
+      </div>`; }).join('');
+    $('salaire').textContent = money(d.salaire);
+    $('salaireNote').textContent = d.salaire ? 'selon les taux du bot, hors primes' : 'déclare tes activités pour la faire monter';
+    if (d.activities.length) $('activities').innerHTML = d.activities.map(a => `<li><span>${esc(a.label)}</span><b>${a.count}</b></li>`).join('');
+    if (d.cooldowns.length) $('cooldowns').innerHTML = d.cooldowns.map(c => `<li><span>${esc(c.label)}</span><b>${countdown(c.expiresAt)}</b></li>`).join('');
+    if (d.armes.length) $('armes').innerHTML = d.armes.map(a => `<li><span>${esc(a.nom)}${a.type ? ` · ${esc(a.type)}` : ''}</span><b class="mono">${esc(a.reference)}</b></li>`).join('');
+    if (d.ventesEnAttente.length) $('ventes').innerHTML = d.ventesEnAttente.map(v => `<li><span>${v.quantite} × ${esc(v.item)}</span><b>${v.montant ? money(v.montant) : 'à confirmer'}</b></li>`).join('');
+  }
 
   $('form').addEventListener('submit', async e => {
     e.preventDefault();

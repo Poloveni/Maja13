@@ -294,6 +294,106 @@ app.delete('/api/gallery/:id', requireAuth, requireApproved, async (req, res) =>
   res.json({ ok: true });
 });
 
+// ---------- Pont avec le bot Discord (base du bot en lecture seule) ----------
+const BOT_DATABASE_URL = process.env.BOT_DATABASE_URL || null;
+const bot = BOT_DATABASE_URL ? new pg.Pool({ connectionString: BOT_DATABASE_URL, max: 4 }) : null;
+const ACTIVITIES = {
+  atm: { label: 'ATM', quota: 'actions' }, cambu: { label: 'Cambriolage', quota: 'actions' }, superette: { label: 'Supérette', quota: 'actions' },
+  gofast: { label: 'Go Fast', quota: 'actions' }, fleeca: { label: 'Fleeca', quota: 'actions' }, braq_armurerie: { label: 'Armurerie', quota: 'actions' },
+  bijouterie: { label: 'Bijouterie', quota: 'actions' }, pinebank: { label: 'Pinebank', quota: 'actions' }, human_labs: { label: 'Human Labs', quota: 'actions' },
+  vente: { label: 'Vente', quota: 'vente' }, recolte: { label: 'Récolte', quota: 'recolte' },
+  labo_heroine: { label: 'Labo héroïne', quota: 'labos' }, labo_sporex: { label: 'Labo sporex', quota: 'labos' }, labo_mexicana: { label: 'Labo mexicana', quota: 'labos' },
+  labo_cannabis: { label: 'Labo cannabis', quota: 'labos' }, labo_cocaine: { label: 'Labo cocaïne', quota: 'labos' },
+};
+const QUOTA_LABEL = { actions: 'Actions', vente: 'Vente', recolte: 'Récolte', labos: 'Labos' };
+const QUOTA_TYPES = Object.keys(QUOTA_LABEL);
+const botQuery = async (sql, params = []) => { if (!bot) throw new Error('bot-off'); return (await bot.query(sql, params)).rows; };
+// prochaine remise à zéro : dimanche 19h00 (heure de Paris)
+const nextReset = () => {
+  const now = new Date();
+  const paris = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Paris' }));
+  const d = new Date(paris); d.setHours(19, 0, 0, 0); d.setDate(d.getDate() + ((7 - d.getDay()) % 7));
+  if (d <= paris) d.setDate(d.getDate() + 7);
+  return new Date(now.getTime() + (d - paris)).toISOString();
+};
+const botConfig = async () => {
+  const [targets, rates, settings] = await Promise.all([botQuery('SELECT quota_type, weekly_target FROM quota_targets'), botQuery('SELECT quota_type, amount FROM salary_rates'), botQuery('SELECT key, value FROM settings')]);
+  return { targets: Object.fromEntries(targets.map(r => [r.quota_type, r.weekly_target])), rates: Object.fromEntries(rates.map(r => [r.quota_type, Number(r.amount)])), settings: Object.fromEntries(settings.map(r => [r.key, r.value])) };
+};
+const summarize = (statRows, rates) => {
+  const byType = Object.fromEntries(QUOTA_TYPES.map(q => [q, 0])); const acts = [];
+  for (const r of statRows) { const a = ACTIVITIES[r.action]; if (!a) continue; byType[a.quota] += Number(r.count); if (Number(r.count)) acts.push({ key: r.action, label: a.label, count: Number(r.count) }); }
+  const salaire = Object.entries(rates).reduce((s, [q, rate]) => s + (byType[q] ?? 0) * rate, 0);
+  return { byType, activities: acts, salaire };
+};
+// nom d'affichage d'un Discord ID : compte La Casa si connu, sinon pseudo vu par le bot
+const namesFor = async (ids) => {
+  if (!ids.length) return {};
+  const { rows } = await pool.query('SELECT discord_id, display_name FROM members WHERE discord_id = ANY($1)', [ids]);
+  const names = Object.fromEntries(rows.map(r => [r.discord_id, r.display_name]));
+  const missing = ids.filter(i => !names[i]);
+  if (missing.length) for (const r of await botQuery('SELECT DISTINCT ON (user_id) user_id, username FROM transactions WHERE user_id = ANY($1) ORDER BY user_id, timestamp DESC', [missing])) names[r.user_id] = r.username || r.user_id;
+  return names;
+};
+
+app.get('/api/bot/status', requireAuth, requireApproved, async (_req, res) => {
+  if (!bot) return res.json({ configured: false });
+  try { const s = await botConfig(); res.json({ configured: true, tier: s.settings.type_groupe || s.settings.tier || null, hasQuotas: Object.keys(s.targets).length > 0, nextReset: nextReset() }); }
+  catch (e) { console.error(e); res.json({ configured: false, error: 'unreachable' }); }
+});
+
+app.get('/api/bot/me', requireAuth, requireApproved, async (req, res) => {
+  if (!bot) return res.json({ configured: false });
+  try {
+    const id = req.member.discord_id;
+    const [cfg, stats, cds, mapping] = await Promise.all([botConfig(),
+      botQuery('SELECT action, count, points FROM stats WHERE user_id = $1', [id]),
+      botQuery('SELECT action, expires_at FROM cooldowns WHERE user_id = $1 AND expires_at > now() ORDER BY expires_at', [id]),
+      botQuery('SELECT game_name FROM user_mapping WHERE discord_id = $1', [id])]);
+    const names = [req.member.display_name, req.member.username, ...mapping.map(m => m.game_name)];
+    const [armes, fourr, ventes] = await Promise.all([
+      botQuery('SELECT nom, reference, type, statut FROM armurerie WHERE pretee_a = ANY($1) ORDER BY nom', [names]),
+      botQuery("SELECT count(*)::int AS n FROM fourrieres WHERE discord_id = $1 AND timestamp > now() - interval '7 days'", [id]),
+      botQuery("SELECT item, quantite, statut, montant, timestamp FROM pending_sales WHERE discord_id = $1 AND statut = 'en_attente' ORDER BY timestamp DESC LIMIT 10", [id])]);
+    const sum = summarize(stats, cfg.rates);
+    res.json({ configured: true, nextReset: nextReset(), quotas: QUOTA_TYPES.map(q => ({ type: q, label: QUOTA_LABEL[q], count: sum.byType[q], target: cfg.targets[q] ?? null, rate: cfg.rates[q] ?? null })),
+      activities: sum.activities, salaire: sum.salaire, cooldowns: cds.map(c => ({ action: c.action, label: ACTIVITIES[c.action]?.label || c.action, expiresAt: c.expires_at })),
+      armes, fourrieres7j: fourr[0]?.n ?? 0, ventesEnAttente: ventes });
+  } catch (e) { console.error(e); res.status(502).json({ error: 'bot-unreachable' }); }
+});
+
+app.get('/api/bot/dashboard', requireAuth, requireApproved, requireAdmin, async (_req, res) => {
+  if (!bot) return res.json({ configured: false });
+  try {
+    const [cfg, items, stocks, history, stats, cds, taxes, armes, vehicules, pending, braq, fourr] = await Promise.all([botConfig(),
+      botQuery('SELECT name, stock_group, display_order, visible_stock, vente FROM items ORDER BY display_order, name'),
+      botQuery('SELECT item, quantite FROM stocks'),
+      botQuery('SELECT timestamp, joueur, action, item, quantite, stock_avant, stock_apres FROM stock_history ORDER BY timestamp DESC LIMIT 60'),
+      botQuery('SELECT user_id, action, count, points FROM stats'),
+      botQuery('SELECT user_id, action, expires_at FROM cooldowns WHERE expires_at > now() ORDER BY expires_at'),
+      botQuery('SELECT id, nom, type, telephone, echeance, actif, paye FROM taxes WHERE actif ORDER BY echeance'),
+      botQuery('SELECT nom, reference, type, statut, pretee_a FROM armurerie ORDER BY statut, nom'),
+      botQuery('SELECT plaque, modele, joueur, discord_id, timestamp FROM vehicules WHERE discord_id IS NOT NULL OR joueur IS NOT NULL ORDER BY timestamp DESC'),
+      botQuery("SELECT id, joueur, discord_id, item, quantite, statut, montant, timestamp FROM pending_sales WHERE statut = 'en_attente' ORDER BY timestamp DESC LIMIT 30"),
+      botQuery("SELECT action, count(*)::int AS n FROM braquages WHERE timestamp > now() - interval '7 days' GROUP BY action"),
+      botQuery("SELECT joueur, plaque, modele, timestamp FROM fourrieres WHERE timestamp > now() - interval '7 days' ORDER BY timestamp DESC")]);
+    const qty = Object.fromEntries(stocks.map(s => [s.item, s.quantite]));
+    const coffre = items.map(i => ({ item: i.name, group: i.stock_group, quantite: qty[i.name] ?? 0, visible: i.visible_stock, vente: i.vente }));
+    for (const s of stocks) if (!items.some(i => i.name === s.item)) coffre.push({ item: s.item, group: null, quantite: s.quantite, visible: true, vente: false });
+    const byUser = {}; for (const r of stats) (byUser[r.user_id] = byUser[r.user_id] || []).push(r);
+    const ids = [...new Set([...Object.keys(byUser), ...cds.map(c => c.user_id)])];
+    const names = await namesFor(ids);
+    const classement = Object.entries(byUser).map(([uid, rows]) => { const s = summarize(rows, cfg.rates); return { userId: uid, name: names[uid] || uid, ...s.byType, salaire: s.salaire, activities: s.activities }; })
+      .sort((a, b) => b.salaire - a.salaire || (b.actions + b.vente + b.recolte + b.labos) - (a.actions + a.vente + a.recolte + a.labos));
+    const { rows: approved } = await pool.query("SELECT discord_id, display_name FROM members WHERE status = 'approved'");
+    const inactifs = approved.filter(m => !byUser[m.discord_id]).map(m => m.display_name);
+    res.json({ configured: true, nextReset: nextReset(), targets: cfg.targets, rates: cfg.rates, quotaTypes: QUOTA_TYPES.map(q => ({ type: q, label: QUOTA_LABEL[q] })),
+      coffre, history, classement, masseSalariale: classement.reduce((s, c) => s + c.salaire, 0), inactifs,
+      cooldowns: cds.map(c => ({ name: names[c.user_id] || c.user_id, action: c.action, label: ACTIVITIES[c.action]?.label || c.action, expiresAt: c.expires_at })),
+      taxes, armes, vehicules, ventesEnAttente: pending, braquages7j: braq.map(b => ({ action: b.action, label: ACTIVITIES[b.action]?.label || b.action, n: b.n })), fourrieres7j: fourr });
+  } catch (e) { console.error(e); res.status(502).json({ error: 'bot-unreachable' }); }
+});
+
 // ---------- Chat de la familia (SSE + POST) ----------
 const chatClients = new Map();            // res -> member
 const chatMember = m => ({ id: m.id, displayName: m.display_name, username: m.username, rank: m.rank, rankLabel: RANK_LABEL[m.rank], avatarUrl: publicMember(m).avatarUrl });

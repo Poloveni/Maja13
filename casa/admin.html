@@ -25,6 +25,7 @@
     <a href="chat.html">Le Salon</a>
     <a href="galerie.html">Galerie</a>
     <a href="admin.html" class="is-active">Administration</a>
+    <a href="tableau.html" id="dashLink" hidden>Tableau de bord</a>
     <a href="organigramme.html" id="orgLink" hidden>Hiérarchie</a>
     <a href="../">Le site</a>
     <button class="nav__cta casa-logout" id="logout">Déconnexion</button>
@@ -115,6 +116,7 @@
     const [meData, r, list] = await Promise.all([api('../api/me'), api('../api/ranks'), api('../api/admin/members')]);
     me = meData; ranks = r;
     if (!me.isAdmin) { location.replace('perfil.html'); return; }
+    $('dashLink').hidden = false;
     if (['jefe','devweb'].includes(me.rank)) $('orgLink').hidden = false;
     render(list); $('loading').hidden = true;
   }

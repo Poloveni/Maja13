@@ -18,6 +18,7 @@ services:
     networks:
       - default
       - caddy            # réseau du Caddy de Dynasty 8, pour le reverse proxy
+      - botnet           # réseau du bot Discord Maja 13, pour lire sa base
   maja13-db:
     container_name: maja13-db-1
     image: postgres:17-alpine
@@ -40,3 +41,6 @@ networks:
   caddy:
     external: true
     name: vps_default     # réseau du compose Dynasty 8 (là où vit vps-caddy-1)
+  botnet:
+    external: true
+    name: maja13-bot_default   # réseau du compose du bot (/opt/maja13-bot)

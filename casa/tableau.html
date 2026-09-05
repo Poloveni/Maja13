@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tableau de bord — La Casa · La Maja 13</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="../assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="casa.css">
+</head>
+<body class="casa-body">
+<div class="grain" aria-hidden="true"></div>
+<script src="casa-bg.js" defer></script>
+
+<header class="nav is-scrolled">
+  <a class="nav__brand" href="../"><img src="../assets/logo.png" alt="" width="40" height="40"><span>La Maja <em>13</em></span></a>
+  <nav class="nav__links casa-nav">
+    <a href="perfil.html">Mon profil</a>
+    <a href="familia.html">La Famille</a>
+    <a href="chat.html">Le Salon</a>
+    <a href="galerie.html">Galerie</a>
+    <a href="admin.html">Administration</a>
+    <a href="tableau.html" class="is-active">Tableau de bord</a>
+    <a href="organigramme.html" id="orgLink" hidden>Hiérarchie</a>
+    <a href="../">Le site</a>
+    <button class="nav__cta casa-logout" id="logout">Déconnexion</button>
+  </nav>
+</header>
+
+<main class="casa-page casa-page--wide dash">
+  <div class="section__head">
+    <span class="numeral">✦</span>
+    <h2>Tableau de bord</h2>
+    <p class="sub">La semaine de la familia, vue du bot</p>
+  </div>
+  <div class="casa-loading" id="loading">Chargement…</div>
+  <p class="admin-empty" id="off" hidden>Le bot Discord n'est pas encore relié à La Casa (ou sa base est injoignable).</p>
+
+  <div id="dash" hidden>
+    <div class="tiles">
+      <div class="tile"><span>Masse salariale estimée</span><b id="masse">—</b><small>cette semaine, selon les taux du bot</small></div>
+      <div class="tile"><span>Membres actifs</span><b id="actifs">—</b><small id="inactifsNote"></small></div>
+      <div class="tile"><span>Braquages · 7 jours</span><b id="braq">—</b><small id="braqDetail"></small></div>
+      <div class="tile"><span>Remise à zéro</span><b id="resetIn">—</b><small>dimanche 19 h</small></div>
+    </div>
+
+    <section class="admin-block">
+      <h3 class="admin-block__title">Classement hebdo</h3>
+      <div class="table-wrap"><table class="admin-table dash-table"><thead id="rankHead"></thead><tbody id="rankBody"></tbody></table></div>
+      <p class="admin-block__hint" id="inactifs"></p>
+    </section>
+
+    <div class="dash-cols">
+      <section class="admin-block">
+        <h3 class="admin-block__title">Le coffre</h3>
+        <div id="coffre"></div>
+      </section>
+      <section class="admin-block">
+        <h3 class="admin-block__title">Derniers mouvements</h3>
+        <ul class="feed" id="history"></ul>
+      </section>
+    </div>
+
+    <div class="dash-cols dash-cols--3">
+      <section class="admin-block"><h3 class="admin-block__title">Cooldowns en cours</h3><ul class="stat__list" id="cooldowns"></ul></section>
+      <section class="admin-block"><h3 class="admin-block__title">Ventes en attente</h3><ul class="stat__list" id="pending"></ul></section>
+      <section class="admin-block"><h3 class="admin-block__title">Fourrières · 7 jours</h3><ul class="stat__list" id="fourr"></ul></section>
+    </div>
+
+    <div class="dash-cols">
+      <section class="admin-block">
+        <h3 class="admin-block__title">Taxes &amp; racket</h3>
+        <div class="table-wrap"><table class="admin-table dash-table"><thead><tr><th>Commerce</th><th>Type</th><th>Échéance</th><th>Statut</th></tr></thead><tbody id="taxes"></tbody></table></div>
+      </section>
+      <section class="admin-block">
+        <h3 class="admin-block__title">Armurerie</h3>
+        <div class="table-wrap"><table class="admin-table dash-table"><thead><tr><th>Arme</th><th>Référence</th><th>Statut</th><th>Prêtée à</th></tr></thead><tbody id="armes"></tbody></table></div>
+      </section>
+    </div>
+
+    <section class="admin-block">
+      <h3 class="admin-block__title">Véhicules sortis</h3>
+      <div class="table-wrap"><table class="admin-table dash-table"><thead><tr><th>Plaque</th><th>Modèle</th><th>Par</th><th>Depuis</th></tr></thead><tbody id="vehicules"></tbody></table></div>
+    </section>
+  </div>
+</main>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const money = n => Math.round(n).toLocaleString('fr-FR') + ' $';
+  const when = d => new Date(d).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  const date = d => new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+  const countdown = iso => { const ms = new Date(iso) - Date.now(); if (ms <= 0) return 'maintenant'; const h = Math.floor(ms / 3.6e6), m = Math.floor(ms % 3.6e6 / 6e4); return h >= 24 ? `${Math.floor(h / 24)} j ${h % 24} h` : h ? `${h} h ${m} min` : `${m} min`; };
+  const empty = (el, txt) => { el.innerHTML = `<li class="muted">${txt}</li>`; };
+  const TAXE = { sporex: 'Sporex', heroine: 'Héroïne', vente: 'Vente', fertilisant: 'Fertilisant' };
+  const api = url => fetch(url, { credentials: 'same-origin' }).then(async r => { if (r.status === 401) { location.replace('./'); throw 0; } if (r.status === 403) { location.replace('perfil.html'); throw 0; } return r.json(); });
+
+  function render(d) {
+    $('masse').textContent = money(d.masseSalariale);
+    $('actifs').textContent = d.classement.length;
+    $('inactifsNote').textContent = d.inactifs.length ? `${d.inactifs.length} sans déclaration` : 'tout le monde a déclaré';
+    const nb = d.braquages7j.reduce((s, b) => s + b.n, 0);
+    $('braq').textContent = nb; $('braqDetail').textContent = d.braquages7j.map(b => `${b.label} ×${b.n}`).join(' · ') || 'aucun';
+    $('resetIn').textContent = countdown(d.nextReset);
+
+    $('rankHead').innerHTML = `<tr><th>#</th><th>Membre</th>${d.quotaTypes.map(q => `<th>${q.label}${d.targets[q.type] ? ` <small>/ ${d.targets[q.type]}</small>` : ''}</th>`).join('')}<th>Paie</th></tr>`;
+    $('rankBody').innerHTML = d.classement.length ? d.classement.map((c, i) => `<tr>
+      <td class="muted">${i + 1}</td><td><b>${esc(c.name)}</b></td>
+      ${d.quotaTypes.map(q => { const t = d.targets[q.type]; const v = c[q.type] || 0; return `<td class="${t && v >= t ? 'is-done' : ''}">${v}${t ? `<i class="mini"><b style="width:${Math.min(100, v / t * 100)}%"></b></i>` : ''}</td>`; }).join('')}
+      <td><b>${money(c.salaire)}</b></td></tr>`).join('') : '<tr><td colspan="7" class="muted">Aucune déclaration cette semaine.</td></tr>';
+    $('inactifs').textContent = d.inactifs.length ? `Sans déclaration cette semaine : ${d.inactifs.join(', ')}.` : '';
+
+    const groups = {}; d.coffre.forEach(c => (groups[c.group || 'Autres'] = groups[c.group || 'Autres'] || []).push(c));
+    $('coffre').innerHTML = Object.entries(groups).map(([g, list]) => `<div class="coffre-group"><h4>${esc(g)}</h4><ul class="stat__list">${list.map(c => `<li class="${c.visible ? '' : 'muted'}"><span>${esc(c.item)}${c.vente ? ' <i class="tag">vente</i>' : ''}</span><b>${c.quantite}</b></li>`).join('')}</ul></div>`).join('') || '<p class="muted">Aucun item configuré (/config item).</p>';
+
+    $('history').innerHTML = d.history.length ? d.history.map(h => `<li><time>${when(h.timestamp)}</time><span><b>${esc(h.joueur)}</b> ${esc(h.action)} <b class="${h.quantite < 0 ? 'neg' : 'pos'}">${h.quantite > 0 ? '+' : ''}${h.quantite}</b> ${esc(h.item)} <i class="muted">(${h.stock_avant} → ${h.stock_apres})</i></span></li>`).join('') : '<li class="muted">Aucun mouvement enregistré.</li>';
+
+    d.cooldowns.length ? $('cooldowns').innerHTML = d.cooldowns.map(c => `<li><span>${esc(c.name)} · ${esc(c.label)}</span><b>${countdown(c.expiresAt)}</b></li>`).join('') : empty($('cooldowns'), 'Aucun');
+    d.ventesEnAttente.length ? $('pending').innerHTML = d.ventesEnAttente.map(v => `<li><span>${esc(v.joueur)} · ${v.quantite} × ${esc(v.item)}</span><b>${v.montant ? money(v.montant) : '—'}</b></li>`).join('') : empty($('pending'), 'Aucune');
+    d.fourrieres7j.length ? $('fourr').innerHTML = d.fourrieres7j.map(f => `<li><span>${esc(f.joueur)} · ${esc(f.plaque)}${f.modele ? ` (${esc(f.modele)})` : ''}</span><b>${date(f.timestamp)}</b></li>`).join('') : empty($('fourr'), 'Aucune');
+
+    $('taxes').innerHTML = d.taxes.length ? d.taxes.map(t => { const late = new Date(t.echeance) < Date.now(); return `<tr class="${!t.paye || late ? 'is-warn' : ''}"><td><b>${esc(t.nom)}</b>${t.telephone ? `<br><small class="muted">${esc(t.telephone)}</small>` : ''}</td><td>${esc(TAXE[t.type] || t.type)}</td><td>${date(t.echeance)}</td><td><span class="status ${t.paye ? 'status--approved' : 'status--rejected'}">${t.paye ? 'Payée' : 'Impayée'}${late && !t.paye ? ' · en retard' : ''}</span></td></tr>`; }).join('') : '<tr><td colspan="4" class="muted">Aucune taxe active.</td></tr>';
+    $('armes').innerHTML = d.armes.length ? d.armes.map(a => `<tr><td><b>${esc(a.nom)}</b>${a.type ? ` <small class="muted">${esc(a.type)}</small>` : ''}</td><td class="mono">${esc(a.reference)}</td><td><span class="status ${a.statut === 'en_stock' ? 'status--approved' : 'status--pending'}">${esc(a.statut.replace('_', ' '))}</span></td><td>${esc(a.pretee_a || '—')}</td></tr>`).join('') : '<tr><td colspan="4" class="muted">Armurerie vide.</td></tr>';
+    $('vehicules').innerHTML = d.vehicules.length ? d.vehicules.map(v => `<tr><td class="mono">${esc(v.plaque)}</td><td>${esc(v.modele || '—')}</td><td>${esc(v.joueur || v.discord_id || '—')}</td><td class="muted">${when(v.timestamp)}</td></tr>`).join('') : '<tr><td colspan="4" class="muted">Tous les véhicules sont rangés.</td></tr>';
+  }
+
+  async function load() {
+    const me = await api('../api/me');
+    if (me.status !== 'approved') { location.replace('espera.html'); return; }
+    if (!me.isAdmin) { location.replace('perfil.html'); return; }
+    if (['jefe', 'devweb'].includes(me.rank)) $('orgLink').hidden = false;
+    const d = await api('../api/bot/dashboard');
+    $('loading').hidden = true;
+    if (!d || !d.configured) { $('off').hidden = false; return; }
+    render(d); $('dash').hidden = false;
+  }
+  $('logout').addEventListener('click', async () => { await fetch('../auth/logout', { method: 'POST', credentials: 'same-origin' }); location.href = './'; });
+  load().catch(() => { $('loading').hidden = true; $('off').hidden = false; });
+  setInterval(() => api('../api/bot/dashboard').then(d => d && d.configured && render(d)).catch(() => {}), 60000);
+</script>
+</body>
+</html>
