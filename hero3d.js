@@ -61,6 +61,34 @@
   const dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({ size: 0.07, map: sprite, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, color: 0xffd48a, opacity: 0.85 }));
   scene.add(dust);
 
+  // ---- halo : lueur douce derrière la pièce + deux traînées de lumière qui tournent autour
+  const glowTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d'); const gr = g.createRadialGradient(128, 128, 0, 128, 128, 128); gr.addColorStop(0, 'rgba(255,215,140,.55)'); gr.addColorStop(.35, 'rgba(230,170,80,.22)'); gr.addColorStop(.7, 'rgba(160,110,40,.06)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(0, 0, 256, 256); return new THREE.CanvasTexture(c); })();
+  const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.9 }));
+  halo.scale.setScalar(R * 3.4);
+  scene.add(halo);
+
+  const RING_N = 160, ringR = R + 0.32;
+  const ringPos = new Float32Array(RING_N * 3), ringCol = new Float32Array(RING_N * 3);
+  for (let i = 0; i < RING_N; i++) { const a = i / RING_N * Math.PI * 2; ringPos[i * 3] = Math.cos(a) * ringR; ringPos[i * 3 + 1] = Math.sin(a) * ringR; ringPos[i * 3 + 2] = 0; }
+  const ringGeo = new THREE.BufferGeometry();
+  ringGeo.setAttribute('position', new THREE.BufferAttribute(ringPos, 3));
+  ringGeo.setAttribute('color', new THREE.BufferAttribute(ringCol, 3));
+  const ring = new THREE.Points(ringGeo, new THREE.PointsMaterial({ size: 0.16, map: sprite, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true }));
+  const ring2 = ring.clone(); ring2.material = ring.material;
+  scene.add(ring); scene.add(ring2);
+  // deux "comètes" qui courent le long de l'anneau : l'intensité décroît derrière la tête
+  function updateRing(t) {
+    const col = ringGeo.attributes.color.array;
+    const heads = [t * 0.45, t * 0.45 + Math.PI];
+    for (let i = 0; i < RING_N; i++) {
+      const a = i / RING_N * Math.PI * 2; let v = 0;
+      for (const h of heads) { let d = (h - a) % (Math.PI * 2); if (d < 0) d += Math.PI * 2; v = Math.max(v, Math.exp(-d * 2.2)); }
+      const g = 0.06 + v * 1.2;
+      col[i * 3] = g; col[i * 3 + 1] = g * 0.82; col[i * 3 + 2] = g * 0.45;
+    }
+    ringGeo.attributes.color.needsUpdate = true;
+  }
+
   // ---- interaction (drag on the hero, wheel left to the page)
   let dragging = false, lx = 0, ly = 0, velX = 0, velY = 0, rotX = 0, rotY = 0, autoSpin = true;
   const mouse = { x: 0, y: 0 };
@@ -101,6 +129,16 @@
     coin.rotation.y = rotY;
     coin.rotation.x = rotX + Math.sin(t * 0.7) * 0.04;
     coin.position.set(coinX, coinY + Math.sin(t * 0.9) * 0.08, 0);
+    // halo qui respire et dérive légèrement autour de la pièce
+    halo.position.set(coinX + Math.sin(t * 0.5) * 0.12, coin.position.y + Math.cos(t * 0.4) * 0.1, -0.4);
+    halo.scale.setScalar((R * 3.2 + Math.sin(t * 1.3) * 0.25) * coinScale);
+    halo.material.opacity = 0.75 + Math.sin(t * 0.9) * 0.15;
+    // anneaux de lumière : inclinés, en rotation lente, autour de la pièce
+    ring.position.copy(coin.position); ring2.position.copy(coin.position);
+    ring.scale.setScalar(coinScale); ring2.scale.setScalar(coinScale);
+    ring.rotation.set(0.35 + Math.sin(t * 0.3) * 0.1, t * 0.25, 0);
+    ring2.rotation.set(-0.5 + Math.cos(t * 0.27) * 0.1, -t * 0.2 + 1.3, 0.3);
+    updateRing(t);
     camera.position.x += ((mouse.x * 0.35) - camera.position.x) * 0.04;
     camera.position.y += ((-mouse.y * 0.25 + 0.2) - camera.position.y) * 0.04;
     camera.lookAt(0, 0, 0);
