@@ -17,8 +17,8 @@ const {
   DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_GUILD_ID,
   DISCORD_ROLE_MAP = '', ADMIN_DISCORD_IDS = '',
 } = process.env;
-// en Docker, la base s'appelle "db" et seul POSTGRES_PASSWORD est fourni
-const DATABASE_URL = process.env.DATABASE_URL || (POSTGRES_PASSWORD && `postgres://maja13:${POSTGRES_PASSWORD}@db:5432/maja13`);
+// en Docker, la base s'appelle "maja13-db" et seul POSTGRES_PASSWORD est fourni
+const DATABASE_URL = process.env.DATABASE_URL || (POSTGRES_PASSWORD && `postgres://maja13:${POSTGRES_PASSWORD}@maja13-db:5432/maja13`);
 if (!DATABASE_URL) { console.error('Variable manquante dans .env : DATABASE_URL (ou POSTGRES_PASSWORD)'); process.exit(1); }
 for (const k of ['BASE_URL', 'SESSION_SECRET', 'DISCORD_CLIENT_ID', 'DISCORD_CLIENT_SECRET', 'DISCORD_GUILD_ID'])
   if (!process.env[k]) { console.error(`Variable manquante dans .env : ${k}`); process.exit(1); }

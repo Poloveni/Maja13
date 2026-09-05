@@ -2,19 +2,22 @@
 # Lancer depuis /opt/maja13 :  sudo docker compose -f server/deploy/docker-compose.yml up -d --build
 name: maja13
 services:
-  app:
+  # noms explicites : le réseau vps_default est partagé avec Dynasty 8, dont le service s'appelle déjà "app"
+  maja13-app:
+    container_name: maja13-app-1
     build:
       context: ../..
       dockerfile: server/Dockerfile
     restart: unless-stopped
     env_file: ../.env          # DATABASE_URL est déduite de POSTGRES_PASSWORD par l'app
     depends_on:
-      db:
+      maja13-db:
         condition: service_healthy
     networks:
       - default
       - caddy            # réseau du Caddy de Dynasty 8, pour le reverse proxy
-  db:
+  maja13-db:
+    container_name: maja13-db-1
     image: postgres:17-alpine
     restart: unless-stopped
     env_file: ../.env          # fournit POSTGRES_PASSWORD
