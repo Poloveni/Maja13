@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Taxes & Racket — La Casa · La Maja 13</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="../assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="casa.css">
+</head>
+<body class="casa-body">
+<div class="grain" aria-hidden="true"></div>
+<script src="casa-bg.js" defer></script>
+
+<header class="nav is-scrolled">
+  <a class="nav__brand" href="../"><img src="../assets/logo.png" alt="" width="40" height="40"><span>La Maja <em>13</em></span></a>
+  <nav class="nav__links casa-nav">
+    <a href="perfil.html">Mon profil</a>
+    <a href="familia.html">La Famille</a>
+    <a href="chat.html">Le Salon</a>
+    <a href="galerie.html">Galerie</a>
+    <a href="admin.html">Administration</a>
+    <a href="tableau.html">Tableau de bord</a>
+    <a href="taxes.html" class="is-active">Taxes</a>
+    <a href="organigramme.html" id="orgLink" hidden>Hiérarchie</a>
+    <a href="../">Le site</a>
+    <button class="nav__cta casa-logout" id="logout">Déconnexion</button>
+  </nav>
+</header>
+
+<main class="casa-page casa-page--wide">
+  <div class="section__head">
+    <span class="numeral">✦</span>
+    <h2>Taxes &amp; Racket</h2>
+    <p class="sub">Ce que la ville doit à la familia</p>
+  </div>
+  <div class="casa-loading" id="loading">Chargement…</div>
+  <p class="admin-empty" id="off" hidden>Le bot Discord n'est pas encore relié à La Casa (ou sa base est injoignable).</p>
+
+  <div id="page" hidden>
+    <section class="tax-pick">
+      <h3 class="tax-pick__title">Quelle taxe veux-tu regarder ?</h3>
+      <div class="tax-cards" id="cards"></div>
+    </section>
+
+    <section class="admin-block">
+      <div class="tax-head">
+        <h3 class="admin-block__title" id="listTitle">Toutes les taxes</h3>
+        <div class="tax-filters">
+          <button class="chip is-on" data-f="all">Toutes</button>
+          <button class="chip" data-f="due">À encaisser</button>
+          <button class="chip" data-f="late">En retard</button>
+          <button class="chip" data-f="paid">Payées</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="admin-table dash-table tax-table">
+          <thead><tr><th>Commerce / cible</th><th>Type</th><th>Téléphone</th><th>Échéance</th><th>Statut</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <p class="admin-block__hint" id="archived"></p>
+      <p class="admin-block__hint">L'encaissement et la création de taxes se font depuis le panneau du bot dans Discord (salon taxes) ; cette page reflète l'état en direct.</p>
+    </section>
+  </div>
+</main>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const date = d => new Date(d).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  const rel = iso => { const ms = new Date(iso) - Date.now(); const a = Math.abs(ms); const h = Math.floor(a / 3.6e6), d = Math.floor(h / 24); const s = d >= 1 ? `${d} j` : h >= 1 ? `${h} h` : `${Math.floor(a / 6e4)} min`; return ms < 0 ? `il y a ${s}` : `dans ${s}`; };
+  const api = url => fetch(url, { credentials: 'same-origin' }).then(async r => { if (r.status === 401) { location.replace('./'); throw 0; } if (r.status === 403) { location.replace('perfil.html'); throw 0; } return r.json(); });
+  let data, cat = 'all', filter = 'all';
+
+  const sub = c => c.total === 0 ? 'aucune taxe' : `${c.total} taxe${c.total > 1 ? 's' : ''} · ` + (c.toCollect ? `${c.toCollect} à encaisser` : 'tout est payé') + (c.late ? ` · <em>${c.late} en retard</em>` : '');
+  function renderCards() {
+    $('cards').innerHTML = data.categories.map(c => `<button class="tax-card ${c.key === cat ? 'is-on' : ''} ${c.key === 'all' ? 'tax-card--all' : ''} ${c.late ? 'has-late' : ''}" data-cat="${esc(c.key)}"><b>${esc(c.label)}</b><small>${sub(c)}</small></button>`).join('');
+  }
+  function renderRows() {
+    const c = data.categories.find(x => x.key === cat) || data.categories.at(-1);
+    $('listTitle').textContent = c.label;
+    let list = data.taxes.filter(t => cat === 'all' || (cat.startsWith('zone:') ? t.type === cat.slice(5) : t.type === cat));
+    if (filter === 'due') list = list.filter(t => !t.paye);
+    if (filter === 'late') list = list.filter(t => t.late);
+    if (filter === 'paid') list = list.filter(t => t.paye);
+    list.sort((a, b) => (b.late - a.late) || (a.paye - b.paye) || (new Date(a.echeance) - new Date(b.echeance)));
+    $('rows').innerHTML = list.length ? list.map(t => `<tr class="${t.late ? 'is-late' : t.dueSoon ? 'is-soon' : ''}">
+      <td><b>${esc(t.nom)}</b></td>
+      <td>${t.isZone ? `<span class="tag">zone</span> ${esc(t.typeLabel)}` : esc(t.typeLabel)}</td>
+      <td class="mono">${esc(t.telephone || '—')}</td>
+      <td>${date(t.echeance)}<br><small class="muted">${rel(t.echeance)}</small></td>
+      <td><span class="status ${t.paye ? 'status--approved' : t.late ? 'status--rejected' : 'status--pending'}">${t.paye ? 'Payée' : t.late ? 'En retard' : t.dueSoon ? 'Bientôt due' : 'À encaisser'}</span></td>
+    </tr>`).join('') : '<tr><td colspan="5" class="muted">Rien ici.</td></tr>';
+    $('archived').textContent = data.archived ? `${data.archived} taxe${data.archived > 1 ? 's' : ''} archivée${data.archived > 1 ? 's' : ''} (inactives) non affichée${data.archived > 1 ? 's' : ''}.` : '';
+  }
+  async function load() {
+    const me = await api('../api/me');
+    if (me.status !== 'approved') { location.replace('espera.html'); return; }
+    if (!me.isAdmin) { location.replace('perfil.html'); return; }
+    if (['jefe', 'devweb'].includes(me.rank)) $('orgLink').hidden = false;
+    data = await api('../api/bot/taxes');
+    $('loading').hidden = true;
+    if (!data || !data.configured) { $('off').hidden = false; return; }
+    renderCards(); renderRows(); $('page').hidden = false;
+  }
+  $('cards').addEventListener('click', e => { const b = e.target.closest('[data-cat]'); if (!b) return; cat = b.dataset.cat; renderCards(); renderRows(); });
+  document.querySelector('.tax-filters').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (!b) return; filter = b.dataset.f; document.querySelectorAll('.chip').forEach(c => c.classList.toggle('is-on', c === b)); renderRows(); });
+  $('logout').addEventListener('click', async () => { await fetch('../auth/logout', { method: 'POST', credentials: 'same-origin' }); location.href = './'; });
+  load().catch(() => { $('loading').hidden = true; $('off').hidden = false; });
+  setInterval(() => api('../api/bot/taxes').then(d => { if (d && d.configured) { data = d; renderCards(); renderRows(); } }).catch(() => {}), 60000);
+</script>
+</body>
+</html>

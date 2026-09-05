@@ -394,6 +394,26 @@ app.get('/api/bot/dashboard', requireAuth, requireApproved, requireAdmin, async 
   } catch (e) { console.error(e); res.status(502).json({ error: 'bot-unreachable' }); }
 });
 
+// taxes & racket (admins) : toutes les taxes actives, groupées par type / zone
+const TAX_FIXED = { sporex: 'Sporex', heroine: 'Héroïne', vente: 'Vente', fertilisant: 'Fertilisant' };
+app.get('/api/bot/taxes', requireAuth, requireApproved, requireAdmin, async (_req, res) => {
+  if (!bot) return res.json({ configured: false });
+  try {
+    const rows = await botQuery('SELECT id, nom, type, telephone, echeance, actif, paye, alerte_sent FROM taxes ORDER BY echeance');
+    const now = Date.now();
+    const taxes = rows.map(r => ({ id: r.id, nom: r.nom, type: r.type, typeLabel: TAX_FIXED[r.type] || r.type, isZone: !TAX_FIXED[r.type], telephone: r.telephone, echeance: r.echeance, actif: r.actif, paye: r.paye,
+      late: !r.paye && new Date(r.echeance).getTime() < now, dueSoon: !r.paye && new Date(r.echeance).getTime() - now < 48 * 3600e3 && new Date(r.echeance).getTime() >= now }));
+    const active = taxes.filter(x => x.actif);
+    const cat = (key, label, list) => ({ key, label, total: list.length, toCollect: list.filter(x => !x.paye).length, late: list.filter(x => x.late).length });
+    const zones = [...new Set(active.filter(x => x.isZone).map(x => x.type))].sort();
+    const categories = [
+      ...Object.entries(TAX_FIXED).map(([k, l]) => cat(k, l, active.filter(x => x.type === k))),
+      ...zones.map(z => cat('zone:' + z, z, active.filter(x => x.type === z))),
+      cat('all', 'Toutes les taxes', active)];
+    res.json({ configured: true, categories, taxes: active, archived: taxes.filter(x => !x.actif).length });
+  } catch (e) { console.error(e); res.status(502).json({ error: 'bot-unreachable' }); }
+});
+
 // ---------- Chat de la familia (SSE + POST) ----------
 const chatClients = new Map();            // res -> member
 const chatMember = m => ({ id: m.id, displayName: m.display_name, username: m.username, rank: m.rank, rankLabel: RANK_LABEL[m.rank], avatarUrl: publicMember(m).avatarUrl });
