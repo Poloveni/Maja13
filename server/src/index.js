@@ -201,6 +201,56 @@ app.delete('/api/admin/members/:id', requireAuth, requireApproved, requireAdmin,
 
 app.get('/api/ranks', (_req, res) => res.json(RANKS.map(r => ({ value: r, label: RANK_LABEL[r] }))));
 
+// ---------- Organigramme public (lecture libre, édition Jefe / Dev Web) ----------
+const requireJefe = (req, res, next) => isTop(req.member) ? next() : res.status(403).json({ error: 'jefe-only' });
+const orgPayload = async () => {
+  const { rows: entries } = await pool.query('SELECT * FROM org_entries ORDER BY array_position($1::text[], rank), position, id', [RANKS]);
+  const { rows: descs } = await pool.query('SELECT * FROM org_rank_desc');
+  return { ranks: RANKS.map(r => ({ value: r, label: RANK_LABEL[r] })), entries, rankDesc: Object.fromEntries(descs.map(d => [d.rank, d.description])) };
+};
+app.get('/api/org', async (_req, res) => res.json(await orgPayload()));
+
+const orgFields = b => ({
+  rank: RANKS.includes(b.rank) ? b.rank : null,
+  name: String(b.name ?? '').trim().slice(0, 64),
+  subtitle: String(b.subtitle ?? '').trim().slice(0, 80) || null,
+  description: String(b.description ?? '').trim().slice(0, 600) || null,
+  is_open: !!b.isOpen,
+});
+app.post('/api/admin/org', requireAuth, requireApproved, requireJefe, async (req, res) => {
+  const f = orgFields(req.body);
+  if (!f.rank || !f.name) return res.status(400).json({ error: 'grade et nom requis' });
+  const { rows: [{ n }] } = await pool.query('SELECT COALESCE(MAX(position), -1) + 1 AS n FROM org_entries WHERE rank = $1', [f.rank]);
+  await pool.query('INSERT INTO org_entries (rank, name, subtitle, description, is_open, position) VALUES ($1,$2,$3,$4,$5,$6)', [f.rank, f.name, f.subtitle, f.description, f.is_open, n]);
+  res.status(201).json(await orgPayload());
+});
+app.patch('/api/admin/org/:id', requireAuth, requireApproved, requireJefe, async (req, res) => {
+  const f = orgFields(req.body);
+  if (!f.rank || !f.name) return res.status(400).json({ error: 'grade et nom requis' });
+  await pool.query('UPDATE org_entries SET rank=$1, name=$2, subtitle=$3, description=$4, is_open=$5 WHERE id=$6', [f.rank, f.name, f.subtitle, f.description, f.is_open, Number(req.params.id)]);
+  res.json(await orgPayload());
+});
+app.post('/api/admin/org/:id/move', requireAuth, requireApproved, requireJefe, async (req, res) => {
+  const id = Number(req.params.id), dir = req.body.dir === 'up' ? -1 : 1;
+  const { rows: [e] } = await pool.query('SELECT * FROM org_entries WHERE id = $1', [id]);
+  if (!e) return res.status(404).json({ error: 'not-found' });
+  const { rows: sib } = await pool.query('SELECT id FROM org_entries WHERE rank = $1 ORDER BY position, id', [e.rank]);
+  const i = sib.findIndex(s => s.id === id), j = i + dir;
+  if (j >= 0 && j < sib.length) { [sib[i], sib[j]] = [sib[j], sib[i]]; }
+  for (let k = 0; k < sib.length; k++) await pool.query('UPDATE org_entries SET position = $1 WHERE id = $2', [k, sib[k].id]);
+  res.json(await orgPayload());
+});
+app.delete('/api/admin/org/:id', requireAuth, requireApproved, requireJefe, async (req, res) => {
+  await pool.query('DELETE FROM org_entries WHERE id = $1', [Number(req.params.id)]);
+  res.json(await orgPayload());
+});
+app.put('/api/admin/org/rank-desc/:rank', requireAuth, requireApproved, requireJefe, async (req, res) => {
+  if (!RANKS.includes(req.params.rank)) return res.status(400).json({ error: 'grade inconnu' });
+  const d = String(req.body.description ?? '').trim().slice(0, 600) || null;
+  await pool.query('INSERT INTO org_rank_desc (rank, description) VALUES ($1, $2) ON CONFLICT (rank) DO UPDATE SET description = EXCLUDED.description', [req.params.rank, d]);
+  res.json(await orgPayload());
+});
+
 // ---------- Chat de la familia (SSE + POST) ----------
 const chatClients = new Map();            // res -> member
 const chatMember = m => ({ id: m.id, displayName: m.display_name, username: m.username, rank: m.rank, rankLabel: RANK_LABEL[m.rank], avatarUrl: publicMember(m).avatarUrl });

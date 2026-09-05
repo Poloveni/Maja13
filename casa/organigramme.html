@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hiérarchie — La Casa · La Maja 13</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="../assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="casa.css">
+<script src="casa.js"></script>
+</head>
+<body class="casa-body">
+<div class="grain" aria-hidden="true"></div>
+<script src="casa-bg.js" defer></script>
+
+<header class="nav is-scrolled">
+  <a class="nav__brand" href="../"><img src="../assets/logo.png" alt="" width="40" height="40"><span>La Maja <em>13</em></span></a>
+  <nav class="nav__links casa-nav">
+    <a href="perfil.html">Mon profil</a>
+    <a href="familia.html">La Famille</a>
+    <a href="chat.html">Le Salon</a>
+    <a href="admin.html">Administration</a>
+    <a href="organigramme.html" class="is-active">Hiérarchie</a>
+    <a href="../">Le site</a>
+    <button class="nav__cta casa-logout" id="logout">Déconnexion</button>
+  </nav>
+</header>
+
+<main class="casa-page casa-page--wide">
+  <div class="section__head">
+    <span class="numeral">✦</span>
+    <h2>Hiérarchie</h2>
+    <p class="sub">L'organigramme affiché sur le site public</p>
+  </div>
+  <div class="casa-loading" id="loading">Chargement…</div>
+  <p class="casa-toast" id="toast" hidden></p>
+
+  <section class="admin-block" id="addBlock" hidden>
+    <h3 class="admin-block__title">Ajouter une case</h3>
+    <form class="org-form" id="addForm">
+      <label>Grade<select class="admin-select" name="rank" id="addRank"></select></label>
+      <label>Nom affiché<input class="admin-input" name="name" maxlength="64" required placeholder="Ex : Marisol"></label>
+      <label>Sous-titre <small>(optionnel)</small><input class="admin-input" name="subtitle" maxlength="80" placeholder="Ex : 27 ans · Salvador"></label>
+      <label class="org-form__wide">Description <small>(affichée pour Jefe, Segundo, Palabrero)</small><textarea class="admin-input" name="description" rows="2" maxlength="600"></textarea></label>
+      <label class="org-form__check"><input type="checkbox" name="isOpen"> Poste à pourvoir (case en pointillés)</label>
+      <button class="btn btn--gold btn--sm" type="submit">Ajouter</button>
+    </form>
+  </section>
+
+  <div id="tiers"></div>
+  <p class="admin-block__hint" style="margin-top:30px">Ce que tu modifies ici apparaît immédiatement dans la section « La Familia » du site public. Le nom affiché est libre : ce n'est pas lié aux comptes de La Casa.</p>
+</main>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  let data;
+  const toast = (msg, ok = true) => { const t = $('toast'); t.textContent = msg; t.className = 'casa-toast' + (ok ? '' : ' is-error'); t.hidden = false; clearTimeout(toast.h); toast.h = setTimeout(() => t.hidden = true, 3000); };
+  const api = (url, opt = {}) => fetch(url, { credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, ...opt })
+    .then(async r => { if (r.status === 401) { location.replace('./'); throw 0; } if (r.status === 403) { location.replace('perfil.html'); throw 0; } const j = await r.json(); if (!r.ok) throw new Error(j.error || r.status); return j; });
+
+  const rankOptions = sel => data.ranks.map(r => `<option value="${r.value}" ${r.value === sel ? 'selected' : ''}>${r.label}</option>`).join('');
+
+  function render() {
+    $('addRank').innerHTML = rankOptions('soldado');
+    const byRank = {}; data.entries.forEach(e => (byRank[e.rank] = byRank[e.rank] || []).push(e));
+    $('tiers').innerHTML = data.ranks.map(({ value, label }) => {
+      const list = byRank[value] || [];
+      if (!list.length && !data.rankDesc[value]) return '';
+      return `<section class="admin-block org-tier">
+        <h3 class="admin-block__title">${label} <span class="badge badge--gold">${list.length}</span></h3>
+        <div class="org-cards">${list.map((e, i) => `
+          <form class="org-card ${e.is_open ? 'is-open' : ''}" data-id="${e.id}">
+            <div class="org-card__row">
+              <select class="admin-select" name="rank">${rankOptions(e.rank)}</select>
+              <div class="org-card__moves">
+                <button type="button" class="btn btn--ghost btn--sm" data-move="up" ${i === 0 ? 'disabled' : ''} title="Vers la gauche">‹</button>
+                <button type="button" class="btn btn--ghost btn--sm" data-move="down" ${i === list.length - 1 ? 'disabled' : ''} title="Vers la droite">›</button>
+              </div>
+            </div>
+            <input class="admin-input" name="name" value="${esc(e.name)}" maxlength="64" required placeholder="Nom affiché">
+            <input class="admin-input" name="subtitle" value="${esc(e.subtitle)}" maxlength="80" placeholder="Sous-titre (optionnel)">
+            <textarea class="admin-input" name="description" rows="2" maxlength="600" placeholder="Description (Jefe / Segundo / Palabrero)">${esc(e.description)}</textarea>
+            <label class="org-form__check"><input type="checkbox" name="isOpen" ${e.is_open ? 'checked' : ''}> Poste à pourvoir</label>
+            <div class="org-card__actions">
+              <button class="btn btn--gold btn--sm" type="submit">Enregistrer</button>
+              <button type="button" class="btn btn--ghost btn--sm btn--danger" data-del>Supprimer</button>
+            </div>
+          </form>`).join('')}</div>
+        <form class="org-desc" data-rank="${value}">
+          <label>Texte sous la rangée « ${label} » <small>(optionnel)</small><textarea class="admin-input" name="description" rows="2" maxlength="600">${esc(data.rankDesc[value])}</textarea></label>
+          <button class="btn btn--ghost btn--sm" type="submit">Enregistrer le texte</button>
+        </form>
+      </section>`;
+    }).join('');
+  }
+  const formBody = f => ({ rank: f.rank.value, name: f.name.value, subtitle: f.subtitle.value, description: f.description.value, isOpen: f.isOpen.checked });
+
+  async function load() {
+    const me = await api('../api/me');
+    if (!['jefe', 'devweb'].includes(me.rank)) { location.replace('perfil.html'); return; }
+    data = await api('../api/org'); render(); $('loading').hidden = true; $('addBlock').hidden = false;
+  }
+  $('addForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    try { data = await api('../api/admin/org', { method: 'POST', body: JSON.stringify(formBody(e.target)) }); render(); toast('Case ajoutée ✦'); }
+    catch (err) { toast('Erreur : ' + err.message, false); }
+  });
+  $('tiers').addEventListener('submit', async e => {
+    e.preventDefault(); const f = e.target;
+    try {
+      if (f.classList.contains('org-desc')) data = await api('../api/admin/org/rank-desc/' + f.dataset.rank, { method: 'PUT', body: JSON.stringify({ description: f.description.value }) });
+      else data = await api('../api/admin/org/' + f.dataset.id, { method: 'PATCH', body: JSON.stringify(formBody(f)) });
+      render(); toast('Enregistré ✦');
+    } catch (err) { toast('Erreur : ' + err.message, false); }
+  });
+  $('tiers').addEventListener('click', async e => {
+    const f = e.target.closest('.org-card'); if (!f) return;
+    const mv = e.target.closest('[data-move]');
+    if (mv) { data = await api(`../api/admin/org/${f.dataset.id}/move`, { method: 'POST', body: JSON.stringify({ dir: mv.dataset.move }) }); render(); return; }
+    if (e.target.closest('[data-del]')) {
+      if (await casaConfirm(`« ${f.name.value} » disparaîtra de l'organigramme public.`, { title: 'Supprimer cette case ?', ok: 'Supprimer', danger: true })) {
+        data = await api('../api/admin/org/' + f.dataset.id, { method: 'DELETE' }); render(); toast('Case supprimée');
+      }
+    }
+  });
+  $('logout').addEventListener('click', async () => { await fetch('../auth/logout', { method: 'POST', credentials: 'same-origin' }); location.href = './'; });
+  load().catch(() => {});
+</script>
+</body>
+</html>

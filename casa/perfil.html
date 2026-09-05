@@ -23,6 +23,7 @@
     <a href="familia.html">La Famille</a>
     <a href="chat.html">Le Salon</a>
     <a href="admin.html" id="adminLink" hidden>Administration</a>
+    <a href="organigramme.html" id="orgLink" hidden>Hiérarchie</a>
     <a href="../">Le site</a>
     <button class="nav__cta casa-logout" id="logout">Déconnexion</button>
   </nav>
@@ -80,7 +81,7 @@
   }
   fetch('../api/me', { credentials: 'same-origin' })
     .then(r => { if (r.status === 401) { location.replace('./'); throw 0; } return r.json(); })
-    .then(m => { if (m.status !== 'approved') { location.replace('espera.html'); return; } if (m.isAdmin) $('adminLink').hidden = false; render(m); $('loading').hidden = true; $('perfil').hidden = false; })
+    .then(m => { if (m.status !== 'approved') { location.replace('espera.html'); return; } if (m.isAdmin) $('adminLink').hidden = false; if (['jefe','devweb'].includes(m.rank)) $('orgLink').hidden = false; render(m); $('loading').hidden = true; $('perfil').hidden = false; })
     .catch(() => {});
 
   $('form').addEventListener('submit', async e => {

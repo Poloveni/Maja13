@@ -24,6 +24,7 @@
     <a href="familia.html">La Famille</a>
     <a href="chat.html" class="is-active">Le Salon</a>
     <a href="admin.html" id="adminLink" hidden>Administration</a>
+    <a href="organigramme.html" id="orgLink" hidden>Hiérarchie</a>
     <a href="../">Le site</a>
     <button class="nav__cta casa-logout" id="logout">Déconnexion</button>
   </nav>
@@ -121,7 +122,7 @@
   async function init() {
     me = await api('../api/me');
     if (me.status !== 'approved') { location.replace('espera.html'); return; }
-    if (me.isAdmin) $('adminLink').hidden = false;
+    if (me.isAdmin) $('adminLink').hidden = false; if (['jefe','devweb'].includes(me.rank)) $('orgLink').hidden = false;
     const first = await api('../api/chat/messages');
     for (const m of first) append(m);
     if (first.length) { oldest = first[0].id; $('more').hidden = first.length < 60; }

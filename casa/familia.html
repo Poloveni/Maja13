@@ -23,6 +23,7 @@
     <a href="familia.html" class="is-active">La Famille</a>
     <a href="chat.html">Le Salon</a>
     <a href="admin.html" id="adminLink" hidden>Administration</a>
+    <a href="organigramme.html" id="orgLink" hidden>Hiérarchie</a>
     <a href="../">Le site</a>
     <button class="nav__cta casa-logout" id="logout">Déconnexion</button>
   </nav>
@@ -40,7 +41,7 @@
 
 <script>
   const $ = id => document.getElementById(id);
-  fetch('../api/me', { credentials: 'same-origin' }).then(r => r.ok ? r.json() : null).then(m => { if (m && m.isAdmin) $('adminLink').hidden = false; });
+  fetch('../api/me', { credentials: 'same-origin' }).then(r => r.ok ? r.json() : null).then(m => { if (m && m.isAdmin) $('adminLink').hidden = false; if (m && ['jefe','devweb'].includes(m.rank)) $('orgLink').hidden = false; });
   fetch('../api/familia', { credentials: 'same-origin' })
     .then(r => { if (r.status === 401) { location.replace('./'); throw 0; } if (r.status === 403) { location.replace('espera.html'); throw 0; } return r.json(); })
     .then(list => {

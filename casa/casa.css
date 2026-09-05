@@ -162,3 +162,24 @@
 
 /* fond animé « Poussière d'or » */
 .casa-fx{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none}
+
+/* hiérarchie (organigramme public) */
+.org-form{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 18px;align-items:end;border:1px solid var(--line);padding:22px;background:linear-gradient(180deg,rgba(201,164,92,.05),rgba(0,0,0,.25))}
+.org-form label,.org-desc label{font-family:var(--serif);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold2);margin:0}
+.org-form label small,.org-desc label small{text-transform:none;letter-spacing:0;font-family:var(--body);font-size:13px;color:var(--ink2)}
+.org-form__wide{grid-column:1/-1}
+.org-form__check{display:flex!important;align-items:center;gap:8px;text-transform:none!important;letter-spacing:0!important;font-family:var(--body)!important;font-size:15px!important;color:var(--ink)!important}
+.org-form__check input{accent-color:var(--gold)}
+.org-tier{margin-bottom:40px}
+.org-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-bottom:14px}
+.org-card{position:relative;border:1px solid var(--line);padding:16px;display:flex;flex-direction:column;gap:8px;background:linear-gradient(180deg,rgba(201,164,92,.05),rgba(0,0,0,.25))}
+.org-card.is-open{border-style:dashed}
+.org-card .admin-input,.org-card .admin-select{margin-top:0}
+.org-card__row{display:flex;gap:8px;align-items:center}
+.org-card__row .admin-select{flex:1}
+.org-card__moves{display:flex;gap:4px}
+.org-card__moves .btn{padding:7px 11px;font-size:13px}
+.org-card__moves .btn:disabled{opacity:.3;cursor:default}
+.org-card__actions{display:flex;gap:8px;justify-content:space-between;margin-top:4px}
+.org-desc{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end;border-top:1px dotted var(--line);padding-top:12px}
+@media (max-width:760px){.org-form,.org-desc{grid-template-columns:1fr}}

@@ -147,54 +147,13 @@
       <p class="sub">Jerarquía — cada uno conoce su lugar</p>
     </div>
 
-    <div class="org">
-      <div class="org__tier reveal">
-        <div class="rank rank--jefe">
-          <span class="rank__title">Jefe</span>
-          <span class="rank__name">Hector Palma</span>
-          <span class="rank__age">38 ans · Salvador</span>
-          <p>Dirige l'ensemble de l'organisation. Définit les objectifs, les alliances et les règles. A le dernier mot sur toutes les opérations.</p>
-        </div>
-      </div>
+    <div class="org" id="org">
+      <!-- rempli depuis /api/org ; ce contenu statique sert de secours -->
+      <div class="org__tier reveal"><div class="rank rank--jefe"><span class="rank__title">Jefe</span><span class="rank__name">Hector Palma</span><span class="rank__age">38 ans · Salvador</span><p>Dirige l'ensemble de l'organisation. Définit les objectifs, les alliances et les règles. A le dernier mot sur toutes les opérations.</p></div></div>
       <div class="org__line" aria-hidden="true"></div>
-      <div class="org__tier reveal">
-        <div class="rank rank--segundo">
-          <span class="rank__title">Segundo</span>
-          <span class="rank__name">Santiago C. Cardenas</span>
-          <span class="rank__age">30 ans · Salvador</span>
-          <p>Bras droit du Jefe. Assure la gestion quotidienne, fait le lien avec les Commandantes et supervise les opérations.</p>
-        </div>
-      </div>
+      <div class="org__tier reveal"><div class="rank rank--segundo"><span class="rank__title">Segundo</span><span class="rank__name">Santiago C. Cardenas</span><span class="rank__age">30 ans · Salvador</span><p>Bras droit du Jefe. Assure la gestion quotidienne, fait le lien avec les Commandantes et supervise les opérations.</p></div></div>
       <div class="org__line" aria-hidden="true"></div>
-      <div class="org__tier reveal">
-        <div class="rank rank--palabrero">
-          <span class="rank__title">Palabrero</span>
-          <span class="rank__name">Dante</span>
-          <p>Coordonne les Commandantes, veille au respect des règles et de la discipline, participe aux décisions stratégiques.</p>
-        </div>
-      </div>
-      <div class="org__line" aria-hidden="true"></div>
-      <div class="org__tier org__tier--row reveal">
-        <div class="rank rank--cmd"><span class="rank__title">Commandante</span><span class="rank__name">Emilio</span></div>
-        <div class="rank rank--cmd"><span class="rank__title">Commandante</span><span class="rank__name">Aguera</span></div>
-        <div class="rank rank--cmd"><span class="rank__title">Commandante</span><span class="rank__name">Santiago M.</span></div>
-      </div>
-      <p class="org__desc reveal">Dirige une équipe sur le terrain, organise et mène les opérations quotidiennes, accompagne les nouveaux membres.</p>
-      <div class="org__line" aria-hidden="true"></div>
-      <div class="org__tier org__tier--row reveal">
-        <div class="rank rank--sic"><span class="rank__title">Sicario</span><span class="rank__name">Mac</span></div>
-        <div class="rank rank--sic"><span class="rank__title">Sicario</span><span class="rank__name">Diablo</span></div>
-        <div class="rank rank--sic"><span class="rank__title">Sicario</span><span class="rank__name">Aguera</span></div>
-        <div class="rank rank--sic"><span class="rank__title">Sicario</span><span class="rank__name">Emilio</span></div>
-      </div>
-      <p class="org__desc reveal">Exécute les missions confiées par les Commandantes, encadre les Soldados et assure la réussite des actions à risque.</p>
-      <div class="org__line" aria-hidden="true"></div>
-      <div class="org__tier org__tier--row reveal">
-        <div class="rank rank--sol"><span class="rank__title">Soldado</span><span class="rank__name">Hannah</span></div>
-        <div class="rank rank--sol"><span class="rank__title">Soldado</span><span class="rank__name">Karl</span></div>
-        <div class="rank rank--sol rank--open"><span class="rank__title">Soldado</span><span class="rank__name">Recrutement</span></div>
-      </div>
-      <p class="org__desc reveal">Participe aux opérations, respecte les ordres et la hiérarchie, représente l'organisation par son comportement et progresse vers les grades supérieurs.</p>
+      <div class="org__tier reveal"><div class="rank rank--palabrero"><span class="rank__title">Palabrero</span><span class="rank__name">Dante</span><p>Coordonne les Commandantes, veille au respect des règles et de la discipline, participe aux décisions stratégiques.</p></div></div>
     </div>
   </div>
 </section>
@@ -367,6 +326,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="hero3d.js"></script>
+<script src="org.js"></script>
 <script src="main.js"></script>
 </body>
 </html>
