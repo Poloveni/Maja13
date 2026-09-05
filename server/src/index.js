@@ -200,6 +200,57 @@ app.delete('/api/admin/members/:id', requireAuth, requireApproved, requireAdmin,
 
 app.get('/api/ranks', (_req, res) => res.json(RANKS.map(r => ({ value: r, label: RANK_LABEL[r] }))));
 
+// ---------- Chat de la familia (SSE + POST) ----------
+const chatClients = new Map();            // res -> member
+const chatMember = m => ({ id: m.id, displayName: m.display_name, username: m.username, rank: m.rank, rankLabel: RANK_LABEL[m.rank], avatarUrl: publicMember(m).avatarUrl });
+const chatBroadcast = (event, data) => {
+  const payload = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+  for (const res of chatClients.keys()) { try { res.write(payload); } catch { chatClients.delete(res); } }
+};
+const chatPresence = () => {
+  const seen = new Map();
+  for (const m of chatClients.values()) seen.set(m.id, chatMember(m));
+  return [...seen.values()].sort((a, b) => RANKS.indexOf(a.rank) - RANKS.indexOf(b.rank) || a.displayName.localeCompare(b.displayName));
+};
+const chatRow = r => ({ id: r.id, content: r.content, createdAt: r.created_at, author: { id: r.member_id, displayName: r.display_name, username: r.username, rank: r.rank, rankLabel: RANK_LABEL[r.rank], avatarUrl: publicMember({ discord_id: r.discord_id, avatar: r.avatar }).avatarUrl } });
+const CHAT_SELECT = `SELECT g.id, g.content, g.created_at, g.member_id, m.display_name, m.username, m.rank, m.discord_id, m.avatar
+                     FROM messages g JOIN members m ON m.id = g.member_id WHERE g.deleted_at IS NULL`;
+
+app.get('/api/chat/messages', requireAuth, requireApproved, async (req, res) => {
+  const before = Number(req.query.before) || null;
+  const { rows } = await pool.query(`${CHAT_SELECT} ${before ? 'AND g.id < $1' : ''} ORDER BY g.id DESC LIMIT 60`, before ? [before] : []);
+  res.json(rows.reverse().map(chatRow));
+});
+
+app.post('/api/chat/messages', requireAuth, requireApproved, async (req, res) => {
+  const content = String(req.body.content ?? '').trim().slice(0, 1000);
+  if (!content) return res.status(400).json({ error: 'vide' });
+  const { rows: [ins] } = await pool.query('INSERT INTO messages (member_id, content) VALUES ($1, $2) RETURNING id', [req.member.id, content]);
+  const { rows: [row] } = await pool.query(`${CHAT_SELECT} AND g.id = $1`, [ins.id]);
+  const msg = chatRow(row);
+  chatBroadcast('message', msg);
+  res.status(201).json(msg);
+});
+
+app.delete('/api/chat/messages/:id', requireAuth, requireApproved, async (req, res) => {
+  const id = Number(req.params.id);
+  const { rows: [g] } = await pool.query('SELECT member_id FROM messages WHERE id = $1 AND deleted_at IS NULL', [id]);
+  if (!g) return res.status(404).json({ error: 'not-found' });
+  if (g.member_id !== req.member.id && !canAdmin(req.member)) return res.status(403).json({ error: 'forbidden' });
+  await pool.query('UPDATE messages SET deleted_at = now() WHERE id = $1', [id]);
+  chatBroadcast('delete', { id });
+  res.json({ ok: true });
+});
+
+app.get('/api/chat/stream', requireAuth, requireApproved, (req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive', 'X-Accel-Buffering': 'no' });
+  res.write('retry: 3000\n\n');
+  chatClients.set(res, req.member);
+  chatBroadcast('presence', chatPresence());
+  const ping = setInterval(() => { try { res.write(': ping\n\n'); } catch {} }, 25000);
+  req.on('close', () => { clearInterval(ping); chatClients.delete(res); chatBroadcast('presence', chatPresence()); });
+});
+
 // ---------- statique ----------
 app.use(express.static(ROOT, { extensions: ['html'], index: 'index.html', dotfiles: 'ignore' }));
 app.use((_req, res) => res.status(404).sendFile(join(ROOT, '404.html'), err => err && res.send('404')));

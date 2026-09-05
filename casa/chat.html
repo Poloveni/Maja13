@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El Barrio — La Casa · La Maja 13</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="../assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="casa.css">
+</head>
+<body class="casa-body casa-body--chat">
+<div class="grain" aria-hidden="true"></div>
+
+<header class="nav is-scrolled">
+  <a class="nav__brand" href="../"><img src="../assets/logo.png" alt="" width="40" height="40"><span>La Maja <em>13</em></span></a>
+  <nav class="nav__links casa-nav">
+    <a href="perfil.html">Mon profil</a>
+    <a href="familia.html">La Famille</a>
+    <a href="chat.html" class="is-active">El Barrio</a>
+    <a href="admin.html" id="adminLink" hidden>Administration</a>
+    <a href="../">Le site</a>
+    <button class="nav__cta casa-logout" id="logout">Déconnexion</button>
+  </nav>
+</header>
+
+<main class="chat">
+  <aside class="chat__side">
+    <h2 class="chat__title">El Barrio</h2>
+    <p class="chat__sub">Le salon de la familia</p>
+    <h3 class="chat__side-title">En ligne <span class="badge badge--gold" id="onlineCount">0</span></h3>
+    <ul class="chat__online" id="online"></ul>
+    <p class="chat__rules">Lealtad · Respeto. Ce qui se dit ici reste dans la familia.</p>
+  </aside>
+
+  <section class="chat__main">
+    <div class="chat__status" id="status">Connexion…</div>
+    <div class="chat__log" id="log">
+      <button class="chat__more" id="more" hidden>Messages plus anciens</button>
+    </div>
+    <form class="chat__form" id="form" autocomplete="off">
+      <textarea id="input" rows="1" maxlength="1000" placeholder="Écris à la familia… (Entrée pour envoyer, Maj+Entrée pour une nouvelle ligne)" required></textarea>
+      <button class="btn btn--gold" type="submit">Envoyer</button>
+    </form>
+  </section>
+</main>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const linkify = s => esc(s).replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+  const time = d => new Date(d).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  const day = d => new Date(d).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+  let me, oldest = null, lastDay = null, lastAuthor = null;
+  const log = $('log');
+
+  const api = (url, opt = {}) => fetch(url, { credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, ...opt })
+    .then(async r => { if (r.status === 401) { location.replace('./'); throw 0; } if (r.status === 403) { location.replace('espera.html'); throw 0; } const j = await r.json(); if (!r.ok) throw new Error(j.error || r.status); return j; });
+
+  const atBottom = () => log.scrollHeight - log.scrollTop - log.clientHeight < 80;
+  const scrollDown = () => { log.scrollTop = log.scrollHeight; };
+
+  function msgHtml(m, grouped) {
+    const mine = m.author.id === me.id;
+    const canDel = mine || me.isAdmin;
+    return `<article class="msg ${mine ? 'msg--mine' : ''} ${grouped ? 'msg--grouped' : ''}" data-id="${m.id}">
+      <img class="msg__avatar" src="${m.author.avatarUrl || '../assets/favicon.png'}" alt="">
+      <div class="msg__body">
+        <header class="msg__head"><b class="msg__name">${esc(m.author.displayName)}</b><span class="msg__rank" data-rank="${m.author.rank}">${m.author.rankLabel}</span><time>${time(m.createdAt)}</time>${canDel ? `<button class="msg__del" data-del="${m.id}" title="Supprimer">✕</button>` : ''}</header>
+        <p class="msg__text">${linkify(m.content)}</p>
+      </div>
+    </article>`;
+  }
+  function dayHtml(d) { return `<div class="chat__day"><span>${day(d)}</span></div>`; }
+
+  function append(m) {
+    const stick = atBottom();
+    const d = new Date(m.createdAt).toDateString();
+    let html = '';
+    if (d !== lastDay) { html += dayHtml(m.createdAt); lastDay = d; lastAuthor = null; }
+    html += msgHtml(m, lastAuthor === m.author.id);
+    lastAuthor = m.author.id;
+    log.insertAdjacentHTML('beforeend', html);
+    if (stick || m.author.id === me.id) scrollDown();
+  }
+  function prepend(list) {
+    if (!list.length) { $('more').hidden = true; return; }
+    const prevHeight = log.scrollHeight;
+    let html = '', prevDay = null, prevAuthor = null;
+    for (const m of list) {
+      const d = new Date(m.createdAt).toDateString();
+      if (d !== prevDay) { html += dayHtml(m.createdAt); prevDay = d; prevAuthor = null; }
+      html += msgHtml(m, prevAuthor === m.author.id); prevAuthor = m.author.id;
+    }
+    $('more').insertAdjacentHTML('afterend', html);
+    oldest = list[0].id;
+    $('more').hidden = list.length < 60;
+    log.scrollTop += log.scrollHeight - prevHeight;
+  }
+
+  function renderOnline(list) {
+    $('onlineCount').textContent = list.length;
+    $('online').innerHTML = list.map(u => `<li><img src="${u.avatarUrl || '../assets/favicon.png'}" alt=""><span>${esc(u.displayName)}</span><i data-rank="${u.rank}">${u.rankLabel}</i></li>`).join('');
+  }
+
+  let es;
+  function connect() {
+    es = new EventSource('../api/chat/stream');
+    es.onopen = () => { $('status').textContent = ''; $('status').hidden = true; };
+    es.onerror = () => { $('status').hidden = false; $('status').textContent = 'Connexion perdue, nouvelle tentative…'; };
+    es.addEventListener('message', e => append(JSON.parse(e.data)));
+    es.addEventListener('presence', e => renderOnline(JSON.parse(e.data)));
+    es.addEventListener('delete', e => { const { id } = JSON.parse(e.data); const el = log.querySelector(`[data-id="${id}"]`); if (el) el.remove(); });
+  }
+
+  async function init() {
+    me = await api('../api/me');
+    if (me.status !== 'approved') { location.replace('espera.html'); return; }
+    if (me.isAdmin) $('adminLink').hidden = false;
+    const first = await api('../api/chat/messages');
+    for (const m of first) append(m);
+    if (first.length) { oldest = first[0].id; $('more').hidden = first.length < 60; }
+    scrollDown();
+    connect();
+    $('input').focus();
+  }
+
+  async function send() {
+    const content = $('input').value.trim();
+    if (!content) return;
+    $('input').value = ''; $('input').style.height = '';
+    try { await api('../api/chat/messages', { method: 'POST', body: JSON.stringify({ content }) }); }
+    catch (e) { $('status').hidden = false; $('status').textContent = "Message non envoyé : " + e.message; }
+  }
+  $('form').addEventListener('submit', e => { e.preventDefault(); send(); });
+  $('input').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } });
+  $('input').addEventListener('input', e => { e.target.style.height = ''; e.target.style.height = Math.min(e.target.scrollHeight, 160) + 'px'; });
+  $('more').addEventListener('click', async () => { const list = await api('../api/chat/messages?before=' + oldest); prepend(list); });
+  log.addEventListener('click', async e => {
+    const b = e.target.closest('[data-del]'); if (!b) return;
+    if (confirm('Supprimer ce message ?')) await api('../api/chat/messages/' + b.dataset.del, { method: 'DELETE' }).catch(() => {});
+  });
+  $('logout').addEventListener('click', async () => { es && es.close(); await fetch('../auth/logout', { method: 'POST', credentials: 'same-origin' }); location.href = './'; });
+  init().catch(() => {});
+</script>
+</body>
+</html>

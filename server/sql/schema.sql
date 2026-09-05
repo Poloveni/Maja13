@@ -28,3 +28,13 @@ ALTER TABLE members DROP CONSTRAINT IF EXISTS members_status_check;
 ALTER TABLE members ADD CONSTRAINT members_status_check CHECK (status IN ('pending','approved','rejected'));
 ALTER TABLE members ADD COLUMN IF NOT EXISTS approved_at TIMESTAMPTZ;
 ALTER TABLE members ADD COLUMN IF NOT EXISTS approved_by INTEGER REFERENCES members(id);
+
+-- v3 : chat de la familia
+CREATE TABLE IF NOT EXISTS messages (
+  id          SERIAL PRIMARY KEY,
+  member_id   INTEGER NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+  content     VARCHAR(1000) NOT NULL,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  deleted_at  TIMESTAMPTZ
+);
+CREATE INDEX IF NOT EXISTS idx_messages_created ON messages (created_at DESC);
