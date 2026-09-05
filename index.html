@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>La Maja 13 — La familia es sagrada</title>
+<title>La Maja 13</title>
 <meta name="description" content="La Maja 13 — petite frappe latino de Los Santos, Flashback FA. Lealtad. Respeto. La familia es sagrada.">
 <link rel="icon" type="image/png" href="assets/favicon.png">
 <meta name="theme-color" content="#c9a45c">
@@ -11,342 +11,92 @@
 <meta property="og:site_name" content="La Maja 13">
 <meta property="og:title" content="La Maja 13">
 <meta property="og:description" content="Lealtad · Respeto · La familia es sagrada — petite frappe latino de Los Santos, Flashback FA.">
-<meta property="og:url" content="https://poloveni.github.io/Maja13/">
-<meta property="og:image" content="https://poloveni.github.io/Maja13/assets/og-image.jpg">
+<meta property="og:url" content="https://lamaja13.duckdns.org/">
+<meta property="og:image" content="https://lamaja13.duckdns.org/assets/og-image.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="La Maja 13">
 <meta name="twitter:description" content="Lealtad · Respeto · La familia es sagrada">
-<meta name="twitter:image" content="https://poloveni.github.io/Maja13/assets/og-image.jpg">
+<meta name="twitter:image" content="https://lamaja13.duckdns.org/assets/og-image.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
+<style>
+  html,body{height:100%;overflow:hidden}
+  .entry{position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 24px;
+    background:radial-gradient(ellipse at 50% 42%,#1c150d 0%,#0b0909 55%,#050406 100%)}
+  .entry__fx{position:absolute;inset:0;width:100%;height:100%}
+  .entry__inner{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:0}
+  .entry__logo{width:min(420px,70vw);height:auto;filter:drop-shadow(0 0 60px rgba(201,164,92,.35)) drop-shadow(0 20px 40px rgba(0,0,0,.8));animation:entryFloat 7s ease-in-out infinite,entryIn 1.6s cubic-bezier(.2,.8,.2,1) both}
+  .entry__eyebrow{margin:34px 0 10px;animation:entryIn 1.6s .35s both}
+  .entry__title{font-family:var(--display);font-size:clamp(46px,8vw,96px);line-height:.95;letter-spacing:.05em;color:var(--ink);text-shadow:0 0 40px rgba(201,164,92,.35),0 4px 0 #2a1d0c;animation:entryIn 1.6s .5s both}
+  .entry__title span{background:linear-gradient(180deg,#f7e6b6,#c9a45c 55%,#8a6a34);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-shadow:none;filter:drop-shadow(0 4px 0 #2a1d0c)}
+  .entry__motto{font-family:var(--serif);font-size:clamp(11px,1.5vw,14px);letter-spacing:.34em;text-transform:uppercase;color:var(--gold);margin:18px 0 38px;animation:entryIn 1.6s .7s both}
+  .entry__motto i{font-style:normal;opacity:.5;margin:0 8px}
+  .entry__btn{animation:entryIn 1.6s .9s both;font-size:13px;padding:18px 44px;letter-spacing:.34em}
+  .entry__small{position:absolute;bottom:22px;left:0;right:0;z-index:2;font-family:var(--serif);font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold2);animation:entryIn 1.6s 1.2s both}
+  .entry__small a{color:var(--gold2)}.entry__small a:hover{color:var(--gold)}
+  .entry.is-leaving{animation:entryOut .7s ease forwards}
+  @keyframes entryIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+  @keyframes entryFloat{50%{transform:translateY(-12px)}}
+  @keyframes entryOut{to{opacity:0;transform:scale(1.04)}}
+  @media (max-height:860px){.entry__logo{width:min(300px,50vw)}.entry__eyebrow{margin-top:22px}.entry__motto{margin-bottom:26px}}
+  @media (max-height:700px){.entry__logo{width:min(220px,40vw)}.entry__title{font-size:clamp(40px,7vw,64px)}}
+  @media (prefers-reduced-motion:reduce){.entry__logo,.entry__eyebrow,.entry__title,.entry__motto,.entry__btn,.entry__small{animation:none}}
+</style>
 </head>
 <body>
-
 <div class="grain" aria-hidden="true"></div>
-
-<!-- ============ NAV ============ -->
-<header class="nav" id="nav">
-  <a class="nav__brand" href="#top">
-    <img src="assets/logo.png" alt="" width="40" height="40">
-    <span>La Maja <em>13</em></span>
-  </a>
-  <button class="nav__burger" id="burger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
-  <nav class="nav__links" id="navLinks">
-    <a href="#historia">Historia</a>
-    <a href="#codigo">Código</a>
-    <a href="#familia">Familia</a>
-    <a href="#flota">Flota</a>
-    <a href="#eventos">Eventos</a>
-    <a href="#vocabulario">Vocabulario</a>
-    <a href="#galeria" id="navGaleria" hidden>Galería</a>
-    <a href="casa/">La Casa</a>
-    <a class="nav__cta" href="https://discord.gg/Wdnsa2mDt" target="_blank" rel="noopener">Discord</a>
-  </nav>
-</header>
-
-<!-- ============ HERO ============ -->
-<section class="hero" id="top">
-  <canvas id="hero3d" aria-hidden="true"></canvas>
-  <div class="hero__skyline" aria-hidden="true"></div>
-  <div class="hero__content">
-    <p class="eyebrow">Los Santos · Flashback FA · Est. 13</p>
-    <h1 class="hero__title">La <span>Maja</span> 13</h1>
-    <p class="hero__motto">Lealtad <i>·</i> Respeto <i>·</i> La familia es sagrada</p>
-    <p class="hero__lead">Une famille forgée par la rue, du barrio de San Salvador aux quartiers de Los Santos. On y entre rarement par hasard… et on n'en repart que les pieds devant.</p>
-    <div class="hero__actions">
-      <a class="btn btn--gold" href="#historia">Nuestra historia</a>
-      <a class="btn btn--ghost" href="https://discord.gg/Wdnsa2mDt" target="_blank" rel="noopener">Rejoindre le Discord</a>
-    </div>
+<main class="entry" id="entry">
+  <canvas class="entry__fx" id="fx" aria-hidden="true"></canvas>
+  <div class="entry__inner">
+    <img class="entry__logo" src="assets/logo.png" alt="Blason de La Maja 13" width="420" height="420">
+    <p class="eyebrow entry__eyebrow">Los Santos · Flashback FA</p>
+    <h1 class="entry__title">La <span>Maja</span> 13</h1>
+    <p class="entry__motto">Lealtad <i>·</i> Respeto <i>·</i> La familia es sagrada</p>
+    <a class="btn btn--gold entry__btn" href="accueil.html" id="enter">Entrer</a>
   </div>
-  <div class="hero__hint" aria-hidden="true">Glisser le blason pour le tourner</div>
-  <a class="hero__scroll" href="#historia" aria-label="Défiler"><span></span></a>
-</section>
+  <p class="entry__small"><a href="casa/">Espace membres</a> · Roleplay sur Flashback FA</p>
+</main>
+<script>
+  // déjà entré dans cette session ? on passe directement
+  try { if (sessionStorage.getItem('maja13-entered') && !location.hash) location.replace('accueil.html'); } catch {}
+  document.getElementById('enter').addEventListener('click', e => {
+    e.preventDefault(); try { sessionStorage.setItem('maja13-entered', '1'); } catch {}
+    document.getElementById('entry').classList.add('is-leaving');
+    setTimeout(() => location.href = 'accueil.html', 650);
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('enter').click(); });
 
-<!-- ============ BANDEAU ============ -->
-<div class="marquee" aria-hidden="true">
-  <div class="marquee__track">
-    <span>Lealtad</span><b>✦</b><span>Respeto</span><b>✦</b><span>La familia es sagrada</span><b>✦</b><span>Las reglas de la calle</span><b>✦</b><span>Del barrio a Los Santos</span><b>✦</b>
-    <span>Lealtad</span><b>✦</b><span>Respeto</span><b>✦</b><span>La familia es sagrada</span><b>✦</b><span>Las reglas de la calle</span><b>✦</b><span>Del barrio a Los Santos</span><b>✦</b>
-  </div>
-</div>
-
-<!-- ============ HISTORIA ============ -->
-<section class="section" id="historia">
-  <div class="wrap">
-    <div class="section__head reveal">
-      <span class="numeral">I</span>
-      <h2>Historia</h2>
-      <p class="sub">De San Salvador a Los Santos</p>
-    </div>
-    <div class="historia">
-      <div class="historia__col reveal">
-        <h3>Las raíces</h3>
-        <p>Le groupe trouve ses origines dans les rues de San Salvador, où la pauvreté et la violence dictent le destin de toute une génération. Sans avenir, Hector et Santiago sont enrôlés dès leur plus jeune âge dans un gang, contraints de vivre au rythme des vols, des rackets et du sang.</p>
-        <p>Des années plus tard, la répression menée par le nouveau gouvernement bouleverse leur monde. Traqués et condamnés à une mort ou une prison certaine, ils fuient leur pays pour rejoindre Los Santos.</p>
-        <p>Loin de leur terre natale, ils tentent de repartir de zéro. Mais les valeurs forgées par la rue, les liens de fraternité et leur passé criminel ne disparaissent jamais.</p>
-      </div>
-      <div class="historia__col reveal">
-        <h3>Las reglas de la calle</h3>
-        <p>À leur arrivée à Los Santos, Hector et Santiago découvrent une ville où chacun cherche à imposer son nom. Sans argent, sans alliés et sans territoire, ils comprennent rapidement qu'ils devront reconstruire tout ce qu'ils ont perdu. Une chose n'a pourtant jamais changé : les règles de la rue.</p>
-        <p>Les premiers mois sont difficiles. Ils survivent grâce aux petits trafics, aux extorsions et aux activités clandestines, gagnant progressivement le respect par leur détermination et leur discipline. Leur réputation grandit à mesure que leur nom commence à circuler dans les quartiers de Los Santos.</p>
-      </div>
-      <div class="historia__col reveal">
-        <h3>La familia</h3>
-        <p>Autour d'eux, ils rassemblent des jeunes abandonnés, des immigrés latino-américains et des individus cherchant une place dans un monde qui ne leur a jamais donné leur chance. Pour eux, le gang représente plus qu'un simple moyen de survie : c'est une identité, une protection et une famille.</p>
-        <p>Avec le temps, Maja 13 cherche à construire son influence dans la ville. Leur objectif n'est pas seulement de contrôler des territoires, mais de bâtir une véritable identité : une organisation avec ses codes, ses traditions et son propre héritage. À travers la musique, la culture latino et la rue, ils souhaitent laisser une empreinte durable sur Los Santos.</p>
-      </div>
-    </div>
-    <blockquote class="quote reveal">
-      <p>« Pour Hector et Santiago, la Maja 13 n'est pas seulement un groupe : c'est un héritage, une famille forgée par la rue, où l'on entre rarement par hasard… et où l'on ne repart que les pieds devant. »</p>
-    </blockquote>
-  </div>
-</section>
-
-<!-- ============ CÓDIGO ============ -->
-<section class="section section--alt" id="codigo">
-  <div class="wrap">
-    <div class="section__head reveal">
-      <span class="numeral">II</span>
-      <h2>El Código</h2>
-      <p class="sub">Ce qui fait tenir la famille</p>
-    </div>
-    <div class="codigo">
-      <article class="card reveal">
-        <div class="card__num">01</div>
-        <h3>Lealtad</h3>
-        <p>La loyauté représente le fondement même du groupe. Une fois les couleurs portées, l'engagement devient total : chaque recrue doit prouver sa valeur et sa capacité à placer la famille avant ses propres intérêts.</p>
-      </article>
-      <article class="card reveal">
-        <div class="card__num">02</div>
-        <h3>Respeto</h3>
-        <p>Le respect se gagne. Au sein de la Maja 13, chacun connaît sa place : les anciens transmettent les règles, les plus jeunes apprennent à les respecter.</p>
-      </article>
-      <article class="card reveal">
-        <div class="card__num">03</div>
-        <h3>La palabra</h3>
-        <p>La parole donnée a une valeur supérieure à l'argent. Dans les rues de Los Santos, la réputation du gang repose sur cette discipline et cette capacité à rester soudé face aux menaces.</p>
-      </article>
-      <article class="card card--warn reveal">
-        <div class="card__num">☠</div>
-        <h3>La traición</h3>
-        <p>La trahison est l'une des plus graves offenses. Celui qui met en danger la famille, vend des informations ou tourne le dos au groupe perd toute protection et devient un ennemi.</p>
-      </article>
-    </div>
-  </div>
-</section>
-
-<!-- ============ FAMILIA (hiérarchie) ============ -->
-<section class="section" id="familia">
-  <div class="wrap">
-    <div class="section__head reveal">
-      <span class="numeral">III</span>
-      <h2>La Familia</h2>
-      <p class="sub">Jerarquía — cada uno conoce su lugar</p>
-    </div>
-
-    <div class="org" id="org">
-      <!-- rempli depuis /api/org ; ce contenu statique sert de secours -->
-      <div class="org__tier reveal"><div class="rank rank--jefe"><span class="rank__title">Jefe</span><span class="rank__name">Hector Palma</span><span class="rank__age">38 ans · Salvador</span><p>Dirige l'ensemble de l'organisation. Définit les objectifs, les alliances et les règles. A le dernier mot sur toutes les opérations.</p></div></div>
-      <div class="org__line" aria-hidden="true"></div>
-      <div class="org__tier reveal"><div class="rank rank--segundo"><span class="rank__title">Segundo</span><span class="rank__name">Santiago C. Cardenas</span><span class="rank__age">30 ans · Salvador</span><p>Bras droit du Jefe. Assure la gestion quotidienne, fait le lien avec les Commandantes et supervise les opérations.</p></div></div>
-      <div class="org__line" aria-hidden="true"></div>
-      <div class="org__tier reveal"><div class="rank rank--palabrero"><span class="rank__title">Palabrero</span><span class="rank__name">Dante</span><p>Coordonne les Commandantes, veille au respect des règles et de la discipline, participe aux décisions stratégiques.</p></div></div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ FLOTA ============ -->
-<section class="section section--alt" id="flota">
-  <div class="wrap">
-    <div class="section__head reveal">
-      <span class="numeral">IV</span>
-      <h2>La Flota</h2>
-      <p class="sub">Marrón coquillage &amp; nacré blanc puro</p>
-    </div>
-    <div class="flota">
-      <div class="flota__colors reveal">
-        <div class="swatch"><span style="background:#5a3f2b"></span><b>Marron coquillage</b><i>couleur principale</i></div>
-        <div class="swatch"><span style="background:linear-gradient(135deg,#fff 0%,#e8e2d6 60%,#fff 100%)"></span><b>Nacré blanc pur</b><i>couleur secondaire</i></div>
-        <div class="swatch"><span style="background:linear-gradient(135deg,#c9a45c,#8a6a34)"></span><b>Or bronze</b><i>blason &amp; ornements</i></div>
-        <p>Chaque membre garde son propre style, tant qu'il respecte le thème latino du groupe et intègre les couleurs de la familia dans sa tenue. Une identité visuelle cohérente, pas un uniforme.</p>
-      </div>
-      <ul class="flota__list reveal">
-        <li><b>Peyote Custom</b><span>Jefe</span></li>
-        <li><b>Sabre Turbo Custom</b><span>×1</span></li>
-        <li><b>Sunrise</b><span>×2</span></li>
-        <li><b>Primo</b><span>×1</span></li>
-        <li><b>Blade</b><span>×1</span></li>
-        <li><b>Comet Safari</b><span>×1</span></li>
-        <li><b>Caracara</b><span>×1</span></li>
-        <li><b>Speedo Custom</b><span>×4</span></li>
-        <li><b>Buffalo STX</b><span>×1</span></li>
-        <li><b>Sultan RS Classique</b><span>×1</span></li>
-        <li><b>Terminus</b><span>×1</span></li>
-        <li><b>Tailgater S</b><span>×1</span></li>
-        <li><b>Issi Sport</b><span>×1</span></li>
-        <li><b>Scharmann</b><span>×1</span></li>
-        <li><b>Archer Pro II</b><span>×1</span></li>
-        <li><b>Kamacho</b><span>×1</span></li>
-        <li><b>Jugular</b><span>×1</span></li>
-      </ul>
-    </div>
-  </div>
-</section>
-
-<!-- ============ EVENTOS ============ -->
-<section class="section" id="eventos">
-  <div class="wrap">
-    <div class="section__head reveal">
-      <span class="numeral">V</span>
-      <h2>Eventos</h2>
-      <p class="sub">Donner du jeu à la ville — nos scénarios RP</p>
-    </div>
-    <div class="eventos">
-      <article class="evento reveal">
-        <header>
-          <span class="evento__tag">Exploration · Énigmes</span>
-          <h3>La Chasse au Trésor</h3>
-        </header>
-        <p>Une mystérieuse récompense a été cachée quelque part dans Los Santos. Chaque équipe reçoit un premier indice menant à une personne cachée dans la ville, qui lui remet le suivant… jusqu'au gardien du <b>Speedo Mystère</b>, qui n'en livrera l'emplacement qu'après une ultime énigme : un code secret à quatre chiffres.</p>
-        <ul>
-          <li>Plusieurs équipes, une piste à reconstituer à travers la ville</li>
-          <li>Épreuves RP et énigmes à chaque étape</li>
-          <li>La première équipe à ouvrir le coffre remporte l'intégralité du trésor</li>
-          <li>Armes interdites — toute triche entraîne la disqualification</li>
-        </ul>
-      </article>
-      <article class="evento reveal">
-        <header>
-          <span class="evento__tag">Convoi · Interception</span>
-          <h3>Convoi Fantôme</h3>
-        </header>
-        <p>Une importante cargaison est arrivée discrètement au port de Cayo Perico. Un groupe indépendant est mandaté pour la transporter jusqu'à un entrepôt sécurisé de Rockwood. Mais une fuite a eu lieu : un second groupe sait qu'un transfert va avoir lieu, et compte bien intercepter les deux Speedo avant leur arrivée.</p>
-        <ul>
-          <li><b>Transporteurs</b> — charger, organiser sa sécurité, livrer un maximum de caisses</li>
-          <li><b>Intercepteurs</b> — blocage, négociation ou intimidation avant Rockwood</li>
-          <li>Les armes ne sont utilisées qu'en dernier recours</li>
-        </ul>
-      </article>
-      <article class="evento reveal">
-        <header>
-          <span class="evento__tag">Négociation · Poursuite</span>
-          <h3>El Courtier</h3>
-        </header>
-        <p>Un courtier du marché noir possède une marchandise de grande valeur. Après des semaines de négociations, un groupe obtient un rendez-vous dans un lieu discret… mais une information anonyme parvient aux forces de l'ordre, qui interviennent en plein échange.</p>
-        <ul>
-          <li>Prise d'otage du courtier et négociation avec la police</li>
-          <li>Délai de départ, véhicule de fuite, distance de sécurité, garanties pour l'otage</li>
-          <li>La course-poursuite ne démarre qu'une fois l'otage libéré et l'accord conclu</li>
-        </ul>
-      </article>
-    </div>
-    <div class="ambicion reveal">
-      <h3>Y mañana…</h3>
-      <p>Devenir une petite frappe majeure et reconnue du serveur, contrôler une zone de revendication et une zone économique, bâtir une organisation interne stable et autonome — et, à terme, monter un <b>label de musique latino</b> géré par des criminels : lancer de nouveaux artistes, les produire, et collaborer avec LS Event pour créer des concerts.</p>
-    </div>
-  </div>
-</section>
-
-<!-- ============ VOCABULARIO ============ -->
-<section class="section section--alt" id="vocabulario">
-  <div class="wrap">
-    <div class="section__head reveal">
-      <span class="numeral">VI</span>
-      <h2>Vocabulario</h2>
-      <p class="sub">Hablar como en el barrio</p>
-    </div>
-    <div class="vocab reveal">
-      <div class="vocab__group">
-        <h4>Saludos</h4>
-        <dl>
-          <div><dt>Holà</dt><dd>Salut</dd></div>
-          <div><dt>Cómo estás</dt><dd>Comment ça va</dd></div>
-          <div><dt>Qué tal</dt><dd>Quoi de neuf</dd></div>
-          <div><dt>Estoy bien</dt><dd>Je vais bien</dd></div>
-          <div><dt>Hasta luego</dt><dd>À plus tard</dd></div>
-          <div><dt>Buenas noches</dt><dd>Bonne nuit</dd></div>
-          <div><dt>Adiós</dt><dd>Adieu</dd></div>
-          <div><dt>Vamos</dt><dd>Allons-y</dd></div>
-        </dl>
-      </div>
-      <div class="vocab__group">
-        <h4>La gente</h4>
-        <dl>
-          <div><dt>Hombre / Mujer</dt><dd>Homme / Femme</dd></div>
-          <div><dt>Niño / Niña</dt><dd>Enfant</dd></div>
-          <div><dt>Chica</dt><dd>Fille</dd></div>
-          <div><dt>Hermano / Hermana</dt><dd>Frère / Sœur</dd></div>
-          <div><dt>Primo</dt><dd>Cousin</dd></div>
-          <div><dt>Hijo</dt><dd>Fils</dd></div>
-          <div><dt>Amigo / Parcero</dt><dd>Ami</dd></div>
-          <div><dt>Parce</dt><dd>Mec</dd></div>
-          <div><dt>Pequeño / Bicho</dt><dd>Petit</dd></div>
-        </dl>
-      </div>
-      <div class="vocab__group">
-        <h4>La calle</h4>
-        <dl>
-          <div><dt>Casa</dt><dd>Maison</dd></div>
-          <div><dt>Coche / Carucha</dt><dd>Caisse</dd></div>
-          <div><dt>Tombo / Pollos / Guardia</dt><dd>Flics</dd></div>
-          <div><dt>Nada</dt><dd>Rien</dd></div>
-          <div><dt>Buen</dt><dd>Bien</dd></div>
-          <div><dt>Vale / Vaya pues</dt><dd>Ok</dd></div>
-          <div><dt>Acuerdo</dt><dd>D'accord</dd></div>
-          <div><dt>Entiendo</dt><dd>Compris</dd></div>
-          <div><dt>Disculpa</dt><dd>Pardon</dd></div>
-        </dl>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ GALERÍA (photos postées par les membres depuis La Casa) ============ -->
-<section class="section" id="galeria" hidden>
-  <div class="wrap">
-    <div class="section__head reveal">
-      <span class="numeral">VII</span>
-      <h2>Galería</h2>
-      <p class="sub">La familia en images</p>
-    </div>
-    <div class="galeria" id="galeriaGrid"></div>
-  </div>
-</section>
-<div class="lightbox" id="lightbox" hidden>
-  <button class="lightbox__close" id="lbClose" aria-label="Fermer">✕</button>
-  <button class="lightbox__nav lightbox__nav--prev" id="lbPrev" aria-label="Précédente">‹</button>
-  <figure><img id="lbImg" alt=""><figcaption id="lbCap"></figcaption></figure>
-  <button class="lightbox__nav lightbox__nav--next" id="lbNext" aria-label="Suivante">›</button>
-</div>
-
-<!-- ============ CONTACT ============ -->
-<section class="section section--contact" id="contacto">
-  <div class="wrap">
-    <div class="contact reveal">
-      <img src="assets/logo.png" alt="Blason La Maja 13" class="contact__logo" width="220" height="220">
-      <h2>¿Quieres entrar en la familia?</h2>
-      <p>Intégrer le groupe n'est jamais un simple choix. Chaque recrue doit prouver sa valeur, sa loyauté et sa capacité à placer la familia avant ses propres intérêts. Certains rejoignent les rangs par ambition, d'autres par nécessité — mais une fois les couleurs portées, l'engagement devient total.</p>
-      <a class="btn btn--gold btn--lg" href="https://discord.gg/Wdnsa2mDt" target="_blank" rel="noopener">Rejoindre le Discord</a>
-      <p class="contact__small">Los Santos · Flashback FA · Hector Palma (Jefe) &amp; Santiago Cardenas (Segundo)</p>
-    </div>
-  </div>
-</section>
-
-<footer class="footer">
-  <div class="wrap">
-    <span>© La Maja 13 — Roleplay sur Flashback FA. Organisation fictive dans un univers de jeu.</span>
-    <span>Lealtad · Respeto · La familia es sagrada</span>
-  </div>
-</footer>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="hero3d.js"></script>
-<script src="org.js"></script>
-<script src="galeria.js"></script>
-<script src="main.js"></script>
+  // poussière d'or (même esprit que La Casa)
+  (function () {
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const cv = document.getElementById('fx'), ctx = cv.getContext('2d'); let W, H, P = [];
+    const mouse = { x: -1e4, y: -1e4 }; addEventListener('pointermove', e => { mouse.x = e.clientX; mouse.y = e.clientY; }, { passive: true });
+    const mk = init => { const z = Math.random(); return { x: Math.random() * W, y: init ? Math.random() * H : H + 10, z, r: .6 + z * 2.4, v: (.12 + z * .5) * (reduce ? .3 : 1), sw: Math.random() * 6.28, a: .25 + z * .6, hue: 38 + Math.random() * 12 }; };
+    function resize() { const dpr = Math.min(devicePixelRatio, 2); W = innerWidth; H = innerHeight; cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); P = []; for (let i = 0; i < Math.round(W * H / 8000); i++) P.push(mk(true)); }
+    addEventListener('resize', resize); resize();
+    let last = 0;
+    (function draw(now) {
+      requestAnimationFrame(draw); const t = now / 1000, dt = Math.min((now - last) / 1000, .05); last = now;
+      ctx.clearRect(0, 0, W, H);
+      const g = ctx.createRadialGradient(W / 2, H * .42, 0, W / 2, H * .42, Math.max(W, H) * .5);
+      g.addColorStop(0, `rgba(201,164,92,${.07 + Math.sin(t * .6) * .02})`); g.addColorStop(.5, 'rgba(120,90,40,.03)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      ctx.globalCompositeOperation = 'lighter';
+      for (const p of P) {
+        p.y -= p.v * 60 * dt; p.x += Math.sin(t * .7 + p.sw) * .15 * p.z;
+        const dx = p.x - mouse.x, dy = p.y - mouse.y, d2 = dx * dx + dy * dy; if (d2 < 25600 && d2 > 1) { const d = Math.sqrt(d2), f = (1 - d / 160) * .9; p.x += dx / d * f; p.y += dy / d * f; }
+        if (p.y < -10) Object.assign(p, mk(false));
+        const tw = .6 + .4 * Math.sin(t * 2 + p.sw * 3);
+        ctx.fillStyle = `hsla(${p.hue},70%,${55 + p.z * 25}%,${p.a * tw})`; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.28); ctx.fill();
+        if (p.z > .75) { ctx.fillStyle = `hsla(${p.hue},80%,70%,${.06 * tw})`; ctx.beginPath(); ctx.arc(p.x, p.y, p.r * 5, 0, 6.28); ctx.fill(); }
+      }
+      ctx.globalCompositeOperation = 'source-over';
+    })(0);
+  })();
+</script>
 </body>
 </html>

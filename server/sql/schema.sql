@@ -85,3 +85,22 @@ CREATE TABLE IF NOT EXISTS photos (
   deleted_at  TIMESTAMPTZ
 );
 CREATE INDEX IF NOT EXISTS idx_photos_created ON photos (created_at DESC);
+
+-- v7 : lecture du Salon (badge non lus) + historique des paies
+CREATE TABLE IF NOT EXISTS chat_reads (
+  member_id    INTEGER PRIMARY KEY REFERENCES members(id) ON DELETE CASCADE,
+  last_read_id INTEGER NOT NULL DEFAULT 0,
+  updated_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS pay_history (
+  id          SERIAL PRIMARY KEY,
+  week_start  DATE NOT NULL,
+  week_end    DATE NOT NULL,
+  discord_id  VARCHAR(32) NOT NULL,
+  name        VARCHAR(64),
+  by_type     JSONB NOT NULL,
+  salaire     NUMERIC(12,2) NOT NULL DEFAULT 0,
+  snapshot_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (week_end, discord_id)
+);
+CREATE INDEX IF NOT EXISTS idx_pay_history_discord ON pay_history (discord_id, week_end DESC);

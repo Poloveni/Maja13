@@ -18,12 +18,12 @@
 <script src="casa-bg.js" defer></script>
 
 <header class="nav is-scrolled">
-  <a class="nav__brand" href="../"><img src="../assets/logo.png" alt="" width="40" height="40"><span>La Maja <em>13</em></span></a>
+  <a class="nav__brand" href="../accueil.html"><img src="../assets/logo.png" alt="" width="40" height="40"><span>La Maja <em>13</em></span></a>
   <nav class="nav__links casa-nav">
     <a href="perfil.html">Mon profil</a>
     <a href="familia.html">La Famille</a>
     <a href="classement.html">Classement</a>
-    <a href="chat.html">Le Salon</a>
+    <a href="chat.html" id="chatLink">Le Salon<span class="nav__badge" id="chatBadge" hidden></span></a>
     <a href="galerie.html">Galerie</a>
     <div class="nav__group" id="gestion" hidden>
       <button class="nav__group-btn is-active" type="button" aria-expanded="false">Gestion <i>▾</i></button>
@@ -35,7 +35,7 @@
         <a href="organigramme.html" id="orgLink" hidden>Hiérarchie</a>
       </div>
     </div>
-    <a href="../">Le site</a>
+    <a href="../accueil.html">Le site</a>
     <button class="nav__cta casa-logout" id="logout">Déconnexion</button>
   </nav>
 </header>

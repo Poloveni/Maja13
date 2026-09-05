@@ -18,12 +18,12 @@
 <script src="casa-bg.js" defer></script>
 
 <header class="nav is-scrolled">
-  <a class="nav__brand" href="../"><img src="../assets/logo.png" alt="" width="40" height="40"><span>La Maja <em>13</em></span></a>
+  <a class="nav__brand" href="../accueil.html"><img src="../assets/logo.png" alt="" width="40" height="40"><span>La Maja <em>13</em></span></a>
   <nav class="nav__links casa-nav">
     <a href="perfil.html">Mon profil</a>
     <a href="familia.html">La Famille</a>
     <a href="classement.html">Classement</a>
-    <a href="chat.html" class="is-active">Le Salon</a>
+    <a href="chat.html" class="is-active" id="chatLink">Le Salon<span class="nav__badge" id="chatBadge" hidden></span></a>
     <a href="galerie.html">Galerie</a>
     <div class="nav__group" id="gestion" hidden>
       <button class="nav__group-btn" type="button" aria-expanded="false">Gestion <i>▾</i></button>
@@ -35,7 +35,7 @@
         <a href="organigramme.html" id="orgLink" hidden>Hiérarchie</a>
       </div>
     </div>
-    <a href="../">Le site</a>
+    <a href="../accueil.html">Le site</a>
     <button class="nav__cta casa-logout" id="logout">Déconnexion</button>
   </nav>
 </header>
@@ -64,7 +64,9 @@
 <script>
   const $ = id => document.getElementById(id);
   const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const linkify = s => esc(s).replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+  const linkify = s => esc(s).replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>').replace(/@([^\s@<][^@<]{0,40}?)(?=\s|$|[.,;:!?])/g, (m0, n) => mentionable.has(n.toLowerCase()) ? `<span class="mention">@${n}</span>` : m0);
+  let mentionable = new Set(), members = [];
+  const isMentioned = c => { const re = new RegExp('@(' + [me.displayName, me.username].filter(Boolean).map(s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')(?![\\w-])', 'i'); return re.test(c); };
   const time = d => new Date(d).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
   const day = d => new Date(d).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
   let me, oldest = null, lastDay = null, lastAuthor = null;
@@ -79,7 +81,7 @@
   function msgHtml(m, grouped) {
     const mine = m.author.id === me.id;
     const canDel = mine || me.isAdmin;
-    return `<article class="msg ${mine ? 'msg--mine' : ''} ${grouped ? 'msg--grouped' : ''}" data-id="${m.id}">
+    return `<article class="msg ${mine ? 'msg--mine' : ''} ${grouped ? 'msg--grouped' : ''} ${!mine && isMentioned(m.content) ? 'msg--mention' : ''}" data-id="${m.id}">
       <img class="msg__avatar" src="${m.author.avatarUrl || '../assets/favicon.png'}" alt="">
       <div class="msg__body">
         <header class="msg__head"><b class="msg__name">${esc(m.author.displayName)}</b><span class="msg__rank" data-rank="${m.author.rank}">${m.author.rankLabel}</span><time>${time(m.createdAt)}</time>${canDel ? `<button class="msg__del" data-del="${m.id}" title="Supprimer">✕</button>` : ''}</header>
@@ -98,7 +100,15 @@
     lastAuthor = m.author.id;
     log.insertAdjacentHTML('beforeend', html);
     if (stick || m.author.id === me.id) scrollDown();
+    markRead(m.id);
   }
+  let lastMarked = 0, markTimer = null;
+  function markRead(id) {
+    if (document.hidden || id <= lastMarked) return;
+    lastMarked = id; clearTimeout(markTimer);
+    markTimer = setTimeout(() => fetch('../api/chat/read', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ lastId: id }) }).catch(() => {}), 400);
+  }
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { const last = log.querySelector('.msg:last-of-type'); if (last) { lastMarked = 0; markRead(Number(last.dataset.id)); } } });
   function prepend(list) {
     if (!list.length) { $('more').hidden = true; return; }
     const prevHeight = log.scrollHeight;
@@ -133,6 +143,8 @@
     me = await api('../api/me');
     if (me.status !== 'approved') { location.replace('espera.html'); return; }
     casaNav(me);
+    members = await api('../api/chat/mentions').catch(() => []);
+    mentionable = new Set(members.flatMap(u => [u.name.toLowerCase(), u.username.toLowerCase()]));
     const first = await api('../api/chat/messages');
     for (const m of first) append(m);
     if (first.length) { oldest = first[0].id; $('more').hidden = first.length < 60; }
@@ -150,7 +162,35 @@
   }
   $('form').addEventListener('submit', e => { e.preventDefault(); send(); });
   $('input').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } });
-  $('input').addEventListener('input', e => { e.target.style.height = ''; e.target.style.height = Math.min(e.target.scrollHeight, 160) + 'px'; });
+  $('input').addEventListener('input', e => { e.target.style.height = ''; e.target.style.height = Math.min(e.target.scrollHeight, 160) + 'px'; autocomplete(); });
+  // autocomplétion @mention
+  const ac = document.createElement('div'); ac.className = 'chat__ac'; ac.hidden = true; $('form').appendChild(ac);
+  let acItems = [], acIdx = 0, acStart = -1;
+  function autocomplete() {
+    const el = $('input'), v = el.value.slice(0, el.selectionStart);
+    const m = v.match(/(?:^|\s)@([^\s@]{0,30})$/);
+    if (!m) { ac.hidden = true; return; }
+    acStart = v.length - m[1].length - 1;
+    const q = m[1].toLowerCase();
+    acItems = members.filter(u => u.name.toLowerCase().includes(q) || u.username.toLowerCase().includes(q)).slice(0, 8);
+    if (!acItems.length) { ac.hidden = true; return; }
+    acIdx = 0;
+    ac.innerHTML = acItems.map((u, i) => `<button type="button" data-i="${i}" class="${i === 0 ? 'is-on' : ''}"><span>${esc(u.name)}</span><small>@${esc(u.username)}</small></button>`).join('');
+    ac.hidden = false;
+  }
+  function pickMention(i) {
+    const el = $('input'), u = acItems[i]; if (!u) return;
+    const after = el.value.slice(el.selectionStart);
+    el.value = el.value.slice(0, acStart) + '@' + u.name + ' ' + after;
+    const pos = acStart + u.name.length + 2; el.setSelectionRange(pos, pos); el.focus(); ac.hidden = true;
+  }
+  ac.addEventListener('mousedown', e => { e.preventDefault(); const b = e.target.closest('[data-i]'); if (b) pickMention(Number(b.dataset.i)); });
+  $('input').addEventListener('keydown', e => {
+    if (ac.hidden) return;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); acIdx = (acIdx + (e.key === 'ArrowDown' ? 1 : -1) + acItems.length) % acItems.length; [...ac.children].forEach((b, i) => b.classList.toggle('is-on', i === acIdx)); }
+    else if (e.key === 'Tab' || e.key === 'Enter') { e.preventDefault(); e.stopImmediatePropagation(); pickMention(acIdx); }
+    else if (e.key === 'Escape') ac.hidden = true;
+  }, true);
   $('more').addEventListener('click', async () => { const list = await api('../api/chat/messages?before=' + oldest); prepend(list); });
   log.addEventListener('click', async e => {
     const b = e.target.closest('[data-del]'); if (!b) return;

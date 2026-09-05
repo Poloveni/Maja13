@@ -44,3 +44,19 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click', e => { if (!g.contains(e.target)) close(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
 });
+
+// Badge « non lus » sur Le Salon (mis à jour toutes les 30 s ; la page du Salon le remet à zéro elle-même)
+window.casaUnread = async function () {
+  const b = document.getElementById('chatBadge'); if (!b) return;
+  try {
+    const r = await fetch('../api/chat/unread', { credentials: 'same-origin' }); if (!r.ok) return;
+    const d = await r.json();
+    if (d.unread > 0) { b.textContent = d.unread > 99 ? '99+' : d.unread; b.classList.toggle('is-mention', d.mentions > 0); b.title = d.mentions ? `${d.mentions} mention${d.mentions > 1 ? 's' : ''} de toi` : `${d.unread} nouveau${d.unread > 1 ? 'x' : ''} message${d.unread > 1 ? 's' : ''}`; b.hidden = false; }
+    else b.hidden = true;
+  } catch {}
+};
+document.addEventListener('DOMContentLoaded', () => {
+  if (document.body.classList.contains('casa-body--chat')) return;   // le Salon gère lui-même
+  casaUnread(); setInterval(casaUnread, 30000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) casaUnread(); });
+});

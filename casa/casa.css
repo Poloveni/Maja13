@@ -332,3 +332,17 @@
 .rbar small span{color:var(--ink2)}
 .rank-table .pay{color:var(--gold3);white-space:nowrap}
 @media (max-width:760px){.tiles--3{grid-template-columns:1fr}}
+
+/* badge non lus */
+.nav__badge{display:inline-block;margin-left:6px;min-width:18px;height:18px;line-height:18px;padding:0 5px;border-radius:9px;background:var(--gold);color:#120e08;font-family:var(--serif);font-size:10px;font-weight:700;letter-spacing:0;text-align:center;vertical-align:1px}
+.nav__badge.is-mention{background:#c9605a;color:#fff;animation:badgePulse 1.6s infinite}
+@keyframes badgePulse{50%{box-shadow:0 0 0 5px rgba(201,96,90,.25)}}
+/* mentions dans le Salon */
+.mention{color:var(--gold3);background:rgba(201,164,92,.12);border-radius:3px;padding:0 3px;font-weight:500}
+.msg--mention .msg__body{border-left:2px solid var(--gold);padding-left:10px;margin-left:-12px}
+.msg--mention .msg__text{color:var(--gold3)}
+.chat__ac{position:absolute;bottom:100%;left:18px;margin-bottom:6px;background:linear-gradient(180deg,#17120c,#0b0909);border:1px solid var(--gold2);box-shadow:0 20px 50px rgba(0,0,0,.6);min-width:220px;max-height:220px;overflow-y:auto;z-index:5}
+.chat__ac button{display:flex;justify-content:space-between;gap:14px;width:100%;background:none;border:0;color:var(--ink);font-family:var(--body);font-size:15px;padding:8px 14px;cursor:pointer;text-align:left}
+.chat__ac button small{color:var(--ink2)}
+.chat__ac button:hover,.chat__ac button.is-on{background:rgba(201,164,92,.1);color:var(--gold3)}
+.chat__form{position:relative}

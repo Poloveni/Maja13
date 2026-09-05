@@ -18,12 +18,12 @@
 <script src="casa-bg.js" defer></script>
 
 <header class="nav is-scrolled">
-  <a class="nav__brand" href="../"><img src="../assets/logo.png" alt="" width="40" height="40"><span>La Maja <em>13</em></span></a>
+  <a class="nav__brand" href="../accueil.html"><img src="../assets/logo.png" alt="" width="40" height="40"><span>La Maja <em>13</em></span></a>
   <nav class="nav__links casa-nav">
     <a href="perfil.html" class="is-active">Mon profil</a>
     <a href="familia.html">La Famille</a>
     <a href="classement.html">Classement</a>
-    <a href="chat.html">Le Salon</a>
+    <a href="chat.html" id="chatLink">Le Salon<span class="nav__badge" id="chatBadge" hidden></span></a>
     <a href="galerie.html">Galerie</a>
     <div class="nav__group" id="gestion" hidden>
       <button class="nav__group-btn" type="button" aria-expanded="false">Gestion <i>▾</i></button>
@@ -35,7 +35,7 @@
         <a href="organigramme.html" id="orgLink" hidden>Hiérarchie</a>
       </div>
     </div>
-    <a href="../">Le site</a>
+    <a href="../accueil.html">Le site</a>
     <button class="nav__cta casa-logout" id="logout">Déconnexion</button>
   </nav>
 </header>
@@ -91,6 +91,15 @@
     </div>
     <p class="semaine__hint">Ces chiffres viennent du bot Discord de la familia : déclare tes activités dans le salon quotas, elles apparaissent ici.</p>
   </section>
+
+  <section class="semaine paies" id="paies" hidden>
+    <div class="semaine__head">
+      <div><p class="eyebrow">Historique</p><h2 class="semaine__title">Mes paies</h2></div>
+      <p class="semaine__reset" id="paiesTotal"></p>
+    </div>
+    <div class="table-wrap"><table class="admin-table dash-table"><thead><tr><th>Semaine</th><th>Ventes</th><th>Récolte</th><th>Actions</th><th>Labos</th><th>Paie</th></tr></thead><tbody id="paiesRows"></tbody></table></div>
+    <p class="semaine__hint">Photo prise chaque dimanche à 18 h 55, juste avant la remise à zéro du bot.</p>
+  </section>
 </main>
 
 <script>
@@ -119,6 +128,16 @@
   const money = n => Math.round(n).toLocaleString('fr-FR') + ' $';
   const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const countdown = iso => { const ms = new Date(iso) - Date.now(); if (ms <= 0) return 'maintenant'; const h = Math.floor(ms / 3.6e6), m = Math.floor(ms % 3.6e6 / 6e4); return h >= 24 ? `dans ${Math.floor(h / 24)} j ${h % 24} h` : h ? `dans ${h} h ${m} min` : `dans ${m} min`; };
+  const dshort = d => new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+  async function loadPaies() {
+    let list; try { list = await (await fetch('../api/bot/paies', { credentials: 'same-origin' })).json(); } catch { return; }
+    if (!Array.isArray(list) || !list.length) return;
+    $('paies').hidden = false;
+    const total = list.reduce((s, p) => s + p.salaire, 0);
+    $('paiesTotal').innerHTML = `${list.length} semaine${list.length > 1 ? 's' : ''} · <b>${money(total)}</b> cumulés`;
+    const best = Math.max(...list.map(p => p.salaire));
+    $('paiesRows').innerHTML = list.map(p => `<tr><td><b>${dshort(p.weekStart)} → ${dshort(p.weekEnd)}</b></td><td>${p.byType.vente || 0}</td><td>${p.byType.recolte || 0}</td><td>${p.byType.actions || 0}</td><td>${p.byType.labos || 0}</td><td><b class="pay">${money(p.salaire)}</b>${p.salaire === best && best > 0 ? ' ✦' : ''}</td></tr>`).join('');
+  }
   async function loadSemaine() {
     let d; try { d = await (await fetch('../api/bot/me', { credentials: 'same-origin' })).json(); } catch { return; }
     if (!d || !d.configured) return;
@@ -136,6 +155,7 @@
     if (d.activities.length) $('activities').innerHTML = d.activities.map(a => `<li><span>${esc(a.label)}</span><b>${a.count}</b></li>`).join('');
     if (d.cooldowns.length) $('cooldowns').innerHTML = d.cooldowns.map(c => `<li><span>${esc(c.label)}</span><b>${countdown(c.expiresAt)}</b></li>`).join('');
     if (d.armes.length) $('armes').innerHTML = d.armes.map(a => `<li><span>${esc(a.nom)}${a.type ? ` · ${esc(a.type)}` : ''}</span><b class="mono">${esc(a.reference)}</b></li>`).join('');
+    loadPaies();
     if (d.ventesEnAttente.length) $('ventes').innerHTML = d.ventesEnAttente.map(v => `<li><span>${v.quantite} × ${esc(v.item)}</span><b>${v.montant ? money(v.montant) : 'à confirmer'}</b></li>`).join('');
   }
 

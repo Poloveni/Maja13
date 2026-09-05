@@ -450,6 +450,41 @@ app.get('/api/bot/classement', requireAuth, requireApproved, async (_req, res) =
   } catch (e) { console.error(e); res.status(502).json({ error: 'bot-unreachable' }); }
 });
 
+// historique des paies : photo des stats du bot chaque dimanche 18h55 (Paris), avant la remise à zéro du bot
+async function snapshotPay(force = false) {
+  if (!bot) return { skipped: 'bot-off' };
+  const end = new Date(nextReset()); const weekEnd = end.toISOString().slice(0, 10);
+  const weekStart = new Date(end.getTime() - 7 * 86400e3).toISOString().slice(0, 10);
+  const { rows: [done] } = await pool.query('SELECT 1 FROM pay_history WHERE week_end = $1 LIMIT 1', [weekEnd]);
+  if (done && !force) return { skipped: 'already' };
+  const [cfg, stats] = await Promise.all([botConfig(), botQuery('SELECT user_id, action, count FROM stats')]);
+  const byUser = {}; for (const r of stats) (byUser[r.user_id] = byUser[r.user_id] || []).push(r);
+  const names = await namesFor(Object.keys(byUser));
+  let n = 0;
+  for (const [uid, list] of Object.entries(byUser)) {
+    const s = summarize(list, cfg.rates);
+    if (!s.salaire && !QUOTA_TYPES.some(q => s.byType[q] > 0)) continue;
+    await pool.query(`INSERT INTO pay_history (week_start, week_end, discord_id, name, by_type, salaire) VALUES ($1,$2,$3,$4,$5,$6)
+      ON CONFLICT (week_end, discord_id) DO UPDATE SET by_type = EXCLUDED.by_type, salaire = EXCLUDED.salaire, name = EXCLUDED.name, snapshot_at = now()`,
+      [weekStart, weekEnd, uid, names[uid] || null, JSON.stringify({ ...s.byType, targets: cfg.targets, rates: cfg.rates }), s.salaire]);
+    n++;
+  }
+  console.log(`[paie] photo hebdo ${weekStart} → ${weekEnd} : ${n} membre(s)`);
+  return { saved: n, weekEnd };
+}
+setInterval(() => {
+  const p = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Paris' }));
+  if (p.getDay() === 0 && p.getHours() === 18 && p.getMinutes() >= 55) snapshotPay().catch(e => console.error('[paie]', e));
+}, 60 * 1000);
+
+app.get('/api/bot/paies', requireAuth, requireApproved, async (req, res) => {
+  const { rows } = await pool.query('SELECT week_start, week_end, by_type, salaire, snapshot_at FROM pay_history WHERE discord_id = $1 ORDER BY week_end DESC LIMIT 16', [req.member.discord_id]);
+  res.json(rows.map(r => ({ weekStart: r.week_start, weekEnd: r.week_end, salaire: Number(r.salaire), byType: r.by_type, snapshotAt: r.snapshot_at })));
+});
+app.post('/api/admin/paies/snapshot', requireAuth, requireApproved, requireAdmin, async (_req, res) => {
+  try { res.json(await snapshotPay(true)); } catch (e) { console.error(e); res.status(502).json({ error: 'bot-unreachable' }); }
+});
+
 // ---------- Chat de la familia (SSE + POST) ----------
 const chatClients = new Map();            // res -> member
 const chatMember = m => ({ id: m.id, displayName: m.display_name, username: m.username, rank: m.rank, rankLabel: RANK_LABEL[m.rank], avatarUrl: publicMember(m).avatarUrl });
@@ -490,6 +525,26 @@ app.delete('/api/chat/messages/:id', requireAuth, requireApproved, async (req, r
   await pool.query('UPDATE messages SET deleted_at = now() WHERE id = $1', [id]);
   chatBroadcast('delete', { id });
   res.json({ ok: true });
+});
+
+// non lus + mentions pour le badge du menu
+const mentionRegex = m => new RegExp('@(' + [m.display_name, m.username].filter(Boolean).map(s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')(?![\\w-])', 'i');
+app.get('/api/chat/unread', requireAuth, requireApproved, async (req, res) => {
+  const { rows: [r] } = await pool.query('SELECT last_read_id FROM chat_reads WHERE member_id = $1', [req.member.id]);
+  const last = r?.last_read_id ?? 0;
+  const { rows } = await pool.query('SELECT id, content FROM messages WHERE id > $1 AND deleted_at IS NULL AND member_id <> $2 ORDER BY id', [last, req.member.id]);
+  const re = mentionRegex(req.member);
+  res.json({ unread: rows.length, mentions: rows.filter(m => re.test(m.content)).length, lastReadId: last });
+});
+app.post('/api/chat/read', requireAuth, requireApproved, async (req, res) => {
+  const id = Number(req.body.lastId) || 0;
+  await pool.query('INSERT INTO chat_reads (member_id, last_read_id) VALUES ($1, $2) ON CONFLICT (member_id) DO UPDATE SET last_read_id = GREATEST(chat_reads.last_read_id, EXCLUDED.last_read_id), updated_at = now()', [req.member.id, id]);
+  res.json({ ok: true });
+});
+// liste des membres mentionnables (autocomplétion @)
+app.get('/api/chat/mentions', requireAuth, requireApproved, async (_req, res) => {
+  const { rows } = await pool.query("SELECT display_name, username FROM members WHERE status = 'approved' ORDER BY display_name");
+  res.json(rows.map(r => ({ name: r.display_name, username: r.username })));
 });
 
 app.get('/api/chat/stream', requireAuth, requireApproved, (req, res) => {
