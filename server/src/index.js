@@ -111,6 +111,7 @@ app.post('/auth/logout', (req, res) => req.session.destroy(() => res.clearCookie
 
 // ---------- API ----------
 const canAdmin = m => m.is_admin || ['jefe', 'segundo', 'devweb'].includes(m.rank);
+const isTop = m => ['jefe', 'devweb'].includes(m.rank);   // pouvoirs complets (nommer/rétrograder un Jefe, etc.)
 const requireAuth = (req, res, next) => req.session.memberId ? next() : res.status(401).json({ error: 'unauthenticated' });
 // charge le membre courant et exige un compte validé
 const requireApproved = async (req, res, next) => {
@@ -173,7 +174,7 @@ app.patch('/api/admin/members/:id', requireAuth, requireApproved, requireAdmin, 
   if (req.body.rank !== undefined) {
     if (!RANKS.includes(req.body.rank)) return res.status(400).json({ error: 'grade inconnu' });
     // seul un Jefe peut nommer un Jefe ou toucher au grade d'un Jefe
-    if ((req.body.rank === 'jefe' || target.rank === 'jefe') && req.member.rank !== 'jefe') return res.status(403).json({ error: 'jefe-only' });
+    if ((req.body.rank === 'jefe' || target.rank === 'jefe') && !isTop(req.member)) return res.status(403).json({ error: 'jefe-only' });
     add('rank', req.body.rank);
   }
   if (req.body.status !== undefined) {
@@ -193,7 +194,7 @@ app.delete('/api/admin/members/:id', requireAuth, requireApproved, requireAdmin,
   const id = Number(req.params.id);
   if (id === req.member.id) return res.status(400).json({ error: 'self' });
   const target = (await pool.query('SELECT rank FROM members WHERE id = $1', [id])).rows[0];
-  if (target?.rank === 'jefe' && req.member.rank !== 'jefe') return res.status(403).json({ error: 'jefe-only' });
+  if (target?.rank === 'jefe' && !isTop(req.member)) return res.status(403).json({ error: 'jefe-only' });
   await pool.query('DELETE FROM members WHERE id = $1', [id]);
   res.json({ ok: true });
 });
