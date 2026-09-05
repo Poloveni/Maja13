@@ -430,6 +430,26 @@ app.get('/api/bot/armurerie', requireAuth, requireApproved, requireAdmin, async 
   } catch (e) { console.error(e); res.status(502).json({ error: 'bot-unreachable' }); }
 });
 
+// classement hebdo (tous les membres validés)
+const weekStart = () => { const end = new Date(nextReset()); return new Date(end.getTime() - 7 * 86400e3).toISOString(); };
+app.get('/api/bot/classement', requireAuth, requireApproved, async (_req, res) => {
+  if (!bot) return res.json({ configured: false });
+  try {
+    const [cfg, stats] = await Promise.all([botConfig(), botQuery('SELECT user_id, action, count FROM stats')]);
+    const byUser = {}; for (const r of stats) (byUser[r.user_id] = byUser[r.user_id] || []).push(r);
+    const names = await namesFor(Object.keys(byUser));
+    const rows = Object.entries(byUser).map(([uid, list]) => { const s = summarize(list, cfg.rates); return { userId: uid, name: names[uid] || `Membre #${uid.slice(-4)}`, ...s.byType, salaire: s.salaire, activities: s.activities }; })
+      .filter(r => r.salaire > 0 || QUOTA_TYPES.some(q => r[q] > 0))
+      .sort((a, b) => b.salaire - a.salaire || b.vente - a.vente);
+    const targets = cfg.targets;
+    const withTargets = QUOTA_TYPES.filter(q => targets[q]);
+    const quotasOk = rows.filter(r => withTargets.length && withTargets.every(q => r[q] >= targets[q])).length;
+    res.json({ configured: true, weekStart: weekStart(), nextReset: nextReset(), targets, rates: cfg.rates,
+      totals: { vente: rows.reduce((s, r) => s + r.vente, 0), recolte: rows.reduce((s, r) => s + r.recolte, 0), actions: rows.reduce((s, r) => s + r.actions, 0), labos: rows.reduce((s, r) => s + r.labos, 0), masse: rows.reduce((s, r) => s + r.salaire, 0) },
+      quotasOk, members: rows.length, rows });
+  } catch (e) { console.error(e); res.status(502).json({ error: 'bot-unreachable' }); }
+});
+
 // ---------- Chat de la familia (SSE + POST) ----------
 const chatClients = new Map();            // res -> member
 const chatMember = m => ({ id: m.id, displayName: m.display_name, username: m.username, rank: m.rank, rankLabel: RANK_LABEL[m.rank], avatarUrl: publicMember(m).avatarUrl });

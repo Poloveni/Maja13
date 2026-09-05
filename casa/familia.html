@@ -11,6 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../styles.css">
 <link rel="stylesheet" href="casa.css">
+<script src="casa.js"></script>
 </head>
 <body class="casa-body">
 <div class="grain" aria-hidden="true"></div>
@@ -21,13 +22,19 @@
   <nav class="nav__links casa-nav">
     <a href="perfil.html">Mon profil</a>
     <a href="familia.html" class="is-active">La Famille</a>
+    <a href="classement.html">Classement</a>
     <a href="chat.html">Le Salon</a>
     <a href="galerie.html">Galerie</a>
-    <a href="admin.html" id="adminLink" hidden>Administration</a>
-    <a href="tableau.html" id="dashLink" hidden>Tableau de bord</a>
-    <a href="taxes.html" id="taxLink" hidden>Taxes</a>
-    <a href="armurerie.html" id="armLink" hidden>Armurerie</a>
-    <a href="organigramme.html" id="orgLink" hidden>Hiérarchie</a>
+    <div class="nav__group" id="gestion" hidden>
+      <button class="nav__group-btn" type="button" aria-expanded="false">Gestion <i>▾</i></button>
+      <div class="nav__menu">
+        <a href="admin.html">Administration</a>
+        <a href="tableau.html">Tableau de bord</a>
+        <a href="taxes.html">Taxes</a>
+        <a href="armurerie.html">Armurerie</a>
+        <a href="organigramme.html" id="orgLink" hidden>Hiérarchie</a>
+      </div>
+    </div>
     <a href="../">Le site</a>
     <button class="nav__cta casa-logout" id="logout">Déconnexion</button>
   </nav>
@@ -45,7 +52,7 @@
 
 <script>
   const $ = id => document.getElementById(id);
-  fetch('../api/me', { credentials: 'same-origin' }).then(r => r.ok ? r.json() : null).then(m => { if (m && m.isAdmin) { $('adminLink').hidden = false; $('dashLink').hidden = false; $('taxLink').hidden = false; $('armLink').hidden = false; } if (m && ['jefe','devweb'].includes(m.rank)) $('orgLink').hidden = false; });
+  fetch('../api/me', { credentials: 'same-origin' }).then(r => r.ok ? r.json() : null).then(m => { if (m) casaNav(m); });
   fetch('../api/familia', { credentials: 'same-origin' })
     .then(r => { if (r.status === 401) { location.replace('./'); throw 0; } if (r.status === 403) { location.replace('espera.html'); throw 0; } return r.json(); })
     .then(list => {

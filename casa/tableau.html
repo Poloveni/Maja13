@@ -11,6 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../styles.css">
 <link rel="stylesheet" href="casa.css">
+<script src="casa.js"></script>
 </head>
 <body class="casa-body">
 <div class="grain" aria-hidden="true"></div>
@@ -21,13 +22,19 @@
   <nav class="nav__links casa-nav">
     <a href="perfil.html">Mon profil</a>
     <a href="familia.html">La Famille</a>
+    <a href="classement.html">Classement</a>
     <a href="chat.html">Le Salon</a>
     <a href="galerie.html">Galerie</a>
-    <a href="admin.html">Administration</a>
-    <a href="tableau.html" class="is-active">Tableau de bord</a>
-    <a href="taxes.html">Taxes</a>
-    <a href="armurerie.html">Armurerie</a>
-    <a href="organigramme.html" id="orgLink" hidden>Hiérarchie</a>
+    <div class="nav__group" id="gestion" hidden>
+      <button class="nav__group-btn is-active" type="button" aria-expanded="false">Gestion <i>▾</i></button>
+      <div class="nav__menu">
+        <a href="admin.html">Administration</a>
+        <a href="tableau.html" class="is-active">Tableau de bord</a>
+        <a href="taxes.html">Taxes</a>
+        <a href="armurerie.html">Armurerie</a>
+        <a href="organigramme.html" id="orgLink" hidden>Hiérarchie</a>
+      </div>
+    </div>
     <a href="../">Le site</a>
     <button class="nav__cta casa-logout" id="logout">Déconnexion</button>
   </nav>
@@ -130,7 +137,7 @@
     const me = await api('../api/me');
     if (me.status !== 'approved') { location.replace('espera.html'); return; }
     if (!me.isAdmin) { location.replace('perfil.html'); return; }
-    if (['jefe', 'devweb'].includes(me.rank)) $('orgLink').hidden = false;
+    casaNav(me);
     const d = await api('../api/bot/dashboard');
     $('loading').hidden = true;
     if (!d || !d.configured) { $('off').hidden = false; return; }

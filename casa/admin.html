@@ -22,13 +22,19 @@
   <nav class="nav__links casa-nav">
     <a href="perfil.html">Mon profil</a>
     <a href="familia.html">La Famille</a>
+    <a href="classement.html">Classement</a>
     <a href="chat.html">Le Salon</a>
     <a href="galerie.html">Galerie</a>
-    <a href="admin.html" class="is-active">Administration</a>
-    <a href="tableau.html" id="dashLink" hidden>Tableau de bord</a>
-    <a href="taxes.html" id="taxLink" hidden>Taxes</a>
-    <a href="armurerie.html" id="armLink" hidden>Armurerie</a>
-    <a href="organigramme.html" id="orgLink" hidden>Hiérarchie</a>
+    <div class="nav__group" id="gestion" hidden>
+      <button class="nav__group-btn is-active" type="button" aria-expanded="false">Gestion <i>▾</i></button>
+      <div class="nav__menu">
+        <a href="admin.html" class="is-active">Administration</a>
+        <a href="tableau.html">Tableau de bord</a>
+        <a href="taxes.html">Taxes</a>
+        <a href="armurerie.html">Armurerie</a>
+        <a href="organigramme.html" id="orgLink" hidden>Hiérarchie</a>
+      </div>
+    </div>
     <a href="../">Le site</a>
     <button class="nav__cta casa-logout" id="logout">Déconnexion</button>
   </nav>
@@ -118,8 +124,7 @@
     const [meData, r, list] = await Promise.all([api('../api/me'), api('../api/ranks'), api('../api/admin/members')]);
     me = meData; ranks = r;
     if (!me.isAdmin) { location.replace('perfil.html'); return; }
-    $('dashLink').hidden = false; $('taxLink').hidden = false; $('armLink').hidden = false;
-    if (['jefe','devweb'].includes(me.rank)) $('orgLink').hidden = false;
+    casaNav(me);
     render(list); $('loading').hidden = true;
   }
 

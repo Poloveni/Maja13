@@ -28,3 +28,19 @@ window.casaConfirm = function (message, { title = 'Confirmer', ok = 'Confirmer',
     requestAnimationFrame(() => { wrap.classList.add('is-open'); wrap.querySelector('[data-ok]').focus(); });
   });
 };
+
+// Menu « Gestion » (hiérarchie) : affichage selon le grade + ouverture/fermeture
+window.casaNav = function (me) {
+  const g = document.getElementById('gestion'); if (!g) return;
+  if (me && me.isAdmin) g.hidden = false;
+  const org = document.getElementById('orgLink');
+  if (org && me && ['jefe', 'devweb'].includes(me.rank)) org.hidden = false;
+};
+document.addEventListener('DOMContentLoaded', () => {
+  const g = document.getElementById('gestion'); if (!g) return;
+  const btn = g.querySelector('.nav__group-btn');
+  const close = () => { g.classList.remove('is-open'); btn.setAttribute('aria-expanded', 'false'); };
+  btn.addEventListener('click', e => { e.stopPropagation(); const open = g.classList.toggle('is-open'); btn.setAttribute('aria-expanded', open); });
+  document.addEventListener('click', e => { if (!g.contains(e.target)) close(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+});

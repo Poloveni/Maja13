@@ -22,13 +22,19 @@
   <nav class="nav__links casa-nav">
     <a href="perfil.html">Mon profil</a>
     <a href="familia.html">La Famille</a>
+    <a href="classement.html">Classement</a>
     <a href="chat.html">Le Salon</a>
     <a href="galerie.html">Galerie</a>
-    <a href="admin.html">Administration</a>
-    <a href="tableau.html">Tableau de bord</a>
-    <a href="taxes.html">Taxes</a>
-    <a href="armurerie.html">Armurerie</a>
-    <a href="organigramme.html" class="is-active">Hiérarchie</a>
+    <div class="nav__group" id="gestion" hidden>
+      <button class="nav__group-btn is-active" type="button" aria-expanded="false">Gestion <i>▾</i></button>
+      <div class="nav__menu">
+        <a href="admin.html">Administration</a>
+        <a href="tableau.html">Tableau de bord</a>
+        <a href="taxes.html">Taxes</a>
+        <a href="armurerie.html">Armurerie</a>
+        <a href="organigramme.html" class="is-active" id="orgLink" hidden>Hiérarchie</a>
+      </div>
+    </div>
     <a href="../">Le site</a>
     <button class="nav__cta casa-logout" id="logout">Déconnexion</button>
   </nav>
