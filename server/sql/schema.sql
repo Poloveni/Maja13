@@ -38,3 +38,7 @@ CREATE TABLE IF NOT EXISTS messages (
   deleted_at  TIMESTAMPTZ
 );
 CREATE INDEX IF NOT EXISTS idx_messages_created ON messages (created_at DESC);
+
+-- v4 : grade Dev Web
+ALTER TABLE members DROP CONSTRAINT IF EXISTS members_rank_check;
+ALTER TABLE members ADD CONSTRAINT members_rank_check CHECK (rank IN ('jefe','segundo','devweb','palabrero','commandante','sicario','soldado','recluta'));

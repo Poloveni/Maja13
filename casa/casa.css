@@ -112,7 +112,7 @@
 .chat__online img{width:28px;height:28px;border-radius:50%;border:1px solid var(--gold2);object-fit:cover}
 .chat__online span{flex:1;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .chat__online i,.msg__rank{font-style:normal;font-family:var(--serif);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold2)}
-[data-rank="jefe"],[data-rank="segundo"]{color:var(--gold3)!important}
+[data-rank="jefe"],[data-rank="segundo"],[data-rank="devweb"]{color:var(--gold3)!important}
 .chat__rules{font-size:13px;font-style:italic;color:var(--ink2);margin:14px 0 0}
 .chat__main{border:1px solid var(--line);display:flex;flex-direction:column;min-height:0;background:rgba(0,0,0,.25);position:relative}
 .chat__status{position:absolute;top:0;left:0;right:0;z-index:2;text-align:center;font-family:var(--serif);font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:#e0a29e;background:rgba(122,31,31,.35);padding:6px}

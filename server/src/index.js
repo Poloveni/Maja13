@@ -23,8 +23,8 @@ if (!DATABASE_URL) { console.error('Variable manquante dans .env : DATABASE_URL 
 for (const k of ['BASE_URL', 'SESSION_SECRET', 'DISCORD_CLIENT_ID', 'DISCORD_CLIENT_SECRET', 'DISCORD_GUILD_ID'])
   if (!process.env[k]) { console.error(`Variable manquante dans .env : ${k}`); process.exit(1); }
 
-const RANKS = ['jefe', 'segundo', 'palabrero', 'commandante', 'sicario', 'soldado', 'recluta'];
-const RANK_LABEL = { jefe: 'Jefe', segundo: 'Segundo', palabrero: 'Palabrero', commandante: 'Commandante', sicario: 'Sicario', soldado: 'Soldado', recluta: 'Recluta' };
+const RANKS = ['jefe', 'segundo', 'devweb', 'palabrero', 'commandante', 'sicario', 'soldado', 'recluta'];
+const RANK_LABEL = { jefe: 'Jefe', segundo: 'Segundo', devweb: 'Dev Web', palabrero: 'Palabrero', commandante: 'Commandante', sicario: 'Sicario', soldado: 'Soldado', recluta: 'Recluta' };
 const roleMap = Object.fromEntries(DISCORD_ROLE_MAP.split(',').filter(Boolean).map(p => p.split(':').map(s => s.trim())));
 const adminIds = new Set(ADMIN_DISCORD_IDS.split(',').map(s => s.trim()).filter(Boolean));
 
@@ -80,7 +80,7 @@ app.get('/auth/discord/callback', async (req, res) => {
     if (!memberRes.ok) return res.redirect('/casa/?error=not-member');
     const member = await memberRes.json();
     const rankFromRole = RANKS.find(r => member.roles.some(id => roleMap[id] === r));   // le grade le plus élevé trouvé
-    const isAdmin = adminIds.has(user.id) || ['jefe', 'segundo'].includes(rankFromRole);
+    const isAdmin = adminIds.has(user.id) || ['jefe', 'segundo', 'devweb'].includes(rankFromRole);
 
     // 4. upsert membre — nouveau compte = en attente de validation par le Jefe ;
     //    les IDs de ADMIN_DISCORD_IDS sont Jefe et validés d'office (amorçage)
@@ -110,7 +110,7 @@ app.get('/auth/discord/callback', async (req, res) => {
 app.post('/auth/logout', (req, res) => req.session.destroy(() => res.clearCookie('maja13.sid').json({ ok: true })));
 
 // ---------- API ----------
-const canAdmin = m => m.is_admin || ['jefe', 'segundo'].includes(m.rank);
+const canAdmin = m => m.is_admin || ['jefe', 'segundo', 'devweb'].includes(m.rank);
 const requireAuth = (req, res, next) => req.session.memberId ? next() : res.status(401).json({ error: 'unauthenticated' });
 // charge le membre courant et exige un compte validé
 const requireApproved = async (req, res, next) => {
