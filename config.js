@@ -27,7 +27,7 @@
     },
     links: {
       siteUrl: '',
-      discordMain: '',
+      discordMain: 'https://discord.gg/Wdnsa2mDt',
       discordRecruitment: '',
       fivemJoin: '',
       instagram: ''
