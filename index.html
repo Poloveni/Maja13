@@ -352,16 +352,6 @@
     }
     .btn-ghost:hover { border-color: var(--text-muted); transform: translateY(-3px); }
 
-    .stats-bar {
-      display: grid; grid-template-columns: repeat(4, 1fr);
-      border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
-      background: var(--surface);
-    }
-    .stat { padding: 28px; text-align: center; border-right: 1px solid var(--border); }
-    .stat:last-child { border-right: none; }
-    .stat-num { font-family: 'Playfair Display', Georgia, serif; font-size: 44px; font-weight: 700; letter-spacing: -1px; color: var(--red); line-height: 1; }
-    .stat-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1.5px; margin-top: 4px; }
-
     section { padding: 80px 40px; }
     .section-label {
       font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-dim);
@@ -776,9 +766,6 @@
     }
     @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0;} }
 
-    /* ── COMPTEURS ── */
-    .stat-num { transition: all 0.3s; }
-
     /* ── PARTICULES ── */
     #particles-canvas {
       position: absolute; top: 0; left: 0;
@@ -877,10 +864,6 @@
     @media (max-width: 640px) {
       nav { padding: 0 20px; }
       section { padding: 60px 20px; }
-      .stats-bar { grid-template-columns: repeat(2, 1fr); }
-      .stat:nth-child(2) { border-right: none; }
-      .stat:nth-child(3) { border-right: 1px solid var(--border); border-top: 1px solid var(--border); }
-      .stat:nth-child(4) { border-right: none; border-top: 1px solid var(--border); }
       .galerie-grid { grid-template-columns: 1fr; }
       .galerie-item.large { grid-column: span 1; }
       footer { padding: 20px; flex-direction: column; text-align: center; }
@@ -922,23 +905,6 @@
     nav.scrolled { background: rgba(11,12,16,0.97); }
     .hero-tag { border-radius: 999px; }
     .btn-red, .btn-white, .btn-ghost, .server-join, .discord-cta-btn { border-radius: 10px; }
-
-    /* Barre de stats → cartes lumineuses */
-    .stats-bar { background: transparent; border: none; gap: 14px; padding: 26px 40px 0; max-width: 1200px; margin: 0 auto; }
-    .stat {
-      background: var(--surface); border: 1px solid var(--border) !important;
-      border-radius: 14px; position: relative; overflow: hidden;
-      transition: transform 0.25s cubic-bezier(0.16,1,0.3,1), border-color 0.25s;
-    }
-    .stat:hover { transform: translateY(-3px); border-color: var(--border-strong) !important; }
-    .stat::before {
-      content: ''; position: absolute; top: -40px; left: -40px; width: 110px; height: 110px;
-      border-radius: 50%; filter: blur(34px); opacity: 0.35; background: var(--red);
-    }
-    .stat:nth-child(2)::before { background: #d4b26e; }
-    .stat:nth-child(3)::before { background: #5865f2; }
-    .stat:nth-child(4)::before { background: #2ecc71; }
-    .stat-num, .stat-label { position: relative; }
 
     /* Cartes arrondies partout */
     .valeurs-grid { gap: 14px; background: transparent; }
@@ -1065,12 +1031,6 @@
   <div class="hero-photos" id="hero-photos"></div>
 </section>
 
-<div class="stats-bar">
-  <div class="stat"><div class="stat-num" id="stat-membres">6</div><div class="stat-label">Profils configurables</div></div>
-  <div class="stat"><div class="stat-num">M13</div><div class="stat-label">Réseau privé</div></div>
-  <div class="stat"><div class="stat-num">LS</div><div class="stat-label">Los Santos</div></div>
-  <div class="stat"><div class="stat-num">24/7</div><div class="stat-label">Hub opérationnel</div></div>
-</div>
 <section id="histoire">
   <div class="section-label">Origines · El Salvador → Los Santos</div>
   <div class="histoire-inner reveal">
@@ -1325,7 +1285,6 @@
 
     // Compteurs (barre de stats + texte de section)
     var n = MEMBRES.length;
-    var statEl = document.getElementById('stat-membres'); if (statEl) statEl.textContent = n;
     var cntEl = document.getElementById('membres-count'); if (cntEl) cntEl.textContent = n;
   })();
 
@@ -1504,27 +1463,6 @@
     });
   }, { threshold: 0.1 });
   if (hierList) hierObs.observe(hierList);
-
-  // ── COMPTEURS ANIMÉS ──
-  function animateCounter(el, target, duration) {
-    let start = 0;
-    const step = target / (duration / 16);
-    const timer = setInterval(() => {
-      start += step;
-      if (start >= target) { el.textContent = target; clearInterval(timer); return; }
-      el.textContent = Math.floor(start);
-    }, 16);
-  }
-  const statsBar = document.querySelector('.stats-bar');
-  let statsDone = false;
-  const statsObs = new IntersectionObserver((entries) => {
-    if (entries[0].isIntersecting && !statsDone) {
-      statsDone = true;
-      animateCounter(document.querySelector('.stat:first-child .stat-num'), (window.MAJA_MEMBRES || []).length || 15, 1200);
-      statsObs.unobserve(statsBar);
-    }
-  }, { threshold: 0.5 });
-  if (statsBar) statsObs.observe(statsBar);
 
   // ── EFFET TYPING ──
   const typingEl = document.getElementById('hero-sub-text');
