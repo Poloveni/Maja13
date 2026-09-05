@@ -13,11 +13,14 @@ import { dirname, join } from 'node:path';
 const here = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(here, '..', '..');            // racine du dépôt (index.html, styles.css, casa/…)
 const {
-  PORT = 3000, BASE_URL, SESSION_SECRET, DATABASE_URL,
+  PORT = 3000, BASE_URL, SESSION_SECRET, POSTGRES_PASSWORD,
   DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_GUILD_ID,
   DISCORD_ROLE_MAP = '', ADMIN_DISCORD_IDS = '',
 } = process.env;
-for (const k of ['BASE_URL', 'SESSION_SECRET', 'DATABASE_URL', 'DISCORD_CLIENT_ID', 'DISCORD_CLIENT_SECRET', 'DISCORD_GUILD_ID'])
+// en Docker, la base s'appelle "db" et seul POSTGRES_PASSWORD est fourni
+const DATABASE_URL = process.env.DATABASE_URL || (POSTGRES_PASSWORD && `postgres://maja13:${POSTGRES_PASSWORD}@db:5432/maja13`);
+if (!DATABASE_URL) { console.error('Variable manquante dans .env : DATABASE_URL (ou POSTGRES_PASSWORD)'); process.exit(1); }
+for (const k of ['BASE_URL', 'SESSION_SECRET', 'DISCORD_CLIENT_ID', 'DISCORD_CLIENT_SECRET', 'DISCORD_GUILD_ID'])
   if (!process.env[k]) { console.error(`Variable manquante dans .env : ${k}`); process.exit(1); }
 
 const RANKS = ['jefe', 'segundo', 'palabrero', 'commandante', 'sicario', 'soldado', 'recluta'];
