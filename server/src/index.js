@@ -414,6 +414,22 @@ app.get('/api/bot/taxes', requireAuth, requireApproved, requireAdmin, async (_re
   } catch (e) { console.error(e); res.status(502).json({ error: 'bot-unreachable' }); }
 });
 
+// armurerie (admins) : armes par statut + ventes de munitions de la semaine
+app.get('/api/bot/armurerie', requireAuth, requireApproved, requireAdmin, async (_req, res) => {
+  if (!bot) return res.json({ configured: false });
+  try {
+    const [armes, munitions] = await Promise.all([
+      botQuery('SELECT id, nom, reference, statut, pretee_a, type FROM armurerie ORDER BY nom, reference'),
+      botQuery("SELECT vendeur_username, acheteur_id, quantite, prix, timestamp FROM munitions_ventes WHERE timestamp > now() - interval '7 days' ORDER BY timestamp DESC LIMIT 30")]);
+    const ids = [...new Set(munitions.map(m => m.acheteur_id))];
+    const names = await namesFor(ids);
+    const counts = { en_stock: 0, pretee: 0, perdue: 0 };
+    for (const a of armes) counts[a.statut] = (counts[a.statut] || 0) + 1;
+    res.json({ configured: true, counts, total: armes.length, armes,
+      munitions: munitions.map(m => ({ vendeur: m.vendeur_username, acheteur: names[m.acheteur_id] || m.acheteur_id, quantite: m.quantite, prix: Number(m.prix), timestamp: m.timestamp })) });
+  } catch (e) { console.error(e); res.status(502).json({ error: 'bot-unreachable' }); }
+});
+
 // ---------- Chat de la familia (SSE + POST) ----------
 const chatClients = new Map();            // res -> member
 const chatMember = m => ({ id: m.id, displayName: m.display_name, username: m.username, rank: m.rank, rankLabel: RANK_LABEL[m.rank], avatarUrl: publicMember(m).avatarUrl });

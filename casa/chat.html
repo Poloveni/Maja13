@@ -27,6 +27,7 @@
     <a href="admin.html" id="adminLink" hidden>Administration</a>
     <a href="tableau.html" id="dashLink" hidden>Tableau de bord</a>
     <a href="taxes.html" id="taxLink" hidden>Taxes</a>
+    <a href="armurerie.html" id="armLink" hidden>Armurerie</a>
     <a href="organigramme.html" id="orgLink" hidden>Hiérarchie</a>
     <a href="../">Le site</a>
     <button class="nav__cta casa-logout" id="logout">Déconnexion</button>
@@ -125,7 +126,7 @@
   async function init() {
     me = await api('../api/me');
     if (me.status !== 'approved') { location.replace('espera.html'); return; }
-    if (me.isAdmin) { $('adminLink').hidden = false; $('dashLink').hidden = false; $('taxLink').hidden = false; } if (['jefe','devweb'].includes(me.rank)) $('orgLink').hidden = false;
+    if (me.isAdmin) { $('adminLink').hidden = false; $('dashLink').hidden = false; $('taxLink').hidden = false; $('armLink').hidden = false; } if (['jefe','devweb'].includes(me.rank)) $('orgLink').hidden = false;
     const first = await api('../api/chat/messages');
     for (const m of first) append(m);
     if (first.length) { oldest = first[0].id; $('more').hidden = first.length < 60; }

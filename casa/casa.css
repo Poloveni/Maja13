@@ -289,3 +289,17 @@
 .tax-table tr.is-late td{color:#e0a29e}
 .tax-table tr.is-late td b{color:#e0a29e}
 .tax-table tr.is-soon td b{color:var(--gold3)}
+
+/* armurerie */
+.arm-counts{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:34px}
+.arm-count{background:linear-gradient(180deg,rgba(201,164,92,.05),rgba(0,0,0,.25));border:1px solid var(--line);padding:22px 16px;cursor:pointer;text-align:center;color:var(--ink);transition:.25s;display:flex;flex-direction:column;align-items:center;gap:8px}
+.arm-count b{font-family:var(--display);font-size:44px;line-height:1;letter-spacing:.03em;font-weight:400;color:var(--ink)}
+.arm-count span{font-family:var(--serif);font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--ink2);display:flex;align-items:center;gap:8px}
+.arm-count span i{width:8px;height:8px;border-radius:50%;background:var(--gold2);display:inline-block}
+.arm-count--ok b{color:#8fd19a}.arm-count--ok i{background:#8fd19a;box-shadow:0 0 8px #8fd19a}
+.arm-count--warn b{color:var(--gold3)}.arm-count--warn i{background:var(--gold);box-shadow:0 0 8px var(--gold)}
+.arm-count--bad b{color:#e0736c}.arm-count--bad i{background:#e0736c;box-shadow:0 0 8px #e0736c}
+.arm-count:hover{border-color:var(--gold);transform:translateY(-2px)}
+.arm-count.is-on{border-color:var(--gold);box-shadow:0 0 30px rgba(201,164,92,.12)}
+.arm-type{width:auto;min-width:180px;margin:0}
+@media (max-width:760px){.arm-counts{grid-template-columns:1fr 1fr}}

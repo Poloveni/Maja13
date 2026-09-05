@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L'Armurerie — La Casa · La Maja 13</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="../assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="casa.css">
+</head>
+<body class="casa-body">
+<div class="grain" aria-hidden="true"></div>
+<script src="casa-bg.js" defer></script>
+
+<header class="nav is-scrolled">
+  <a class="nav__brand" href="../"><img src="../assets/logo.png" alt="" width="40" height="40"><span>La Maja <em>13</em></span></a>
+  <nav class="nav__links casa-nav">
+    <a href="perfil.html">Mon profil</a>
+    <a href="familia.html">La Famille</a>
+    <a href="chat.html">Le Salon</a>
+    <a href="galerie.html">Galerie</a>
+    <a href="admin.html">Administration</a>
+    <a href="tableau.html">Tableau de bord</a>
+    <a href="taxes.html">Taxes</a>
+    <a href="armurerie.html" class="is-active">Armurerie</a>
+    <a href="organigramme.html" id="orgLink" hidden>Hiérarchie</a>
+    <a href="../">Le site</a>
+    <button class="nav__cta casa-logout" id="logout">Déconnexion</button>
+  </nav>
+</header>
+
+<main class="casa-page casa-page--wide">
+  <div class="section__head">
+    <span class="numeral">✦</span>
+    <h2>L'Armurerie</h2>
+    <p class="sub">Les armes de la familia et qui les tient</p>
+  </div>
+  <div class="casa-loading" id="loading">Chargement…</div>
+  <p class="admin-empty" id="off" hidden>Le bot Discord n'est pas encore relié à La Casa (ou sa base est injoignable).</p>
+
+  <div id="page" hidden>
+    <div class="arm-counts">
+      <button class="arm-count arm-count--ok" data-f="en_stock"><b id="cStock">0</b><span><i></i>En stock</span></button>
+      <button class="arm-count arm-count--warn is-on" data-f="pretee"><b id="cPret">0</b><span><i></i>Prêtées</span></button>
+      <button class="arm-count arm-count--bad" data-f="perdue"><b id="cLost">0</b><span><i></i>Perdues</span></button>
+      <button class="arm-count" data-f="all"><b id="cAll">0</b><span><i></i>Toutes</span></button>
+    </div>
+
+    <section class="admin-block">
+      <div class="tax-head">
+        <h3 class="admin-block__title" id="listTitle">Armes prêtées</h3>
+        <select class="admin-select arm-type" id="typeSel"><option value="">Tous les types</option></select>
+      </div>
+      <div class="table-wrap">
+        <table class="admin-table dash-table">
+          <thead><tr><th>Arme</th><th>Type</th><th>Référence</th><th>Statut</th><th>À</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="admin-block">
+      <h3 class="admin-block__title">Munitions · ventes des 7 derniers jours <span class="badge badge--gold" id="munCount">0</span></h3>
+      <div class="table-wrap">
+        <table class="admin-table dash-table">
+          <thead><tr><th>Quand</th><th>Vendeur</th><th>Acheteur</th><th>Quantité</th><th>Prix</th></tr></thead>
+          <tbody id="mun"></tbody>
+        </table>
+      </div>
+      <p class="admin-block__hint">Prêts, retours et déclarations de pertes se font depuis le panneau armurerie du bot dans Discord ; cette page reflète l'état en direct.</p>
+    </section>
+  </div>
+</main>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const when = d => new Date(d).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  const money = n => Math.round(n).toLocaleString('fr-FR') + ' $';
+  const STATUT = { en_stock: ['En stock', 'status--approved'], pretee: ['Prêtée', 'status--pending'], perdue: ['Perdue', 'status--rejected'] };
+  const TITLE = { en_stock: 'Armes en stock', pretee: 'Armes prêtées', perdue: 'Armes perdues', all: 'Toutes les armes' };
+  const api = url => fetch(url, { credentials: 'same-origin' }).then(async r => { if (r.status === 401) { location.replace('./'); throw 0; } if (r.status === 403) { location.replace('perfil.html'); throw 0; } return r.json(); });
+  let data, filter = 'pretee', type = '';
+
+  function render() {
+    $('cStock').textContent = data.counts.en_stock || 0; $('cPret').textContent = data.counts.pretee || 0; $('cLost').textContent = data.counts.perdue || 0; $('cAll').textContent = data.total;
+    document.querySelectorAll('.arm-count').forEach(b => b.classList.toggle('is-on', b.dataset.f === filter));
+    const types = [...new Set(data.armes.map(a => a.type).filter(Boolean))].sort();
+    const cur = $('typeSel').value;
+    $('typeSel').innerHTML = '<option value="">Tous les types</option>' + types.map(t => `<option value="${esc(t)}" ${t === cur ? 'selected' : ''}>${esc(t)}</option>`).join('');
+    $('listTitle').textContent = TITLE[filter];
+    let list = data.armes.filter(a => filter === 'all' || a.statut === filter);
+    if (type) list = list.filter(a => a.type === type);
+    $('rows').innerHTML = list.length ? list.map(a => { const [lbl, cls] = STATUT[a.statut] || [a.statut, 'status--pending']; return `<tr>
+      <td><b>${esc(a.nom)}</b></td><td class="muted">${esc(a.type || '—')}</td><td class="mono">${esc(a.reference)}</td>
+      <td><span class="status ${cls}">${lbl}</span></td><td>${a.statut === 'pretee' ? `<b>${esc(a.pretee_a || '?')}</b>` : '<span class="muted">—</span>'}</td></tr>`; }).join('')
+      : '<tr><td colspan="5" class="muted">Rien ici.</td></tr>';
+    $('munCount').textContent = data.munitions.length;
+    $('mun').innerHTML = data.munitions.length ? data.munitions.map(m => `<tr><td class="muted">${when(m.timestamp)}</td><td>${esc(m.vendeur)}</td><td>${esc(m.acheteur)}</td><td>${m.quantite}</td><td><b>${money(m.prix)}</b></td></tr>`).join('') : '<tr><td colspan="5" class="muted">Aucune vente déclarée cette semaine.</td></tr>';
+  }
+  async function load() {
+    const me = await api('../api/me');
+    if (me.status !== 'approved') { location.replace('espera.html'); return; }
+    if (!me.isAdmin) { location.replace('perfil.html'); return; }
+    if (['jefe', 'devweb'].includes(me.rank)) $('orgLink').hidden = false;
+    data = await api('../api/bot/armurerie');
+    $('loading').hidden = true;
+    if (!data || !data.configured) { $('off').hidden = false; return; }
+    render(); $('page').hidden = false;
+  }
+  document.querySelector('.arm-counts').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (!b) return; filter = b.dataset.f; render(); });
+  $('typeSel').addEventListener('change', e => { type = e.target.value; render(); });
+  $('logout').addEventListener('click', async () => { await fetch('../auth/logout', { method: 'POST', credentials: 'same-origin' }); location.href = './'; });
+  load().catch(() => { $('loading').hidden = true; $('off').hidden = false; });
+  setInterval(() => api('../api/bot/armurerie').then(d => { if (d && d.configured) { data = d; render(); } }).catch(() => {}), 60000);
+</script>
+</body>
+</html>
