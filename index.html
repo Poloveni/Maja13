@@ -294,6 +294,13 @@
       from { opacity: 0; transform: translateY(24px); }
       to { opacity: 1; transform: translateY(0); }
     }
+    /* ── Médaillon 3D (blason MAJA 13, three.js) ── */
+    .hero-medaille {
+      width: 200px; height: 200px; margin: 0 auto 22px;
+      filter: drop-shadow(0 18px 34px rgba(0,0,0,0.55));
+    }
+    .hero-medaille canvas { display: block; width: 100%; height: 100%; }
+    @media (max-width: 640px) { .hero-medaille { width: 150px; height: 150px; margin-bottom: 16px; } }
     /* ── Photos "polaroïds" épinglées dans le hero ── */
     .hero-photos { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
     .hero-photo {
@@ -981,6 +988,7 @@
   <div class="hero-grid"></div>
   <div class="hero-glow"></div>
   <div class="hero-content">
+    <div class="hero-medaille" id="hero-medaille"><canvas id="logo3d-canvas" aria-hidden="true"></canvas></div>
     <div class="hero-tag"><img src="assets/brand/logo-mark.svg" alt="" width="24" height="24"> PRIVATE NETWORK · LOS SANTOS</div>
     <h1>MAJA<br><em>13</em></h1>
     <p class="hero-sub typing-text" id="hero-sub-text" style="min-height:3.5em;">La familia sobre todo. Un réseau privé, une structure, un territoire.</p>
@@ -1529,6 +1537,116 @@
     if (!REDUIT) { rafId = requestAnimationFrame(loop); }
     else { ctx.clearRect(0, 0, W, H); }   // décor figé si animations réduites
   }
+
+  // ── MÉDAILLON 3D (blason MAJA 13, three.js) ──
+  // Une pièce d'or fine : la tranche est un anneau métallique (sans faces,
+  // juste le pourtour), et le blason est appliqué sur deux disques plats
+  // (avant/arrière) — plus simple et plus sûr qu'un cylindre à faces pour
+  // garder le texte du blason toujours à l'endroit, jamais retourné.
+  // Tourne doucement sur elle-même (toujours de face, comme une pièce qui
+  // tourne à plat) + un léger tangage qui suit la souris. En pause hors
+  // écran, et figée (mais visible) si "réduire les animations" est actif.
+  // three.js est hébergé ici même (vendor/three.module.min.js) plutôt que
+  // chargé depuis un CDN externe.
+  (function initMedaille3D() {
+    const enveloppe = document.getElementById('hero-medaille');
+    const canvas = document.getElementById('logo3d-canvas');
+    const hero = document.getElementById('accueil');
+    if (!enveloppe || !canvas || !hero) return;
+
+    import('/vendor/three.module.min.js').then((THREE) => {
+      let renderer;
+      try {
+        renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+      } catch (e) { enveloppe.remove(); return; }
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 10);
+      camera.position.set(0, 0, 4.4);
+
+      // Éclairage chaud façon vitrine à bijoux : met la tranche dorée en valeur.
+      scene.add(new THREE.AmbientLight(0xfff1d6, 0.55));
+      const cle = new THREE.DirectionalLight(0xffe3b0, 1.4);
+      cle.position.set(2.2, 2.6, 3);
+      scene.add(cle);
+      const contre = new THREE.DirectionalLight(0x9f2635, 0.7);
+      contre.position.set(-2.4, -1.2, 1.6);
+      scene.add(contre);
+
+      const PROFONDEUR = 0.09;
+      const groupe = new THREE.Group();
+
+      const anneau = new THREE.Mesh(
+        new THREE.CylinderGeometry(1, 1, PROFONDEUR, 96, 1, true),
+        new THREE.MeshStandardMaterial({ color: 0xcda45c, metalness: 0.88, roughness: 0.28, side: THREE.DoubleSide })
+      );
+      anneau.rotation.x = Math.PI / 2;
+      groupe.add(anneau);
+
+      const texture = new THREE.TextureLoader().load('assets/brand/logo-emblem.png');
+      if ('colorSpace' in texture) texture.colorSpace = THREE.SRGBColorSpace;
+      texture.anisotropy = 4;
+      const materiauFace = new THREE.MeshStandardMaterial({ map: texture, transparent: true, metalness: 0.1, roughness: 0.55 });
+      const faceGeo = new THREE.CircleGeometry(1, 96);
+
+      const avant = new THREE.Mesh(faceGeo, materiauFace);
+      avant.position.z = PROFONDEUR / 2;
+      groupe.add(avant);
+
+      const arriere = new THREE.Mesh(faceGeo, materiauFace);
+      arriere.position.z = -PROFONDEUR / 2;
+      arriere.rotation.y = Math.PI;
+      groupe.add(arriere);
+
+      scene.add(groupe);
+
+      function redimensionner() {
+        const r = enveloppe.getBoundingClientRect();
+        const w = Math.max(1, Math.round(r.width));
+        const h = Math.max(1, Math.round(r.height));
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        renderer.setSize(w, h, false);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+      }
+      redimensionner();
+      window.addEventListener('resize', redimensionner);
+
+      // Même esprit de parallaxe souris que l'aura/la grille du hero ci-dessus.
+      const souris = { x: 0.5, y: 0.5 };
+      let sx = 0.5, sy = 0.5;
+      hero.addEventListener('mousemove', (e) => {
+        const r = hero.getBoundingClientRect();
+        souris.x = (e.clientX - r.left) / r.width;
+        souris.y = (e.clientY - r.top) / r.height;
+      });
+      hero.addEventListener('mouseleave', () => { souris.x = 0.5; souris.y = 0.5; });
+
+      let visible = true, rafId = null, t = 0;
+      if ('IntersectionObserver' in window) {
+        new IntersectionObserver((es) => {
+          visible = es[0].isIntersecting;
+          if (visible && rafId === null) rafId = requestAnimationFrame(boucle);
+          if (!visible && rafId !== null) { cancelAnimationFrame(rafId); rafId = null; }
+        }, { threshold: 0 }).observe(enveloppe);
+      }
+
+      function boucle() {
+        rafId = null;
+        sx += (souris.x - sx) * 0.05;
+        sy += (souris.y - sy) * 0.05;
+        t += 0.006;
+        groupe.rotation.z = t;                    // tourne à plat, toujours de face
+        groupe.rotation.y = (sx - 0.5) * 0.35;     // léger tangage souris
+        groupe.rotation.x = (sy - 0.5) * -0.25;
+        groupe.position.y = Math.sin(t * 0.8) * 0.05;
+        renderer.render(scene, camera);
+        if (visible) rafId = requestAnimationFrame(boucle);
+      }
+      if (!REDUIT) { rafId = requestAnimationFrame(boucle); }
+      else { renderer.render(scene, camera); } // rendu unique, figé
+    }).catch(() => { enveloppe.remove(); });
+  })();
 
   // ── LIGHTBOX partagée (galerie + photos du hero) ──
   // openLightbox(liste, index) ouvre n'importe quel set de photos en plein écran.
