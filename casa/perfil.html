@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mi Perfil — La Casa · La Maja 13</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="../assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="casa.css">
+</head>
+<body class="casa-body">
+<div class="grain" aria-hidden="true"></div>
+
+<header class="nav is-scrolled">
+  <a class="nav__brand" href="../"><img src="../assets/logo.png" alt="" width="40" height="40"><span>La Maja <em>13</em></span></a>
+  <nav class="nav__links casa-nav">
+    <a href="perfil.html" class="is-active">Mi Perfil</a>
+    <a href="familia.html">La Familia</a>
+    <a href="../">Site</a>
+    <button class="nav__cta casa-logout" id="logout">Salir</button>
+  </nav>
+</header>
+
+<main class="casa-page">
+  <div class="casa-loading" id="loading">Cargando…</div>
+
+  <section class="perfil" id="perfil" hidden>
+    <div class="perfil__card">
+      <div class="perfil__avatar-wrap">
+        <img class="perfil__avatar" id="avatar" src="../assets/favicon.png" alt="" width="140" height="140">
+        <span class="perfil__rank" id="rank">Recluta</span>
+      </div>
+      <p class="eyebrow">Mi Perfil</p>
+      <h1 class="perfil__name" id="displayName">—</h1>
+      <p class="perfil__discord">Discord : <b id="username">—</b></p>
+      <dl class="perfil__meta">
+        <div><dt>Dans la familia depuis</dt><dd id="joinedAt">—</dd></div>
+        <div><dt>Dernière connexion</dt><dd id="lastLogin">—</dd></div>
+        <div><dt>Téléphone RP</dt><dd id="phoneRpView">—</dd></div>
+      </dl>
+      <p class="perfil__bio" id="bioView"></p>
+    </div>
+
+    <form class="perfil__form" id="form">
+      <h2>Editar</h2>
+      <label>Nom RP<input name="displayName" id="f-displayName" maxlength="64" required></label>
+      <label>Téléphone RP<input name="phoneRp" id="f-phoneRp" maxlength="32" placeholder="555-0113"></label>
+      <label>Bio<textarea name="bio" id="f-bio" rows="5" maxlength="600" placeholder="Qui tu es dans la familia, d'où tu viens…"></textarea></label>
+      <div class="perfil__actions">
+        <button class="btn btn--gold" type="submit">Guardar</button>
+        <span class="perfil__saved" id="saved" hidden>Guardado ✦</span>
+      </div>
+    </form>
+  </section>
+</main>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const fmt = d => d ? new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '—';
+  function render(m) {
+    $('avatar').src = m.avatarUrl || '../assets/favicon.png';
+    $('rank').textContent = m.rankLabel; $('rank').dataset.rank = m.rank;
+    $('displayName').textContent = m.displayName;
+    $('username').textContent = '@' + m.username;
+    $('joinedAt').textContent = fmt(m.joinedAt);
+    $('lastLogin').textContent = fmt(m.lastLogin);
+    $('phoneRpView').textContent = m.phoneRp || '—';
+    $('bioView').textContent = m.bio || '';
+    $('f-displayName').value = m.displayName || '';
+    $('f-phoneRp').value = m.phoneRp || '';
+    $('f-bio').value = m.bio || '';
+    document.title = `${m.displayName} — La Casa · La Maja 13`;
+  }
+  fetch('../api/me', { credentials: 'same-origin' })
+    .then(r => { if (r.status === 401) { location.replace('./'); throw 0; } return r.json(); })
+    .then(m => { render(m); $('loading').hidden = true; $('perfil').hidden = false; })
+    .catch(() => {});
+
+  $('form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const body = { displayName: $('f-displayName').value, phoneRp: $('f-phoneRp').value, bio: $('f-bio').value };
+    const r = await fetch('../api/me', { method: 'PATCH', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    if (r.ok) { render(await r.json()); $('saved').hidden = false; setTimeout(() => $('saved').hidden = true, 2500); }
+  });
+  $('logout').addEventListener('click', async () => { await fetch('../auth/logout', { method: 'POST', credentials: 'same-origin' }); location.href = './'; });
+</script>
+</body>
+</html>

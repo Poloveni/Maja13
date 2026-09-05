@@ -1,0 +1,23 @@
+-- La Maja 13 — schéma de La Casa
+CREATE TABLE IF NOT EXISTS members (
+  id            SERIAL PRIMARY KEY,
+  discord_id    VARCHAR(32) UNIQUE NOT NULL,
+  username      VARCHAR(64) NOT NULL,          -- pseudo Discord
+  avatar        VARCHAR(128),                  -- hash avatar Discord
+  display_name  VARCHAR(64),                   -- nom RP (modifiable par le membre)
+  rank          VARCHAR(20) NOT NULL DEFAULT 'recluta'
+                CHECK (rank IN ('jefe','segundo','palabrero','commandante','sicario','soldado','recluta')),
+  bio           TEXT,
+  phone_rp      VARCHAR(32),
+  is_admin      BOOLEAN NOT NULL DEFAULT FALSE,
+  joined_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+  last_login    TIMESTAMPTZ
+);
+
+-- table de sessions (connect-pg-simple)
+CREATE TABLE IF NOT EXISTS session (
+  sid    VARCHAR NOT NULL COLLATE "default" PRIMARY KEY,
+  sess   JSON NOT NULL,
+  expire TIMESTAMP(6) NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_session_expire ON session (expire);
