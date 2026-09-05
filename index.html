@@ -254,10 +254,6 @@
     #accueil {
       min-height: 100vh; display: flex; align-items: center; justify-content: center;
       text-align: center; padding: 100px 32px 60px; position: relative; overflow: hidden;
-      background-image: url('hero-bg.webp');
-      background-size: 55%;
-      background-position: center bottom;
-      background-repeat: no-repeat;
     }
     #accueil::before {
       content: '';
@@ -274,33 +270,16 @@
       background-size: 60px 60px;
       mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
     }
-    .hero-glow {
-      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      width: 600px; height: 600px;
-      background: radial-gradient(circle, rgba(159,38,53,0.18) 0%, transparent 70%);
-      pointer-events: none;
-      animation: heartbeat 1.6s ease-in-out infinite;
-    }
-    @keyframes heartbeat {
-      0%   { transform: translate(-50%, -50%) scale(1);    opacity: 0.6; }
-      14%  { transform: translate(-50%, -50%) scale(1.15); opacity: 1;   }
-      28%  { transform: translate(-50%, -50%) scale(1);    opacity: 0.6; }
-      42%  { transform: translate(-50%, -50%) scale(1.08); opacity: 0.9; }
-      70%  { transform: translate(-50%, -50%) scale(1);    opacity: 0.5; }
-      100% { transform: translate(-50%, -50%) scale(1);    opacity: 0.6; }
-    }
     .hero-content { position: relative; z-index: 2; max-width: 640px; animation: heroIn 1s cubic-bezier(0.16,1,0.3,1) both; }
     @keyframes heroIn {
       from { opacity: 0; transform: translateY(24px); }
       to { opacity: 1; transform: translateY(0); }
     }
-    /* ── Médaillon 3D (blason MAJA 13, three.js) ── */
-    .hero-medaille {
-      width: 200px; height: 200px; margin: 0 auto 22px;
-      filter: drop-shadow(0 18px 34px rgba(0,0,0,0.55));
+    /* Atmosphere 3D du hero (blason, lueur, poussiere d'or, three.js) */
+    #hero3d-canvas {
+      position: absolute; inset: 0; z-index: 0; display: block;
+      width: 100% !important; height: 100% !important; pointer-events: none;
     }
-    .hero-medaille canvas { display: block; width: 100%; height: 100%; }
-    @media (max-width: 640px) { .hero-medaille { width: 150px; height: 150px; margin-bottom: 16px; } }
     /* ── Photos "polaroïds" épinglées dans le hero ── */
     .hero-photos { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
     .hero-photo {
@@ -735,12 +714,6 @@
     }
     @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0;} }
 
-    /* ── PARTICULES ── */
-    #particles-canvas {
-      position: absolute; top: 0; left: 0;
-      width: 100% !important; height: 100% !important;
-      z-index: 0; pointer-events: none; display: block;
-    }
 
     /* ── FICHE MEMBRE (modale) ── */
     .membre-card { cursor: pointer; }
@@ -984,11 +957,9 @@
 </nav>
 
 <section id="accueil">
-  <canvas id="particles-canvas"></canvas>
+  <canvas id="hero3d-canvas" aria-hidden="true"></canvas>
   <div class="hero-grid"></div>
-  <div class="hero-glow"></div>
   <div class="hero-content">
-    <div class="hero-medaille" id="hero-medaille"><canvas id="logo3d-canvas" aria-hidden="true"></canvas></div>
     <div class="hero-tag"><img src="assets/brand/logo-mark.svg" alt="" width="24" height="24"> PRIVATE NETWORK · LOS SANTOS</div>
     <h1>MAJA<br><em>13</em></h1>
     <p class="hero-sub typing-text" id="hero-sub-text" style="min-height:3.5em;">La familia sobre todo. Un réseau privé, une structure, un territoire.</p>
@@ -1445,163 +1416,95 @@
     if (heroGrid) heroGrid.style.transform = `translate(${dx * 10}px, ${dy * 10}px)`;
   });
 
-  // ── PARTICULES ──
-  const canvas = document.getElementById('particles-canvas');
-  if (canvas) {
-    const ctx = canvas.getContext('2d');
-    // ── Effet "Aura + Poussière d'or" ──
-    // Nappes de couleur tricolores qui respirent (parallaxe souris),
-    // ponctuées de fins éclats dorés qui montent et scintillent.
-    let W, H;
+  // === ATMOSPHERE 3D DU HERO (blason, lueur, poussiere d'or, three.js) ===
+  // Le blason flotte en grand format derriere le titre, comme un embleme
+  // grave dans la penombre : lueur chaude ambre/oxblood, poussiere d'or en
+  // suspension, tres legere rotation + tangage qui suit la souris. En
+  // pause hors ecran, rendu unique (fige) si "reduire les animations" est
+  // actif. three.js est heberge ici meme (vendor/three.module.min.js)
+  // plutot que charge depuis un CDN externe.
+  (function initHero3D() {
     const hero = document.getElementById('accueil');
-    const mouse = { x: 0.5, y: 0.5 };            // position relative (0→1)
-    // [couleur rgb, opacité max] — tricolore italien 🇮🇹
-    const BLOBS = [
-      ['159,38,53', 0.42],
-      ['182,169,142', 0.16],
-      ['35,35,42', 0.34],
-    ];
-    const GOLD = '214,178,110';                  // teinte de la poussière d'or
-    let gold = [];
-    function mkGold(init) {
-      return {
-        x: Math.random() * W,
-        y: init ? Math.random() * H : H + 5,
-        s: Math.random() * 1.4 + 0.5,            // taille du grain
-        vx: (Math.random() - 0.5) * 0.25,
-        vy: -(Math.random() * 0.45 + 0.18),      // monte doucement
-        ph: Math.random() * 7, sp: Math.random() * 0.05 + 0.02   // scintillement
-      };
-    }
-    function resize() {
-      W = canvas.width = hero.offsetWidth;
-      H = canvas.height = hero.offsetHeight;
-      const n = Math.min(40, Math.round((W * H) / 30000));   // densité d'or (dosée)
-      gold = [];
-      for (let i = 0; i < n; i++) gold.push(mkGold(true));
-    }
-    resize();
-    window.addEventListener('load', resize);
-    window.addEventListener('resize', resize);
-    hero.addEventListener('mousemove', e => {
-      const rect = hero.getBoundingClientRect();
-      mouse.x = (e.clientX - rect.left) / rect.width;
-      mouse.y = (e.clientY - rect.top) / rect.height;
-    });
-    hero.addEventListener('mouseleave', () => { mouse.x = 0.5; mouse.y = 0.5; });
-    let t = 0, mx = 0.5, my = 0.5;
-    // On n'anime que si le hero est réellement à l'écran : sinon on brûle
-    // du processeur (et de la batterie) pour un décor que personne ne voit.
-    let visible = true, rafId = null;
-    if ('IntersectionObserver' in window) {
-      new IntersectionObserver(es => {
-        visible = es[0].isIntersecting;
-        if (visible && rafId === null) rafId = requestAnimationFrame(loop);
-        if (!visible && rafId !== null) { cancelAnimationFrame(rafId); rafId = null; }
-      }, { threshold: 0 }).observe(hero);
-    }
-    function loop() {
-      rafId = null;
-      // lissage du suivi souris pour une parallaxe fluide
-      mx += (mouse.x - mx) * 0.04;
-      my += (mouse.y - my) * 0.04;
-      ctx.clearRect(0, 0, W, H);
-      // 1) nappes de couleur (aura)
-      ctx.globalCompositeOperation = 'lighter';   // les couleurs se superposent en lumière
-      BLOBS.forEach((b, i) => {
-        const px = W / 2 + Math.sin(t * 0.6 + i * 2.1) * W * 0.28 + (mx - 0.5) * W * 0.15;
-        const py = H / 2 + Math.cos(t * 0.5 + i * 1.7) * H * 0.32 + (my - 0.5) * H * 0.15;
-        const rad = Math.min(W, H) * (0.55 + 0.12 * Math.sin(t + i));
-        const g = ctx.createRadialGradient(px, py, 0, px, py, rad);
-        g.addColorStop(0, 'rgba(' + b[0] + ',' + b[1] + ')');
-        g.addColorStop(1, 'rgba(' + b[0] + ',0)');
-        ctx.fillStyle = g;
-        ctx.fillRect(0, 0, W, H);
-      });
-      ctx.globalCompositeOperation = 'source-over';
-      // 2) poussière d'or par-dessus
-      gold.forEach((p, i) => {
-        p.x += p.vx; p.y += p.vy; p.ph += p.sp;
-        if (p.y < -5) gold[i] = mkGold(false);
-        const tw = 0.35 + 0.55 * Math.abs(Math.sin(p.ph));   // scintillement
-        ctx.save();
-        ctx.globalAlpha = tw;
-        ctx.shadowBlur = 6; ctx.shadowColor = 'rgb(' + GOLD + ')';
-        ctx.fillStyle = 'rgb(' + GOLD + ')';
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.s, 0, Math.PI * 2); ctx.fill();
-        ctx.restore();
-      });
-      t += 0.005;
-      if (visible) rafId = requestAnimationFrame(loop);
-    }
-    if (!REDUIT) { rafId = requestAnimationFrame(loop); }
-    else { ctx.clearRect(0, 0, W, H); }   // décor figé si animations réduites
-  }
-
-  // ── MÉDAILLON 3D (blason MAJA 13, three.js) ──
-  // Une pièce d'or fine : la tranche est un anneau métallique (sans faces,
-  // juste le pourtour), et le blason est appliqué sur deux disques plats
-  // (avant/arrière) — plus simple et plus sûr qu'un cylindre à faces pour
-  // garder le texte du blason toujours à l'endroit, jamais retourné.
-  // Tourne doucement sur elle-même (toujours de face, comme une pièce qui
-  // tourne à plat) + un léger tangage qui suit la souris. En pause hors
-  // écran, et figée (mais visible) si "réduire les animations" est actif.
-  // three.js est hébergé ici même (vendor/three.module.min.js) plutôt que
-  // chargé depuis un CDN externe.
-  (function initMedaille3D() {
-    const enveloppe = document.getElementById('hero-medaille');
-    const canvas = document.getElementById('logo3d-canvas');
-    const hero = document.getElementById('accueil');
-    if (!enveloppe || !canvas || !hero) return;
+    const canvas = document.getElementById('hero3d-canvas');
+    if (!hero || !canvas) return;
 
     import('/vendor/three.module.min.js').then((THREE) => {
       let renderer;
       try {
         renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-      } catch (e) { enveloppe.remove(); return; }
+      } catch (e) { return; }
 
       const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 10);
-      camera.position.set(0, 0, 4.4);
+      scene.fog = new THREE.FogExp2(0x0d0d10, 0.05);
+      const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 30);
+      camera.position.set(0, 0, 7.2);
 
-      // Éclairage chaud façon vitrine à bijoux : met la tranche dorée en valeur.
-      scene.add(new THREE.AmbientLight(0xfff1d6, 0.55));
-      const cle = new THREE.DirectionalLight(0xffe3b0, 1.4);
-      cle.position.set(2.2, 2.6, 3);
+      scene.add(new THREE.AmbientLight(0xfff1d6, 0.5));
+      const cle = new THREE.PointLight(0xffe3b0, 1.6, 24, 2);
+      cle.position.set(2.4, 3, 4);
       scene.add(cle);
-      const contre = new THREE.DirectionalLight(0x9f2635, 0.7);
-      contre.position.set(-2.4, -1.2, 1.6);
+      const contre = new THREE.PointLight(0x9f2635, 2, 24, 2);
+      contre.position.set(-3, -1.6, -2);
       scene.add(contre);
 
-      const PROFONDEUR = 0.09;
       const groupe = new THREE.Group();
+      scene.add(groupe);
 
-      const anneau = new THREE.Mesh(
-        new THREE.CylinderGeometry(1, 1, PROFONDEUR, 96, 1, true),
-        new THREE.MeshStandardMaterial({ color: 0xcda45c, metalness: 0.88, roughness: 0.28, side: THREE.DoubleSide })
-      );
-      anneau.rotation.x = Math.PI / 2;
-      groupe.add(anneau);
-
+      // Blason en grand, en filigrane derriere le titre.
       const texture = new THREE.TextureLoader().load('assets/brand/logo-emblem.png');
       if ('colorSpace' in texture) texture.colorSpace = THREE.SRGBColorSpace;
       texture.anisotropy = 4;
-      const materiauFace = new THREE.MeshStandardMaterial({ map: texture, transparent: true, metalness: 0.1, roughness: 0.55 });
-      const faceGeo = new THREE.CircleGeometry(1, 96);
+      const blason = new THREE.Mesh(
+        new THREE.PlaneGeometry(5.4, 5.4),
+        new THREE.MeshStandardMaterial({
+          map: texture, transparent: true, opacity: 0.5, alphaTest: 0.02,
+          side: THREE.DoubleSide, metalness: 0.3, roughness: 0.5,
+          emissive: new THREE.Color(0x2a1c0a), emissiveIntensity: 0.4,
+        })
+      );
+      blason.position.z = -1.4;
+      groupe.add(blason);
 
-      const avant = new THREE.Mesh(faceGeo, materiauFace);
-      avant.position.z = PROFONDEUR / 2;
-      groupe.add(avant);
+      // Lueur additive (ambre vers oxblood) derriere le blason.
+      function creerLueur() {
+        const c = document.createElement('canvas');
+        c.width = c.height = 256;
+        const g = c.getContext('2d');
+        const grad = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+        grad.addColorStop(0, 'rgba(240,211,138,0.55)');
+        grad.addColorStop(0.45, 'rgba(159,38,53,0.28)');
+        grad.addColorStop(1, 'rgba(159,38,53,0)');
+        g.fillStyle = grad;
+        g.fillRect(0, 0, 256, 256);
+        return new THREE.CanvasTexture(c);
+      }
+      const lueur = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: creerLueur(), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+      }));
+      lueur.scale.set(11, 11, 1);
+      lueur.position.z = -2.2;
+      groupe.add(lueur);
 
-      const arriere = new THREE.Mesh(faceGeo, materiauFace);
-      arriere.position.z = -PROFONDEUR / 2;
-      arriere.rotation.y = Math.PI;
-      groupe.add(arriere);
-
-      scene.add(groupe);
+      // Poussiere d'or en suspension, facon braises qui montent doucement.
+      const N = 180;
+      const positions = new Float32Array(N * 3);
+      const vitesses = new Float32Array(N);
+      for (let i = 0; i < N; i++) {
+        positions[i * 3] = (Math.random() - 0.5) * 11;
+        positions[i * 3 + 1] = (Math.random() - 0.5) * 7;
+        positions[i * 3 + 2] = (Math.random() - 0.5) * 6 - 1;
+        vitesses[i] = Math.random() * 0.15 + 0.05;
+      }
+      const poussiereGeo = new THREE.BufferGeometry();
+      poussiereGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      const poussiere = new THREE.Points(poussiereGeo, new THREE.PointsMaterial({
+        color: 0xd6b26e, size: 0.028, transparent: true, opacity: 0.75,
+        blending: THREE.AdditiveBlending, depthWrite: false,
+      }));
+      scene.add(poussiere);
 
       function redimensionner() {
-        const r = enveloppe.getBoundingClientRect();
+        const r = hero.getBoundingClientRect();
         const w = Math.max(1, Math.round(r.width));
         const h = Math.max(1, Math.round(r.height));
         renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -1612,7 +1515,6 @@
       redimensionner();
       window.addEventListener('resize', redimensionner);
 
-      // Même esprit de parallaxe souris que l'aura/la grille du hero ci-dessus.
       const souris = { x: 0.5, y: 0.5 };
       let sx = 0.5, sy = 0.5;
       hero.addEventListener('mousemove', (e) => {
@@ -1628,26 +1530,32 @@
           visible = es[0].isIntersecting;
           if (visible && rafId === null) rafId = requestAnimationFrame(boucle);
           if (!visible && rafId !== null) { cancelAnimationFrame(rafId); rafId = null; }
-        }, { threshold: 0 }).observe(enveloppe);
+        }, { threshold: 0 }).observe(hero);
       }
 
       function boucle() {
         rafId = null;
-        sx += (souris.x - sx) * 0.05;
-        sy += (souris.y - sy) * 0.05;
-        t += 0.006;
-        groupe.rotation.z = t;                    // tourne à plat, toujours de face
-        groupe.rotation.y = (sx - 0.5) * 0.35;     // léger tangage souris
-        groupe.rotation.x = (sy - 0.5) * -0.25;
-        groupe.position.y = Math.sin(t * 0.8) * 0.05;
+        sx += (souris.x - sx) * 0.04;
+        sy += (souris.y - sy) * 0.04;
+        t += 0.0035;
+        groupe.rotation.y = Math.sin(t * 0.5) * 0.18 + (sx - 0.5) * 0.3;
+        groupe.rotation.x = (sy - 0.5) * -0.16;
+        groupe.position.y = Math.sin(t * 0.9) * 0.1;
+        const pos = poussiereGeo.attributes.position;
+        for (let i = 0; i < N; i++) {
+          let y = pos.getY(i) + vitesses[i] * 0.02;
+          if (y > 3.6) y = -3.6;
+          pos.setY(i, y);
+        }
+        pos.needsUpdate = true;
+        poussiere.rotation.y = t * 0.05;
         renderer.render(scene, camera);
         if (visible) rafId = requestAnimationFrame(boucle);
       }
       if (!REDUIT) { rafId = requestAnimationFrame(boucle); }
-      else { renderer.render(scene, camera); } // rendu unique, figé
-    }).catch(() => { enveloppe.remove(); });
+      else { renderer.render(scene, camera); } // rendu unique, fige
+    }).catch(() => {});
   })();
-
   // ── LIGHTBOX partagée (galerie + photos du hero) ──
   // openLightbox(liste, index) ouvre n'importe quel set de photos en plein écran.
   const openLightbox = (function () {
