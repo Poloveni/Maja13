@@ -75,7 +75,14 @@ nav, .sidebar, .topbar, .barre {
 /* Bande hero sombre et cinématographique : photo mise en scène, texte clair
    par-dessus. Le reste du site partage désormais la même base sombre. */
 #accueil {
-  background: var(--maja-ink) !important;
+  background-image:
+    radial-gradient(ellipse at 69% 76%, rgba(159, 38, 53, .38) 0%, rgba(159, 38, 53, .13) 34%, transparent 68%),
+    radial-gradient(ellipse at 15% 48%, rgba(182, 169, 142, .12) 0%, transparent 58%),
+    linear-gradient(90deg, rgba(7,7,8,.9) 0%, rgba(7,7,8,.46) 48%, rgba(7,7,8,.76) 100%),
+    linear-gradient(0deg, var(--maja-ink) 0%, transparent 38%),
+    url('assets/visuals/hero-maja13.webp') !important;
+  background-size: cover !important;
+  background-position: center !important;
 }
 #accueil::after {
   content: 'PRIVATE NETWORK  /  LOS SANTOS';
@@ -196,7 +203,7 @@ input, textarea, select {
 input:focus, textarea:focus, select:focus { border-color: var(--maja-accent-bright) !important; }
 
 @media (max-width: 760px) {
-  #accueil { min-height: 100svh !important; }
+  #accueil { min-height: 100svh !important; background-position: center, center, center, center, 52% center !important; }
   #accueil::after { font-size: 8px; letter-spacing: .2em; bottom: 18px; }
   .hero-content h1 { font-size: clamp(60px, 22vw, 94px) !important; line-height: .82 !important; }
   .hero-photos { display: none !important; }
