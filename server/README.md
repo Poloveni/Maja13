@@ -2,11 +2,12 @@
 
 Express + PostgreSQL + Discord OAuth. Sert aussi le site vitrine (racine du dépôt).
 
-## Installation sur le VPS (Debian/Ubuntu, en root)
+## Installation sur le VPS (Docker, derrière le Caddy de Dynasty 8)
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Poloveni/Maja13/main/server/deploy/install.sh | bash -s -- lamaja13.mondomaine.fr
+sudo git clone https://github.com/Poloveni/Maja13.git /opt/maja13
+sudo bash /opt/maja13/server/deploy/vps-setup.sh      # pose les questions, écrit .env, ajoute le bloc Caddy, démarre
 ```
-Puis renseigner `/var/www/maja13/server/.env` (Discord) et `systemctl restart maja13`.
+Mise à jour après un push : `sudo bash /opt/maja13/server/deploy/vps-update.sh`
 
 ## Application Discord
 1. https://discord.com/developers/applications → New Application « La Maja 13 »
@@ -19,6 +20,3 @@ Puis renseigner `/var/www/maja13/server/.env` (Discord) et `systemctl restart ma
 - `GET /auth/discord` → connexion · `GET /auth/discord/callback` · `POST /auth/logout`
 - `GET /api/me` · `PATCH /api/me` (displayName, phoneRp, bio) · `GET /api/familia`
 - pages : `/casa/` (login), `/casa/perfil.html`, `/casa/familia.html`
-
-## Mise à jour
-`bash /var/www/maja13/server/deploy/update.sh`

@@ -35,4 +35,4 @@ volumes:
 networks:
   caddy:
     external: true
-    name: CADDY_NETWORK   # à remplacer par le nom réel (sudo docker network ls)
+    name: vps_default     # réseau du compose Dynasty 8 (là où vit vps-caddy-1)
