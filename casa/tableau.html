@@ -82,10 +82,6 @@
       </section>
     </div>
 
-    <section class="admin-block">
-      <h3 class="admin-block__title">Véhicules sortis</h3>
-      <div class="table-wrap"><table class="admin-table dash-table"><thead><tr><th>Plaque</th><th>Modèle</th><th>Par</th><th>Depuis</th></tr></thead><tbody id="vehicules"></tbody></table></div>
-    </section>
   </div>
 </main>
 
@@ -126,7 +122,6 @@
 
     $('taxes').innerHTML = d.taxes.length ? d.taxes.map(t => { const late = new Date(t.echeance) < Date.now(); return `<tr class="${!t.paye || late ? 'is-warn' : ''}"><td><b>${esc(t.nom)}</b>${t.telephone ? `<br><small class="muted">${esc(t.telephone)}</small>` : ''}</td><td>${esc(TAXE[t.type] || t.type)}</td><td>${date(t.echeance)}</td><td><span class="status ${t.paye ? 'status--approved' : 'status--rejected'}">${t.paye ? 'Payée' : 'Impayée'}${late && !t.paye ? ' · en retard' : ''}</span></td></tr>`; }).join('') : '<tr><td colspan="4" class="muted">Aucune taxe active.</td></tr>';
     $('armes').innerHTML = d.armes.length ? d.armes.map(a => `<tr><td><b>${esc(a.nom)}</b>${a.type ? ` <small class="muted">${esc(a.type)}</small>` : ''}</td><td class="mono">${esc(a.reference)}</td><td><span class="status ${a.statut === 'en_stock' ? 'status--approved' : 'status--pending'}">${esc(a.statut.replace('_', ' '))}</span></td><td>${esc(a.pretee_a || '—')}</td></tr>`).join('') : '<tr><td colspan="4" class="muted">Armurerie vide.</td></tr>';
-    $('vehicules').innerHTML = d.vehicules.length ? d.vehicules.map(v => `<tr><td class="mono">${esc(v.plaque)}</td><td>${esc(v.modele || '—')}</td><td>${esc(v.joueur || v.discord_id || '—')}</td><td class="muted">${when(v.timestamp)}</td></tr>`).join('') : '<tr><td colspan="4" class="muted">Tous les véhicules sont rangés.</td></tr>';
   }
 
   async function load() {
