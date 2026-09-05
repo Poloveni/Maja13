@@ -1,48 +1,46 @@
 /* Identité transversale MAJA 13 — site, Hub, administration et M13 OS.
-   Palette parchemin/blanc cassé + accents oxblood et or, dans l'esprit du
-   dossier MAJA 13 (origine San Salvador). Le hero reste une bande sombre et
-   cinématographique (photo mise en scène + texte clair) ; tout le reste du
-   site — cartes, tableaux de bord, formulaires — est clair. */
+   Palette sombre et cinématographique + accents oxblood et or, dans
+   l'esprit du dossier MAJA 13 (origine San Salvador, mockup Hub sombre).
+   Le hero reste une bande sombre avec photo mise en scène ; le reste du
+   site — cartes, tableaux de bord, formulaires — suit la même base sombre
+   que dashboard.css, avec l'identité de marque MAJA 13 par-dessus. */
 :root {
-  --maja-ink: #f3ead5;
-  --maja-night: #ece0c4;
-  --maja-panel: rgba(255, 253, 246, .92);
-  --maja-panel-solid: #fffdf6;
-  --maja-line: rgba(60, 45, 20, .14);
-  --maja-line-hot: rgba(159, 38, 53, .35);
-  --maja-ivory: #241d15;
-  --maja-muted: #6b5f4c;
+  --maja-ink: #070708;
+  --maja-night: #0d0d10;
+  --maja-panel: rgba(18, 18, 22, .82);
+  --maja-panel-solid: #141419;
+  --maja-line: rgba(231, 224, 211, .105);
+  --maja-line-hot: rgba(211, 75, 94, .38);
+  --maja-ivory: #e7e0d3;
+  --maja-muted: #99948c;
   --maja-accent: #9f2635;
-  --maja-accent-bright: #c1394a;
-  --maja-metal: #ad8a4e;
+  --maja-accent-bright: #d34b5e;
+  --maja-metal: #b6a98e;
   --red: var(--maja-accent-bright) !important;
   --red-solid: var(--maja-accent) !important;
-  --red-dark: #6e1620 !important;
+  --red-dark: #741c28 !important;
   --red-deep: var(--maja-accent) !important;
   --red-soft: var(--maja-accent-bright) !important;
   --gold: var(--maja-metal) !important;
-  --gold-soft: #d9bb84 !important;
+  --gold-soft: #d4c7a8 !important;
   --bg: var(--maja-ink) !important;
   --surface: var(--maja-night) !important;
   --surface2: var(--maja-panel-solid) !important;
   --border: var(--maja-line) !important;
-  --border-strong: rgba(60, 45, 20, .26) !important;
+  --border-strong: rgba(231, 224, 211, .18) !important;
   --text: var(--maja-ivory) !important;
   --muted: var(--maja-muted) !important;
   --text-muted: var(--maja-muted) !important;
-  --text-dim: #8a7b62 !important;
-  --dim: #8a7b62 !important;
-  --green: #1f8a4c !important;
-  --amber: #a8670f !important;
-  --blue: #4752c4 !important;
-  color-scheme: light !important;
+  --text-dim: #6b6560 !important;
+  --dim: #6b6560 !important;
+  color-scheme: dark !important;
 }
 
-html { background: var(--maja-ink); color-scheme: light; }
+html { background: var(--maja-ink); color-scheme: dark; }
 body {
   background:
-    radial-gradient(900px 520px at 80% -10%, rgba(159, 38, 53, .10), transparent 68%),
-    radial-gradient(720px 460px at -10% 42%, rgba(173, 138, 78, .12), transparent 70%),
+    radial-gradient(900px 520px at 80% -10%, rgba(159, 38, 53, .16), transparent 68%),
+    radial-gradient(720px 460px at -10% 42%, rgba(182, 169, 142, .055), transparent 70%),
     var(--maja-ink) !important;
   color: var(--maja-ivory);
   text-rendering: optimizeLegibility;
@@ -53,20 +51,19 @@ body::after {
   inset: 0;
   pointer-events: none;
   z-index: 9000;
-  opacity: .022;
+  opacity: .028;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.9'/%3E%3C/svg%3E");
 }
 
-::selection { background: rgba(159, 38, 53, .28); color: #fff; }
+::selection { background: rgba(211, 75, 94, .34); color: #fff; }
 :focus-visible { outline: 2px solid var(--maja-accent-bright) !important; outline-offset: 4px; }
 
-nav, .sidebar, .topbar, .barre, .sb-nav {
-  background: rgba(255, 253, 246, .85) !important;
+nav, .sidebar, .topbar, .barre {
+  background: rgba(7, 7, 8, .78) !important;
   border-color: var(--maja-line) !important;
   backdrop-filter: blur(20px) saturate(125%);
   -webkit-backdrop-filter: blur(20px) saturate(125%);
 }
-.sb-nav { box-shadow: 1px 0 0 rgba(60,45,20,.14), 12px 0 40px -20px rgba(60,45,20,.22) !important; }
 
 .logo, .brand, .sidebar-logo {
   letter-spacing: .18em !important;
@@ -75,14 +72,13 @@ nav, .sidebar, .topbar, .barre, .sb-nav {
 }
 .logo span, .brand span, .sidebar-logo span { color: var(--maja-accent-bright) !important; }
 
-/* Le hero reste une bande sombre et cinématographique : c'est là que vivent
-   les photos mises en scène, avec du texte clair par-dessus. Le reste du
-   site, plus bas, passe au thème clair défini ci-dessus. */
+/* Bande hero sombre et cinématographique : photo mise en scène, texte clair
+   par-dessus. Le reste du site partage désormais la même base sombre. */
 #accueil {
   background-image:
-    radial-gradient(ellipse at 69% 76%, rgba(159, 38, 53, .34) 0%, rgba(159, 38, 53, .12) 34%, transparent 68%),
-    radial-gradient(ellipse at 15% 48%, rgba(173, 138, 78, .14) 0%, transparent 58%),
-    linear-gradient(90deg, rgba(26, 18, 11, .9) 0%, rgba(26, 18, 11, .46) 48%, rgba(26, 18, 11, .76) 100%),
+    radial-gradient(ellipse at 69% 76%, rgba(159, 38, 53, .38) 0%, rgba(159, 38, 53, .13) 34%, transparent 68%),
+    radial-gradient(ellipse at 15% 48%, rgba(182, 169, 142, .12) 0%, transparent 58%),
+    linear-gradient(90deg, rgba(7,7,8,.9) 0%, rgba(7,7,8,.46) 48%, rgba(7,7,8,.76) 100%),
     linear-gradient(0deg, var(--maja-ink) 0%, transparent 38%),
     url('assets/visuals/hero-maja13.webp') !important;
   background-size: cover !important;
@@ -94,7 +90,7 @@ nav, .sidebar, .topbar, .barre, .sb-nav {
   right: clamp(20px, 4vw, 64px);
   bottom: 28px;
   z-index: 2;
-  color: rgba(231, 224, 211, .55);
+  color: rgba(231, 224, 211, .42);
   font: 600 9px/1 Inter, sans-serif;
   letter-spacing: .34em;
 }
@@ -106,46 +102,45 @@ nav, .sidebar, .topbar, .barre, .sb-nav {
   letter-spacing: -.055em !important;
   line-height: .78 !important;
   text-transform: uppercase;
-  color: #f3ead5;
   text-shadow: 0 18px 70px rgba(0,0,0,.7);
 }
 .hero-content h1 em {
   color: transparent !important;
-  -webkit-text-stroke: 1px rgba(231, 224, 211, .82);
+  -webkit-text-stroke: 1px rgba(231, 224, 211, .72);
   font-style: normal !important;
 }
-.hero-sub { max-width: 600px !important; color: rgba(243, 234, 213, .78) !important; }
+.hero-sub { max-width: 600px !important; color: rgba(231, 224, 211, .72) !important; }
 .hero-tag {
-  background: rgba(26, 18, 11, .58) !important;
-  border: 1px solid rgba(231, 224, 211, .18) !important;
+  background: rgba(15, 15, 18, .68) !important;
+  border: 1px solid var(--maja-line) !important;
   box-shadow: 0 16px 42px rgba(0,0,0,.28);
 }
 .hero-tag img { border-radius: 7px; }
 
 .btn-red, .footer-btn, .auth-btn {
   background: linear-gradient(135deg, var(--maja-accent-bright), var(--maja-accent)) !important;
-  box-shadow: 0 12px 34px rgba(159, 38, 53, .22);
-  border: 1px solid rgba(255,255,255,.14) !important;
+  box-shadow: 0 12px 34px rgba(159, 38, 53, .24);
+  border: 1px solid rgba(255,255,255,.08) !important;
 }
 .btn-red:hover, .footer-btn:hover, .auth-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 18px 44px rgba(159, 38, 53, .3);
+  box-shadow: 0 18px 44px rgba(159, 38, 53, .34);
 }
 .btn-ghost, .footer-btn.ghost {
-  background: rgba(36, 29, 21, .035) !important;
+  background: rgba(255,255,255,.025) !important;
   border-color: var(--maja-line) !important;
 }
 
 .valeur-card, .membre-card, .discord-card, .event-card,
 .panel, .card, .kpi, .bloc, .auth-box, .login-box, .widget, .window {
-  background: linear-gradient(145deg, rgba(255,253,246,.96), rgba(241,231,207,.88)) !important;
+  background: linear-gradient(145deg, rgba(24,24,29,.88), rgba(12,12,15,.84)) !important;
   border-color: var(--maja-line) !important;
-  box-shadow: 0 24px 60px rgba(60, 45, 20, .10);
+  box-shadow: 0 28px 80px rgba(0,0,0,.22);
 }
 .valeur-card:hover, .membre-card:hover, .discord-card:hover,
 .card:hover, .kpi:hover {
   border-color: var(--maja-line-hot) !important;
-  box-shadow: 0 28px 68px rgba(60, 45, 20, .14), 0 0 0 1px rgba(159,38,53,.08) !important;
+  box-shadow: 0 30px 86px rgba(0,0,0,.3), 0 0 0 1px rgba(159,38,53,.06) !important;
 }
 .section-label { color: var(--maja-accent-bright) !important; letter-spacing: .28em !important; }
 .section-title { letter-spacing: -.035em !important; }
@@ -159,14 +154,14 @@ nav, .sidebar, .topbar, .barre, .sb-nav {
   overflow: hidden;
   border: 1px solid var(--maja-line);
   border-radius: 14px;
-  background: var(--maja-panel-solid);
-  box-shadow: 0 20px 55px rgba(60, 45, 20, .14);
+  background: #09090b;
+  box-shadow: 0 30px 90px rgba(0,0,0,.38);
   transition: transform .35s cubic-bezier(.16,1,.3,1), border-color .35s, box-shadow .35s;
 }
 .story-art:hover {
   transform: translateY(-4px);
   border-color: var(--maja-line-hot);
-  box-shadow: 0 28px 70px rgba(60, 45, 20, .18), 0 0 50px rgba(159,38,53,.10);
+  box-shadow: 0 38px 110px rgba(0,0,0,.48), 0 0 50px rgba(159,38,53,.08);
 }
 .story-art img { display: block; width: 100%; height: auto; }
 
@@ -179,7 +174,7 @@ nav, .sidebar, .topbar, .barre, .sb-nav {
   border: 1px solid var(--border);
   border-radius: 14px;
   background: var(--surface);
-  box-shadow: 0 18px 45px rgba(60, 45, 20, .16);
+  box-shadow: 0 22px 60px rgba(0, 0, 0, .35);
   transition: transform 0.3s ease, border-color 0.3s ease;
 }
 .hierarchie-art:hover {
@@ -194,21 +189,18 @@ nav, .sidebar, .topbar, .barre, .sb-nav {
   .membres-title { margin-top: 44px; }
 }
 
-.sidebar, .sb { box-shadow: 30px 0 80px rgba(60, 45, 20, .10); }
+.sidebar, .sb { box-shadow: 30px 0 80px rgba(0,0,0,.2); }
 .sb-item.active, .side-btn.active, .nav-item.active {
-  background: linear-gradient(90deg, rgba(159,38,53,.14), rgba(159,38,53,.03)) !important;
+  background: linear-gradient(90deg, rgba(159,38,53,.2), rgba(159,38,53,.04)) !important;
   color: var(--maja-ivory) !important;
-  border-color: rgba(159,38,53,.24) !important;
+  border-color: rgba(211,75,94,.28) !important;
 }
 input, textarea, select {
-  background: rgba(36, 29, 21, .035) !important;
+  background: rgba(255,255,255,.035) !important;
   border-color: var(--maja-line) !important;
   color: var(--maja-ivory) !important;
 }
 input:focus, textarea:focus, select:focus { border-color: var(--maja-accent-bright) !important; }
-select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23241d15' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") !important;
-}
 
 @media (max-width: 760px) {
   #accueil { min-height: 100svh !important; background-position: center, center, center, center, 52% center !important; }
