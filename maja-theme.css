@@ -136,13 +136,13 @@ nav, .sidebar, .topbar, .barre, .sb-nav {
   border-color: var(--maja-line) !important;
 }
 
-.valeur-card, .membre-card, .regle-item, .discord-card, .event-card,
+.valeur-card, .membre-card, .discord-card, .event-card,
 .panel, .card, .kpi, .bloc, .auth-box, .login-box, .widget, .window {
   background: linear-gradient(145deg, rgba(255,253,246,.96), rgba(241,231,207,.88)) !important;
   border-color: var(--maja-line) !important;
   box-shadow: 0 24px 60px rgba(60, 45, 20, .10);
 }
-.valeur-card:hover, .membre-card:hover, .regle-item:hover, .discord-card:hover,
+.valeur-card:hover, .membre-card:hover, .discord-card:hover,
 .card:hover, .kpi:hover {
   border-color: var(--maja-line-hot) !important;
   box-shadow: 0 28px 68px rgba(60, 45, 20, .14), 0 0 0 1px rgba(159,38,53,.08) !important;
@@ -150,7 +150,6 @@ nav, .sidebar, .topbar, .barre, .sb-nav {
 .section-label { color: var(--maja-accent-bright) !important; letter-spacing: .28em !important; }
 .section-title { letter-spacing: -.035em !important; }
 .section-title em { color: var(--maja-metal) !important; }
-.stats-bar { background: var(--maja-panel-solid) !important; border-color: var(--maja-line) !important; }
 
 .story-art {
   display: block;
