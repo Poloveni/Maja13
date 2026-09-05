@@ -1,7 +1,0 @@
-.env
-.env.*
-!.env.example
-node_modules/
-.npm-cache/
-.DS_Store
-Thumbs.db
