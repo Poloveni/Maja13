@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Administration — La Casa · La Maja 13</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="../assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="casa.css">
+</head>
+<body class="casa-body">
+<div class="grain" aria-hidden="true"></div>
+
+<header class="nav is-scrolled">
+  <a class="nav__brand" href="../"><img src="../assets/logo.png" alt="" width="40" height="40"><span>La Maja <em>13</em></span></a>
+  <nav class="nav__links casa-nav">
+    <a href="perfil.html">Mon profil</a>
+    <a href="familia.html">La Famille</a>
+    <a href="admin.html" class="is-active">Administration</a>
+    <a href="../">Le site</a>
+    <button class="nav__cta casa-logout" id="logout">Déconnexion</button>
+  </nav>
+</header>
+
+<main class="casa-page casa-page--wide">
+  <div class="section__head">
+    <span class="numeral">✦</span>
+    <h2>Administration</h2>
+    <p class="sub">Gestion de la familia</p>
+  </div>
+  <div class="casa-loading" id="loading">Chargement…</div>
+  <p class="casa-toast" id="toast" hidden></p>
+
+  <section class="admin-block" id="pendingBlock" hidden>
+    <h3 class="admin-block__title">En attente <span class="badge" id="pendingCount">0</span></h3>
+    <p class="admin-block__hint">Nouveaux comptes Discord en attente de ton feu vert. Tu peux fixer le nom RP et le grade avant de valider.</p>
+    <div class="pending-grid" id="pending"></div>
+  </section>
+
+  <section class="admin-block" id="membersBlock" hidden>
+    <h3 class="admin-block__title">Membres <span class="badge badge--gold" id="memberCount">0</span></h3>
+    <p class="admin-block__hint">Modifie le nom RP ou le grade puis <b>Enregistrer</b>. Le pseudo Discord ne se change pas ici, il vient de Discord.</p>
+    <div class="table-wrap">
+      <table class="admin-table">
+        <thead><tr><th></th><th>Discord</th><th>Nom RP</th><th>Grade</th><th>Statut</th><th>Depuis le</th><th></th></tr></thead>
+        <tbody id="members"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const fmt = d => d ? new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+  const STATUS = { pending: 'En attente', approved: 'Validé', rejected: 'Refusé' };
+  let me, ranks = [];
+
+  const toast = (msg, ok = true) => { const t = $('toast'); t.textContent = msg; t.className = 'casa-toast' + (ok ? '' : ' is-error'); t.hidden = false; clearTimeout(toast.h); toast.h = setTimeout(() => t.hidden = true, 3000); };
+  const api = (url, opt = {}) => fetch(url, { credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, ...opt })
+    .then(async r => { if (r.status === 401) { location.replace('./'); throw 0; } if (r.status === 403) { location.replace('perfil.html'); throw 0; } const j = await r.json(); if (!r.ok) throw new Error(j.error || r.status); return j; });
+
+  const rankSelect = (m, id) => `<select class="admin-select" data-id="${id}" data-field="rank" ${m.rank === 'jefe' && me.rank !== 'jefe' ? 'disabled' : ''}>` +
+    ranks.filter(r => r.value !== 'jefe' || me.rank === 'jefe').map(r => `<option value="${r.value}" ${r.value === m.rank ? 'selected' : ''}>${r.label}</option>`).join('') + '</select>';
+  const avatar = m => `<img class="admin-avatar" src="${m.avatarUrl || '../assets/favicon.png'}" alt="">`;
+
+  function render(list) {
+    const pending = list.filter(m => m.status === 'pending');
+    const others = list.filter(m => m.status !== 'pending');
+    $('pendingCount').textContent = pending.length; $('memberCount').textContent = others.length;
+    $('pendingBlock').hidden = false; $('membersBlock').hidden = false;
+
+    $('pending').innerHTML = pending.length ? pending.map(m => `
+      <article class="pending-card" data-row="${m.id}">
+        ${avatar(m)}
+        <div class="pending-card__body">
+          <span class="miembro__user">@${esc(m.username)} · demande du ${fmt(m.joinedAt)}</span>
+          <label>Nom RP<input class="admin-input" data-id="${m.id}" data-field="displayName" value="${esc(m.displayName)}" maxlength="64"></label>
+          <label>Grade${rankSelect(m, m.id)}</label>
+        </div>
+        <div class="pending-card__actions">
+          <button class="btn btn--gold" data-approve="${m.id}">Approuver</button>
+          <button class="btn btn--ghost btn--danger" data-reject="${m.id}">Refuser</button>
+        </div>
+      </article>`).join('') : '<p class="admin-empty">Personne en attente.</p>';
+
+    $('members').innerHTML = others.map(m => `
+      <tr data-row="${m.id}" class="${m.status === 'rejected' ? 'is-rejected' : ''} ${m.id === me.id ? 'is-me' : ''}">
+        <td>${avatar(m)}</td>
+        <td><b>@${esc(m.username)}</b></td>
+        <td><input class="admin-input" data-id="${m.id}" data-field="displayName" value="${esc(m.displayName)}" maxlength="64"></td>
+        <td>${rankSelect(m, m.id)}</td>
+        <td><span class="status status--${m.status}">${STATUS[m.status]}</span></td>
+        <td class="muted">${fmt(m.approvedAt || m.joinedAt)}</td>
+        <td class="admin-actions">
+          <button class="btn btn--gold btn--sm" data-save="${m.id}">Enregistrer</button>
+          ${m.id !== me.id ? (m.status === 'rejected'
+            ? `<button class="btn btn--ghost btn--sm" data-approve="${m.id}">Approuver</button>`
+            : `<button class="btn btn--ghost btn--sm btn--danger" data-reject="${m.id}" title="Retirer l'accès">Exclure</button>`) : ''}
+        </td>
+      </tr>`).join('');
+  }
+
+  async function load() {
+    const [meData, r, list] = await Promise.all([api('../api/me'), api('../api/ranks'), api('../api/admin/members')]);
+    me = meData; ranks = r;
+    if (!me.isAdmin) { location.replace('perfil.html'); return; }
+    render(list); $('loading').hidden = true;
+  }
+
+  const fieldsOf = id => {
+    const body = {};
+    document.querySelectorAll(`[data-id="${id}"]`).forEach(el => body[el.dataset.field] = el.value);
+    return body;
+  };
+  async function patch(id, body, msg) {
+    try { await api(`../api/admin/members/${id}`, { method: 'PATCH', body: JSON.stringify(body) }); toast(msg); load(); }
+    catch (e) { toast('Erreur : ' + e.message, false); }
+  }
+
+  document.addEventListener('click', e => {
+    const b = e.target.closest('button[data-save],button[data-approve],button[data-reject]');
+    if (!b) return;
+    if (b.dataset.save) return patch(b.dataset.save, fieldsOf(b.dataset.save), 'Enregistré ✦');
+    if (b.dataset.approve) return patch(b.dataset.approve, { ...fieldsOf(b.dataset.approve), status: 'approved' }, 'Bienvenue dans la familia ✦');
+    if (b.dataset.reject) { if (confirm('Refuser / retirer l\'accès à ce membre ?')) patch(b.dataset.reject, { status: 'rejected' }, 'Accès retiré'); }
+  });
+
+  $('logout').addEventListener('click', async () => { await fetch('../auth/logout', { method: 'POST', credentials: 'same-origin' }); location.href = './'; });
+  load().catch(() => {});
+</script>
+</body>
+</html>

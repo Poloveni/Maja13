@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>La Familia — La Casa · La Maja 13</title>
+<title>La Famille — La Casa · La Maja 13</title>
 <meta name="robots" content="noindex">
 <link rel="icon" type="image/png" href="../assets/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,27 +18,29 @@
 <header class="nav is-scrolled">
   <a class="nav__brand" href="../"><img src="../assets/logo.png" alt="" width="40" height="40"><span>La Maja <em>13</em></span></a>
   <nav class="nav__links casa-nav">
-    <a href="perfil.html">Mi Perfil</a>
-    <a href="familia.html" class="is-active">La Familia</a>
-    <a href="../">Site</a>
-    <button class="nav__cta casa-logout" id="logout">Salir</button>
+    <a href="perfil.html">Mon profil</a>
+    <a href="familia.html" class="is-active">La Famille</a>
+    <a href="admin.html" id="adminLink" hidden>Administration</a>
+    <a href="../">Le site</a>
+    <button class="nav__cta casa-logout" id="logout">Déconnexion</button>
   </nav>
 </header>
 
 <main class="casa-page">
   <div class="section__head">
     <span class="numeral">✦</span>
-    <h2>La Familia</h2>
-    <p class="sub">Los que llevan los colores</p>
+    <h2>La Famille</h2>
+    <p class="sub">Ceux qui portent les couleurs</p>
   </div>
-  <div class="casa-loading" id="loading">Cargando…</div>
+  <div class="casa-loading" id="loading">Chargement…</div>
   <div class="familia-grid" id="grid"></div>
 </main>
 
 <script>
   const $ = id => document.getElementById(id);
+  fetch('../api/me', { credentials: 'same-origin' }).then(r => r.ok ? r.json() : null).then(m => { if (m && m.isAdmin) $('adminLink').hidden = false; });
   fetch('../api/familia', { credentials: 'same-origin' })
-    .then(r => { if (r.status === 401) { location.replace('./'); throw 0; } return r.json(); })
+    .then(r => { if (r.status === 401) { location.replace('./'); throw 0; } if (r.status === 403) { location.replace('espera.html'); throw 0; } return r.json(); })
     .then(list => {
       $('loading').hidden = true;
       $('grid').innerHTML = list.map(m => `

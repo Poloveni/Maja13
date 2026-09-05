@@ -82,21 +82,25 @@ app.get('/auth/discord/callback', async (req, res) => {
     const rankFromRole = RANKS.find(r => member.roles.some(id => roleMap[id] === r));   // le grade le plus élevé trouvé
     const isAdmin = adminIds.has(user.id) || ['jefe', 'segundo'].includes(rankFromRole);
 
-    // 4. upsert membre
+    // 4. upsert membre — nouveau compte = en attente de validation par le Jefe ;
+    //    les IDs de ADMIN_DISCORD_IDS sont Jefe et validés d'office (amorçage)
+    const bootstrapJefe = adminIds.has(user.id);
     const { rows: [row] } = await pool.query(`
-      INSERT INTO members (discord_id, username, avatar, display_name, rank, is_admin, last_login)
-      VALUES ($1, $2, $3, $4, COALESCE($5, 'recluta'), $6, now())
+      INSERT INTO members (discord_id, username, avatar, display_name, rank, is_admin, status, approved_at, last_login)
+      VALUES ($1, $2, $3, $4, COALESCE($5::text, $7::text), $6::boolean, $8::text, CASE WHEN $8::text = 'approved' THEN now() END, now())
       ON CONFLICT (discord_id) DO UPDATE SET
         username = EXCLUDED.username,
         avatar = EXCLUDED.avatar,
-        rank = COALESCE($5, members.rank),
+        rank = CASE WHEN $6::boolean AND members.rank = 'recluta' THEN 'jefe' ELSE COALESCE($5::text, members.rank) END,
         is_admin = members.is_admin OR EXCLUDED.is_admin,
+        status = CASE WHEN $6::boolean THEN 'approved' ELSE members.status END,
         last_login = now()
-      RETURNING id`,
-      [user.id, user.username, user.avatar, member.nick || user.global_name || user.username, rankFromRole || null, isAdmin]);
+      RETURNING id, status`,
+      [user.id, user.username, user.avatar, member.nick || user.global_name || user.username, rankFromRole || null,
+       bootstrapJefe, bootstrapJefe ? 'jefe' : 'recluta', bootstrapJefe ? 'approved' : 'pending']);
 
     req.session.memberId = row.id;
-    res.redirect('/casa/perfil.html');
+    res.redirect(row.status === 'approved' ? '/casa/perfil.html' : '/casa/espera.html');
   } catch (e) {
     console.error(e);
     res.redirect('/casa/?error=server');
@@ -106,12 +110,21 @@ app.get('/auth/discord/callback', async (req, res) => {
 app.post('/auth/logout', (req, res) => req.session.destroy(() => res.clearCookie('maja13.sid').json({ ok: true })));
 
 // ---------- API ----------
+const canAdmin = m => m.is_admin || ['jefe', 'segundo'].includes(m.rank);
 const requireAuth = (req, res, next) => req.session.memberId ? next() : res.status(401).json({ error: 'unauthenticated' });
+// charge le membre courant et exige un compte validé
+const requireApproved = async (req, res, next) => {
+  const { rows: [m] } = await pool.query('SELECT * FROM members WHERE id = $1', [req.session.memberId]);
+  if (!m) return req.session.destroy(() => res.status(401).json({ error: 'unauthenticated' }));
+  if (m.status !== 'approved') return res.status(403).json({ error: 'pending', status: m.status });
+  req.member = m; next();
+};
+const requireAdmin = (req, res, next) => canAdmin(req.member) ? next() : res.status(403).json({ error: 'forbidden' });
 const publicMember = m => ({
   id: m.id, discordId: m.discord_id, username: m.username,
   avatarUrl: m.avatar ? `https://cdn.discordapp.com/avatars/${m.discord_id}/${m.avatar}.${m.avatar.startsWith('a_') ? 'gif' : 'png'}?size=256` : null,
   displayName: m.display_name, rank: m.rank, rankLabel: RANK_LABEL[m.rank], bio: m.bio, phoneRp: m.phone_rp,
-  isAdmin: m.is_admin, joinedAt: m.joined_at, lastLogin: m.last_login,
+  isAdmin: canAdmin(m), status: m.status, joinedAt: m.joined_at, lastLogin: m.last_login, approvedAt: m.approved_at,
 });
 
 app.get('/api/me', requireAuth, async (req, res) => {
@@ -120,7 +133,7 @@ app.get('/api/me', requireAuth, async (req, res) => {
   res.json(publicMember(m));
 });
 
-app.patch('/api/me', requireAuth, async (req, res) => {
+app.patch('/api/me', requireAuth, requireApproved, async (req, res) => {
   const displayName = String(req.body.displayName ?? '').trim().slice(0, 64);
   const bio = String(req.body.bio ?? '').trim().slice(0, 600);
   const phoneRp = String(req.body.phoneRp ?? '').trim().slice(0, 32);
@@ -132,10 +145,60 @@ app.patch('/api/me', requireAuth, async (req, res) => {
 });
 
 // la familia : liste des membres visible par les membres connectés
-app.get('/api/familia', requireAuth, async (_req, res) => {
-  const { rows } = await pool.query(`SELECT * FROM members ORDER BY array_position($1::text[], rank), display_name`, [RANKS]);
+app.get('/api/familia', requireAuth, requireApproved, async (_req, res) => {
+  const { rows } = await pool.query(`SELECT * FROM members WHERE status = 'approved' ORDER BY array_position($1::text[], rank), display_name`, [RANKS]);
   res.json(rows.map(m => ({ displayName: m.display_name, username: m.username, rank: m.rank, rankLabel: RANK_LABEL[m.rank], avatarUrl: publicMember(m).avatarUrl })));
 });
+
+// ---------- Admin (Jefe / Segundo) ----------
+app.get('/api/admin/members', requireAuth, requireApproved, requireAdmin, async (_req, res) => {
+  const { rows } = await pool.query(`
+    SELECT m.*, a.display_name AS approved_by_name FROM members m
+    LEFT JOIN members a ON a.id = m.approved_by
+    ORDER BY (m.status = 'pending') DESC, array_position($1::text[], m.rank), m.display_name`, [RANKS]);
+  res.json(rows.map(m => ({ ...publicMember(m), approvedByName: m.approved_by_name })));
+});
+
+app.patch('/api/admin/members/:id', requireAuth, requireApproved, requireAdmin, async (req, res) => {
+  const id = Number(req.params.id);
+  const target = (await pool.query('SELECT * FROM members WHERE id = $1', [id])).rows[0];
+  if (!target) return res.status(404).json({ error: 'not-found' });
+  const sets = [], vals = [];
+  const add = (col, v) => { vals.push(v); sets.push(`${col} = $${vals.length}`); };
+  if (req.body.displayName !== undefined) {
+    const dn = String(req.body.displayName).trim().slice(0, 64);
+    if (!dn) return res.status(400).json({ error: 'displayName requis' });
+    add('display_name', dn);
+  }
+  if (req.body.rank !== undefined) {
+    if (!RANKS.includes(req.body.rank)) return res.status(400).json({ error: 'grade inconnu' });
+    // seul un Jefe peut nommer un Jefe ou toucher au grade d'un Jefe
+    if ((req.body.rank === 'jefe' || target.rank === 'jefe') && req.member.rank !== 'jefe') return res.status(403).json({ error: 'jefe-only' });
+    add('rank', req.body.rank);
+  }
+  if (req.body.status !== undefined) {
+    if (!['pending', 'approved', 'rejected'].includes(req.body.status)) return res.status(400).json({ error: 'statut inconnu' });
+    if (target.id === req.member.id) return res.status(400).json({ error: 'self' });
+    add('status', req.body.status);
+    add('approved_at', req.body.status === 'approved' ? new Date() : null);
+    add('approved_by', req.body.status === 'approved' ? req.member.id : null);
+  }
+  if (!sets.length) return res.status(400).json({ error: 'rien à modifier' });
+  vals.push(id);
+  const { rows: [m] } = await pool.query(`UPDATE members SET ${sets.join(', ')} WHERE id = $${vals.length} RETURNING *`, vals);
+  res.json(publicMember(m));
+});
+
+app.delete('/api/admin/members/:id', requireAuth, requireApproved, requireAdmin, async (req, res) => {
+  const id = Number(req.params.id);
+  if (id === req.member.id) return res.status(400).json({ error: 'self' });
+  const target = (await pool.query('SELECT rank FROM members WHERE id = $1', [id])).rows[0];
+  if (target?.rank === 'jefe' && req.member.rank !== 'jefe') return res.status(403).json({ error: 'jefe-only' });
+  await pool.query('DELETE FROM members WHERE id = $1', [id]);
+  res.json({ ok: true });
+});
+
+app.get('/api/ranks', (_req, res) => res.json(RANKS.map(r => ({ value: r, label: RANK_LABEL[r] }))));
 
 // ---------- statique ----------
 app.use(express.static(ROOT, { extensions: ['html'], index: 'index.html', dotfiles: 'ignore' }));

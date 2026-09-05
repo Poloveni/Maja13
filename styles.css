@@ -50,7 +50,7 @@ p{margin:0 0 1em}
 .nav__burger span{display:block;height:2px;background:var(--gold);transition:.3s}
 
 /* ---------- BUTTONS ---------- */
-.btn{display:inline-block;font-family:var(--serif);font-size:12px;letter-spacing:.26em;text-transform:uppercase;padding:15px 30px;border:1px solid var(--gold);transition:.3s;position:relative}
+.btn{display:inline-block;background:none;color:var(--gold);font-family:var(--serif);font-size:12px;letter-spacing:.26em;text-transform:uppercase;padding:15px 30px;border:1px solid var(--gold);transition:.3s;position:relative}
 .btn--gold{background:linear-gradient(135deg,var(--gold3),var(--gold) 45%,var(--gold2));color:#120e08;font-weight:700;box-shadow:0 0 30px rgba(201,164,92,.25)}
 .btn--gold:hover{box-shadow:0 0 45px rgba(201,164,92,.5);transform:translateY(-2px)}
 .btn--ghost{color:var(--gold)}

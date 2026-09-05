@@ -21,3 +21,10 @@ CREATE TABLE IF NOT EXISTS session (
   expire TIMESTAMP(6) NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_session_expire ON session (expire);
+
+-- v2 : validation des comptes par le Jefe
+ALTER TABLE members ADD COLUMN IF NOT EXISTS status VARCHAR(12) NOT NULL DEFAULT 'pending';
+ALTER TABLE members DROP CONSTRAINT IF EXISTS members_status_check;
+ALTER TABLE members ADD CONSTRAINT members_status_check CHECK (status IN ('pending','approved','rejected'));
+ALTER TABLE members ADD COLUMN IF NOT EXISTS approved_at TIMESTAMPTZ;
+ALTER TABLE members ADD COLUMN IF NOT EXISTS approved_by INTEGER REFERENCES members(id);
