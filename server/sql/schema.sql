@@ -72,3 +72,16 @@ INSERT INTO org_rank_desc (rank, description) VALUES
   ('sicario','Exécute les missions confiées par les Commandantes, encadre les Soldados et assure la réussite des actions à risque.'),
   ('soldado','Participe aux opérations, respecte les ordres et la hiérarchie, représente l''organisation par son comportement et progresse vers les grades supérieurs.')
 ON CONFLICT (rank) DO NOTHING;
+
+-- v6 : galerie photo
+CREATE TABLE IF NOT EXISTS photos (
+  id          SERIAL PRIMARY KEY,
+  member_id   INTEGER NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+  file        VARCHAR(80) NOT NULL,
+  thumb       VARCHAR(80) NOT NULL,
+  width       INTEGER, height INTEGER,
+  caption     VARCHAR(200),
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  deleted_at  TIMESTAMPTZ
+);
+CREATE INDEX IF NOT EXISTS idx_photos_created ON photos (created_at DESC);

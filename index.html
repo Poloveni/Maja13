@@ -42,6 +42,7 @@
     <a href="#flota">Flota</a>
     <a href="#eventos">Eventos</a>
     <a href="#vocabulario">Vocabulario</a>
+    <a href="#galeria" id="navGaleria" hidden>Galería</a>
     <a href="casa/">La Casa</a>
     <a class="nav__cta" href="https://discord.gg/Wdnsa2mDt" target="_blank" rel="noopener">Discord</a>
   </nav>
@@ -304,6 +305,24 @@
   </div>
 </section>
 
+<!-- ============ GALERÍA (photos postées par les membres depuis La Casa) ============ -->
+<section class="section" id="galeria" hidden>
+  <div class="wrap">
+    <div class="section__head reveal">
+      <span class="numeral">VII</span>
+      <h2>Galería</h2>
+      <p class="sub">La familia en images</p>
+    </div>
+    <div class="galeria" id="galeriaGrid"></div>
+  </div>
+</section>
+<div class="lightbox" id="lightbox" hidden>
+  <button class="lightbox__close" id="lbClose" aria-label="Fermer">✕</button>
+  <button class="lightbox__nav lightbox__nav--prev" id="lbPrev" aria-label="Précédente">‹</button>
+  <figure><img id="lbImg" alt=""><figcaption id="lbCap"></figcaption></figure>
+  <button class="lightbox__nav lightbox__nav--next" id="lbNext" aria-label="Suivante">›</button>
+</div>
+
 <!-- ============ CONTACT ============ -->
 <section class="section section--contact" id="contacto">
   <div class="wrap">
@@ -327,6 +346,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="hero3d.js"></script>
 <script src="org.js"></script>
+<script src="galeria.js"></script>
 <script src="main.js"></script>
 </body>
 </html>

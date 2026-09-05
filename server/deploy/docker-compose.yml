@@ -10,6 +10,8 @@ services:
       dockerfile: server/Dockerfile
     restart: unless-stopped
     env_file: ../.env          # DATABASE_URL est déduite de POSTGRES_PASSWORD par l'app
+    volumes:
+      - maja13-uploads:/app/uploads   # photos de la galerie
     depends_on:
       maja13-db:
         condition: service_healthy
@@ -33,6 +35,7 @@ services:
       retries: 10
 volumes:
   maja13-db:
+  maja13-uploads:
 networks:
   caddy:
     external: true

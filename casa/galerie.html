@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Galerie — La Casa · La Maja 13</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="../assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="casa.css">
+<script src="casa.js"></script>
+</head>
+<body class="casa-body">
+<div class="grain" aria-hidden="true"></div>
+<script src="casa-bg.js" defer></script>
+
+<header class="nav is-scrolled">
+  <a class="nav__brand" href="../"><img src="../assets/logo.png" alt="" width="40" height="40"><span>La Maja <em>13</em></span></a>
+  <nav class="nav__links casa-nav">
+    <a href="perfil.html">Mon profil</a>
+    <a href="familia.html">La Famille</a>
+    <a href="chat.html">Le Salon</a>
+    <a href="galerie.html" class="is-active">Galerie</a>
+    <a href="admin.html" id="adminLink" hidden>Administration</a>
+    <a href="organigramme.html" id="orgLink" hidden>Hiérarchie</a>
+    <a href="../">Le site</a>
+    <button class="nav__cta casa-logout" id="logout">Déconnexion</button>
+  </nav>
+</header>
+
+<main class="casa-page casa-page--wide">
+  <div class="section__head">
+    <span class="numeral">✦</span>
+    <h2>Galerie</h2>
+    <p class="sub">Les photos affichées sur le site public</p>
+  </div>
+  <div class="casa-loading" id="loading">Chargement…</div>
+  <p class="casa-toast" id="toast" hidden></p>
+
+  <section class="admin-block" id="uploadBlock" hidden>
+    <h3 class="admin-block__title">Poster une photo</h3>
+    <form class="upload" id="uploadForm">
+      <label class="upload__drop" id="drop">
+        <input type="file" id="file" name="photo" accept="image/*" hidden>
+        <img id="preview" alt="" hidden>
+        <span id="dropText">Glisse une image ici ou clique pour choisir<br><small>jpg, png, webp, heic — 15 Mo max. Elle sera redimensionnée automatiquement.</small></span>
+      </label>
+      <div class="upload__side">
+        <label>Légende <small>(optionnel)</small><input class="admin-input" id="caption" maxlength="200" placeholder="Ex : Réunion de la familia au barrio"></label>
+        <button class="btn btn--gold" type="submit" id="send" disabled>Publier sur le site</button>
+        <p class="admin-block__hint">La photo apparaît immédiatement dans la galerie publique, signée de ton nom RP. Tu peux la retirer à tout moment ; le Jefe et le Segundo aussi.</p>
+      </div>
+    </form>
+  </section>
+
+  <section class="admin-block">
+    <h3 class="admin-block__title">Photos <span class="badge badge--gold" id="count">0</span></h3>
+    <div class="gal-grid" id="grid"></div>
+    <p class="admin-empty" id="empty" hidden>Aucune photo pour l'instant — sois le premier à en poster une.</p>
+  </section>
+</main>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const fmt = d => new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+  let me;
+  const toast = (msg, ok = true) => { const t = $('toast'); t.textContent = msg; t.className = 'casa-toast' + (ok ? '' : ' is-error'); t.hidden = false; clearTimeout(toast.h); toast.h = setTimeout(() => t.hidden = true, 3500); };
+  const api = (url, opt = {}) => fetch(url, { credentials: 'same-origin', ...opt })
+    .then(async r => { if (r.status === 401) { location.replace('./'); throw 0; } if (r.status === 403) { location.replace('espera.html'); throw 0; } const j = await r.json(); if (!r.ok) throw new Error(j.error || r.status); return j; });
+
+  function render(list) {
+    $('count').textContent = list.length; $('empty').hidden = list.length > 0;
+    $('grid').innerHTML = list.map(p => `
+      <figure class="gal-item" data-id="${p.id}">
+        <a href="..${p.url}" target="_blank" rel="noopener"><img src="..${p.thumb}" alt="${esc(p.caption)}" loading="lazy"></a>
+        <figcaption>
+          <b>${esc(p.author.displayName)}</b> <span class="muted">· ${fmt(p.createdAt)}</span>
+          ${p.caption ? `<i>${esc(p.caption)}</i>` : ''}
+          ${p.author.id === me.id || me.isAdmin ? `<button class="btn btn--ghost btn--sm btn--danger" data-del="${p.id}">Retirer</button>` : ''}
+        </figcaption>
+      </figure>`).join('');
+  }
+  async function load() {
+    me = await api('../api/me');
+    if (me.status !== 'approved') { location.replace('espera.html'); return; }
+    if (me.isAdmin) $('adminLink').hidden = false; if (['jefe', 'devweb'].includes(me.rank)) $('orgLink').hidden = false;
+    render(await api('../api/gallery?limit=200')); $('loading').hidden = true; $('uploadBlock').hidden = false;
+  }
+
+  // sélection / aperçu
+  const file = $('file'), drop = $('drop');
+  function pick(f) {
+    if (!f || !f.type.startsWith('image/')) return;
+    const dt = new DataTransfer(); dt.items.add(f); file.files = dt.files;
+    $('preview').src = URL.createObjectURL(f); $('preview').hidden = false; $('dropText').hidden = true; $('send').disabled = false;
+  }
+  file.addEventListener('change', () => pick(file.files[0]));
+  drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('is-over'); });
+  drop.addEventListener('dragleave', () => drop.classList.remove('is-over'));
+  drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('is-over'); pick(e.dataTransfer.files[0]); });
+
+  $('uploadForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    if (!file.files[0]) return;
+    const fd = new FormData(); fd.append('photo', file.files[0]); fd.append('caption', $('caption').value);
+    $('send').disabled = true; $('send').textContent = 'Envoi…';
+    try {
+      await api('../api/gallery', { method: 'POST', body: fd });
+      toast('Photo publiée ✦'); $('uploadForm').reset(); $('preview').hidden = true; $('dropText').hidden = false;
+      render(await api('../api/gallery?limit=200'));
+    } catch (err) { toast('Erreur : ' + err.message, false); $('send').disabled = false; }
+    $('send').textContent = 'Publier sur le site';
+  });
+  $('grid').addEventListener('click', async e => {
+    const b = e.target.closest('[data-del]'); if (!b) return;
+    if (await casaConfirm('La photo sera retirée du site public.', { title: 'Retirer cette photo ?', ok: 'Retirer', danger: true })) {
+      await api('../api/gallery/' + b.dataset.del, { method: 'DELETE' }).catch(() => {}); render(await api('../api/gallery?limit=200'));
+    }
+  });
+  $('logout').addEventListener('click', async () => { await fetch('../auth/logout', { method: 'POST', credentials: 'same-origin' }); location.href = './'; });
+  load().catch(() => {});
+</script>
+</body>
+</html>

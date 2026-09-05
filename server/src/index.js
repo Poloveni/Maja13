@@ -9,6 +9,9 @@ import crypto from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { mkdirSync, unlinkSync } from 'node:fs';
+import multer from 'multer';
+import sharp from 'sharp';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(here, '..', '..');            // racine du dépôt (index.html, styles.css, casa/…)
@@ -251,6 +254,46 @@ app.put('/api/admin/org/rank-desc/:rank', requireAuth, requireApproved, requireJ
   res.json(await orgPayload());
 });
 
+// ---------- Galerie photo (publique en lecture, dépôt par les membres validés) ----------
+const UPLOAD_DIR = process.env.UPLOAD_DIR || join(ROOT, 'uploads');
+mkdirSync(UPLOAD_DIR, { recursive: true });
+app.use('/uploads', express.static(UPLOAD_DIR, { maxAge: '30d', immutable: true }));
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024, files: 1 },
+  fileFilter: (_req, f, cb) => cb(null, /^image\/(jpeg|png|webp|gif|heic|heif)$/.test(f.mimetype)) });
+const PHOTO_SELECT = `SELECT p.*, m.display_name, m.username, m.rank FROM photos p JOIN members m ON m.id = p.member_id WHERE p.deleted_at IS NULL`;
+const photoRow = r => ({ id: r.id, url: `/uploads/${r.file}`, thumb: `/uploads/${r.thumb}`, width: r.width, height: r.height, caption: r.caption, createdAt: r.created_at,
+  author: { id: r.member_id, displayName: r.display_name, username: r.username, rank: r.rank, rankLabel: RANK_LABEL[r.rank] } });
+
+app.get('/api/gallery', async (req, res) => {
+  const limit = Math.min(Number(req.query.limit) || 60, 200);
+  const { rows } = await pool.query(`${PHOTO_SELECT} ORDER BY p.created_at DESC LIMIT $1`, [limit]);
+  res.json(rows.map(photoRow));
+});
+
+app.post('/api/gallery', requireAuth, requireApproved, (req, res, next) => upload.single('photo')(req, res, err => err ? res.status(400).json({ error: err.code === 'LIMIT_FILE_SIZE' ? 'Image trop lourde (15 Mo max)' : 'Fichier refusé' }) : next()), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'Aucune image (jpg, png, webp, gif, heic)' });
+  try {
+    const base = `${Date.now().toString(36)}-${crypto.randomBytes(4).toString('hex')}`;
+    const img = sharp(req.file.buffer, { animated: false }).rotate();
+    const big = await img.clone().resize({ width: 1800, height: 1800, fit: 'inside', withoutEnlargement: true }).webp({ quality: 84 }).toFile(join(UPLOAD_DIR, `${base}.webp`));
+    await img.clone().resize({ width: 600, height: 600, fit: 'inside', withoutEnlargement: true }).webp({ quality: 78 }).toFile(join(UPLOAD_DIR, `${base}-t.webp`));
+    const caption = String(req.body.caption ?? '').trim().slice(0, 200) || null;
+    const { rows: [ins] } = await pool.query('INSERT INTO photos (member_id, file, thumb, width, height, caption) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id',
+      [req.member.id, `${base}.webp`, `${base}-t.webp`, big.width, big.height, caption]);
+    const { rows: [row] } = await pool.query(`${PHOTO_SELECT} AND p.id = $1`, [ins.id]);
+    res.status(201).json(photoRow(row));
+  } catch (e) { console.error(e); res.status(400).json({ error: "Image illisible" }); }
+});
+
+app.delete('/api/gallery/:id', requireAuth, requireApproved, async (req, res) => {
+  const { rows: [p] } = await pool.query('SELECT * FROM photos WHERE id = $1 AND deleted_at IS NULL', [Number(req.params.id)]);
+  if (!p) return res.status(404).json({ error: 'not-found' });
+  if (p.member_id !== req.member.id && !canAdmin(req.member)) return res.status(403).json({ error: 'forbidden' });
+  await pool.query('UPDATE photos SET deleted_at = now() WHERE id = $1', [p.id]);
+  for (const f of [p.file, p.thumb]) { try { unlinkSync(join(UPLOAD_DIR, f)); } catch {} }
+  res.json({ ok: true });
+});
+
 // ---------- Chat de la familia (SSE + POST) ----------
 const chatClients = new Map();            // res -> member
 const chatMember = m => ({ id: m.id, displayName: m.display_name, username: m.username, rank: m.rank, rankLabel: RANK_LABEL[m.rank], avatarUrl: publicMember(m).avatarUrl });
@@ -303,6 +346,7 @@ app.get('/api/chat/stream', requireAuth, requireApproved, (req, res) => {
 });
 
 // ---------- statique ----------
+app.use((req, res, next) => req.path.startsWith('/server/') ? res.status(404).end() : next());
 app.use(express.static(ROOT, { extensions: ['html'], index: 'index.html', dotfiles: 'ignore' }));
 app.use((_req, res) => res.status(404).sendFile(join(ROOT, '404.html'), err => err && res.send('404')));
 

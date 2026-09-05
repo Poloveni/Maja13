@@ -183,3 +183,24 @@
 .org-card__actions{display:flex;gap:8px;justify-content:space-between;margin-top:4px}
 .org-desc{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end;border-top:1px dotted var(--line);padding-top:12px}
 @media (max-width:760px){.org-form,.org-desc{grid-template-columns:1fr}}
+
+/* galerie (dépôt) */
+.upload{display:grid;grid-template-columns:1.2fr 1fr;gap:20px;border:1px solid var(--line);padding:22px;background:linear-gradient(180deg,rgba(201,164,92,.05),rgba(0,0,0,.25))}
+.upload__drop{position:relative;display:flex;align-items:center;justify-content:center;min-height:220px;border:1px dashed var(--gold2);background:rgba(0,0,0,.3);cursor:pointer;text-align:center;color:var(--ink2);font-style:italic;padding:20px;transition:.2s;font-family:var(--body);font-size:16px;letter-spacing:0;text-transform:none}
+.upload__drop small{display:block;margin-top:8px;font-size:13px;color:var(--gold2);font-style:normal}
+.upload__drop.is-over{border-color:var(--gold);background:rgba(201,164,92,.08)}
+.upload__drop img{max-height:320px;max-width:100%;object-fit:contain;border:1px solid var(--line)}
+.upload__side{display:flex;flex-direction:column;gap:14px}
+.upload__side label{font-family:var(--serif);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold2)}
+.upload__side label small{text-transform:none;letter-spacing:0;font-family:var(--body);font-size:13px;color:var(--ink2)}
+.upload__side .btn{cursor:pointer;font-family:var(--serif)}
+.upload__side .btn:disabled{opacity:.45;cursor:default}
+.gal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.gal-item{margin:0;border:1px solid var(--line);background:rgba(0,0,0,.25);display:flex;flex-direction:column}
+.gal-item img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
+.gal-item figcaption{padding:10px 12px;font-size:14px;display:flex;flex-direction:column;gap:4px}
+.gal-item figcaption b{font-weight:500;color:var(--ink)}
+.gal-item figcaption i{color:var(--ink2)}
+.gal-item figcaption .btn{align-self:flex-start;margin-top:6px}
+.gal-item .muted{color:var(--ink2);font-size:12px}
+@media (max-width:760px){.upload{grid-template-columns:1fr}}
