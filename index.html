@@ -616,50 +616,6 @@
       .lightbox-nav.next { right: 10px; }
     }
 
-    /* ── ACTUALITÉS (annonces Discord) ── */
-
-    /* ── ÉVÉNEMENTS ── */
-    #evenements { background: var(--bg); }
-    .events-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
-    .event-card {
-      display: flex; gap: 18px; align-items: stretch;
-      background: var(--surface); border: 1px solid var(--border); padding: 20px;
-      transition: border-color 0.35s ease, transform 0.35s cubic-bezier(0.16,1,0.3,1), box-shadow 0.35s ease;
-    }
-    .event-card:hover {
-      border-color: var(--red); transform: translateY(-4px);
-      box-shadow: 0 10px 26px rgba(159,38,53,0.16);
-    }
-    .event-date {
-      flex-shrink: 0; width: 62px; text-align: center;
-      border: 1px solid var(--red); display: flex; flex-direction: column;
-      align-items: center; justify-content: center; padding: 10px 0;
-    }
-    .event-day { font-size: 24px; font-weight: 700; color: var(--red); line-height: 1; font-family: 'Playfair Display', serif; }
-    .event-month { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); margin-top: 4px; }
-    .event-body { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-    .event-title { font-size: 15px; font-weight: 600; }
-    .event-time { font-size: 12px; color: var(--red); letter-spacing: 0.5px; }
-    .event-time::before { content: '🕒 '; }
-    .event-desc { font-size: 13px; color: var(--text-muted); line-height: 1.55; }
-    .event-img { width: 100%; max-height: 200px; object-fit: cover; margin-top: 10px; border: 1px solid var(--border); display: block; cursor: pointer; }
-    .event-type {
-      display: inline-block; align-self: flex-start; font-size: 9px; letter-spacing: 1px;
-      text-transform: uppercase; padding: 2px 8px; margin-top: 2px;
-      background: rgba(159,38,53,0.15); color: var(--red);
-    }
-    .events-empty {
-      padding: 40px 24px; text-align: center; border: 1px dashed var(--border-strong);
-      color: var(--text-dim); font-size: 13px;
-    }
-    .events-locked {
-      display: flex; flex-direction: column; align-items: center; gap: 14px;
-      padding: 52px 24px; text-align: center; border: 1px solid var(--border);
-      background: var(--surface);
-    }
-    .events-locked .lock-ico { font-size: 34px; opacity: 0.85; }
-    .events-locked p { font-size: 14px; color: var(--text-muted); max-width: 380px; }
-
     /* ── DISCORD ── */
     #discord { background: var(--surface); }
     .discord-inner { display: grid; grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; }
@@ -919,7 +875,7 @@
     .valeur-icon { border-radius: 10px; }
     .membre-card, .event-card, .discord-card, .discord-stat, .recrutement-cta,
     .contact-box, .online-wall, .server-live, .histoire-quote, .qg-placeholder,
-    .events-locked, .events-empty, .galerie-empty { border-radius: 14px; }
+    .galerie-empty { border-radius: 14px; }
     .hierarchie-list { gap: 8px; }
     .hierarchie-item { border-radius: 12px; }
     .rang-badge { border-radius: 9px; }
@@ -1011,7 +967,6 @@
     <li><a href="#galerie">Galerie</a></li>
     <li><a href="#qg">Notre QG</a></li>
     <li><a href="#recrutement">Recrutement</a></li>
-    <li><a href="#evenements">Événements</a></li>
     <li><a href="#discord">Discord</a></li>
     <li><a href="#contact">Nous contacter</a></li>
     <li><a href="os.html" style="color:var(--gold,#d4b26e);">M13 OS</a></li>
@@ -1163,18 +1118,6 @@
     <div id="fiche-body"></div>
   </div>
 </div>
-
-<section id="evenements">
-  <div class="section-label">À venir</div>
-  <h2 class="section-title">Nos <em>événements</em></h2>
-  <p class="section-desc">Réunions, sessions RP et soirées de la famille. Note les dates et sois au rendez-vous.</p>
-  <div id="events-locked" class="events-locked">
-    <div class="lock-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 10.5V8a4.5 4.5 0 019 0v2.5"/><rect x="5" y="10.5" width="14" height="9" rx="2"/><circle cx="12" cy="15" r="1.2" fill="currentColor" stroke="none"/></svg></div>
-    <p>Cette section est réservée aux membres de la famille.</p>
-    <a href="espace-membre.html" class="btn-red">Accéder à l'espace membre</a>
-  </div>
-  <div class="events-grid" id="events-grid" style="display:none;"></div>
-</section>
 
 <section id="discord">
   <div class="section-label">Réseau communautaire</div>
@@ -1876,81 +1819,6 @@
     loadGalerie();
 
     // Actualités désactivées (en attente d'un salon d'annonces dédié).
-
-    // Événements : visibles uniquement pour les membres connectés
-    var locked = document.getElementById('events-locked');
-    var grid = document.getElementById('events-grid');
-    // Serveur Discord principal : réservé aux membres connectés
-    var discPrincipal = document.getElementById('discord-principal');
-    var discLocked = document.getElementById('discord-principal-locked');
-    function toggleDiscord(isMember) {
-      if (discPrincipal) discPrincipal.style.display = isMember ? 'flex' : 'none';
-      if (discLocked) discLocked.style.display = isMember ? 'none' : 'flex';
-    }
-    function gateOff() {
-      toggleDiscord(false);
-      if (locked) locked.style.display = 'flex';
-      if (grid) grid.style.display = 'none';
-    }
-    function toggleRsvp(btn, uid) {
-      var ev = btn.getAttribute('data-ev'), going = btn.getAttribute('data-going') === 'true';
-      btn.disabled = true;
-      var op = going
-        ? sb.from('participations').delete().eq('event_id', ev).eq('user_id', uid)
-        : sb.from('participations').insert({ event_id: ev, user_id: uid });
-      op.then(function () { refreshEvents(); });
-    }
-    function refreshEvents() {
-      sb.auth.getSession().then(function (r) {
-        var session = r.data && r.data.session;
-        if (!session) { gateOff(); return; }
-        // Accès réservé aux membres APPROUVÉS (pas juste connectés).
-        sb.from('comptes').select('approuve').eq('id', session.user.id).maybeSingle().then(function (c) {
-          var approuve = c.data && c.data.approuve;
-          toggleDiscord(!!approuve);
-          if (!approuve) { if (locked) locked.style.display = 'flex'; if (grid) grid.style.display = 'none'; return; }
-        var uid = session.user.id;
-        Promise.all([
-          sb.from('evenements').select('*').order('ordre', { ascending: false }),
-          sb.from('participations').select('event_id, user_id')
-        ]).then(function (res) {
-          var ev = res[0], parts = res[1];
-          if (ev.error) return;
-          if (locked) locked.style.display = 'none';
-          if (!grid) return;
-          var counts = {}, mine = {};
-          (parts.data || []).forEach(function (p) {
-            counts[p.event_id] = (counts[p.event_id] || 0) + 1;
-            if (p.user_id === uid) mine[p.event_id] = true;
-          });
-          grid.style.display = 'grid';
-          grid.innerHTML = (ev.data || []).map(function (e) {
-            var c = counts[e.id] || 0, going = !!mine[e.id];
-            var rsvp = '<div style="display:flex;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap;">' +
-              '<button class="rsvp-btn" data-ev="' + esc(e.id) + '" data-going="' + going + '" ' +
-              'style="cursor:pointer;padding:8px 16px;font-size:11px;letter-spacing:1px;text-transform:uppercase;' +
-              'border:1px solid ' + (going ? 'var(--border-strong)' : 'var(--red)') + ';' +
-              'background:' + (going ? 'transparent' : 'var(--red)') + ';color:' + (going ? 'var(--text)' : '#fff') + ';">' +
-              (going ? '✓ Je participe' : 'Je participe') + '</button>' +
-              '<span style="font-size:12px;color:var(--text-muted);">' + c + ' participant' + (c > 1 ? 's' : '') + '</span>' +
-              '</div>';
-            return '<div class="event-card"><div class="event-date"><span class="event-day">' + esc(e.jour||'') +
-              '</span><span class="event-month">' + esc(e.mois||'') + '</span></div><div class="event-body">' +
-              (e.type ? '<span class="event-type">' + esc(e.type) + '</span>' : '') +
-              '<div class="event-title">' + esc(e.titre||'') + '</div><div class="event-time">' + esc(e.heure||'') +
-              '</div><div class="event-desc">' + esc(e.texte||'') + '</div>' +
-              (e.image_url ? '<img class="event-img" src="' + esc(e.image_url) + '" alt="' + esc(e.titre || 'Illustration de l\'événement') + '" loading="lazy" decoding="async">' : '') +
-              rsvp + '</div></div>';
-          }).join('');
-          grid.querySelectorAll('.rsvp-btn').forEach(function (btn) {
-            btn.addEventListener('click', function () { toggleRsvp(btn, uid); });
-          });
-        });
-        });
-      });
-    }
-    refreshEvents();
-    sb.auth.onAuthStateChange(function () { refreshEvents(); });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
   else run();
