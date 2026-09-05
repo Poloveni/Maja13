@@ -1428,7 +1428,7 @@
     const canvas = document.getElementById('hero3d-canvas');
     if (!hero || !canvas) return;
 
-    import('/vendor/three.module.min.js').then((THREE) => {
+    import('./vendor/three.module.min.js').then((THREE) => {
       let renderer;
       try {
         renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
