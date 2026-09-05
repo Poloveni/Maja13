@@ -6,6 +6,7 @@ import session from 'express-session';
 import connectPg from 'connect-pg-simple';
 import pg from 'pg';
 import crypto from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -25,8 +26,10 @@ const roleMap = Object.fromEntries(DISCORD_ROLE_MAP.split(',').filter(Boolean).m
 const adminIds = new Set(ADMIN_DISCORD_IDS.split(',').map(s => s.trim()).filter(Boolean));
 
 const pool = new pg.Pool({ connectionString: DATABASE_URL });
+// applique le schéma au démarrage (idempotent)
+await pool.query(readFileSync(join(here, '..', 'sql', 'schema.sql'), 'utf8'));
 const app = express();
-app.set('trust proxy', 1);                     // derrière Nginx
+app.set('trust proxy', 1);                     // derrière Caddy / Nginx
 app.use(express.json({ limit: '32kb' }));
 app.use(session({
   store: new (connectPg(session))({ pool, tableName: 'session' }),
@@ -135,4 +138,4 @@ app.get('/api/familia', requireAuth, async (_req, res) => {
 app.use(express.static(ROOT, { extensions: ['html'], index: 'index.html', dotfiles: 'ignore' }));
 app.use((_req, res) => res.status(404).sendFile(join(ROOT, '404.html'), err => err && res.send('404')));
 
-app.listen(PORT, '127.0.0.1', () => console.log(`La Maja 13 en écoute sur http://127.0.0.1:${PORT} (${BASE_URL})`));
+app.listen(PORT, '0.0.0.0', () => console.log(`La Maja 13 en écoute sur le port ${PORT} (${BASE_URL})`));

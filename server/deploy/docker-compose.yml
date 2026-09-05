@@ -1,0 +1,38 @@
+# /opt/maja13/server/deploy/docker-compose.yml
+# Lancer depuis /opt/maja13 :  sudo docker compose -f server/deploy/docker-compose.yml up -d --build
+name: maja13
+services:
+  app:
+    build:
+      context: ../..
+      dockerfile: server/Dockerfile
+    restart: unless-stopped
+    env_file: ../.env
+    environment:
+      DATABASE_URL: postgres://maja13:${POSTGRES_PASSWORD}@db:5432/maja13
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - default
+      - caddy            # réseau du Caddy de Dynasty 8, pour le reverse proxy
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: maja13
+      POSTGRES_USER: maja13
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - maja13-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U maja13 -d maja13"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+volumes:
+  maja13-db:
+networks:
+  caddy:
+    external: true
+    name: CADDY_NETWORK   # à remplacer par le nom réel (sudo docker network ls)
