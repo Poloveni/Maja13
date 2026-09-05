@@ -11,6 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../styles.css">
 <link rel="stylesheet" href="casa.css">
+<script src="casa.js"></script>
 </head>
 <body class="casa-body casa-body--chat">
 <div class="grain" aria-hidden="true"></div>
@@ -141,7 +142,8 @@
   $('more').addEventListener('click', async () => { const list = await api('../api/chat/messages?before=' + oldest); prepend(list); });
   log.addEventListener('click', async e => {
     const b = e.target.closest('[data-del]'); if (!b) return;
-    if (confirm('Supprimer ce message ?')) await api('../api/chat/messages/' + b.dataset.del, { method: 'DELETE' }).catch(() => {});
+    if (await casaConfirm('Ce message sera retiré du Salon pour tout le monde.', { title: 'Supprimer ce message ?', ok: 'Supprimer', danger: true }))
+      await api('../api/chat/messages/' + b.dataset.del, { method: 'DELETE' }).catch(() => {});
   });
   $('logout').addEventListener('click', async () => { es && es.close(); await fetch('../auth/logout', { method: 'POST', credentials: 'same-origin' }); location.href = './'; });
   init().catch(() => {});

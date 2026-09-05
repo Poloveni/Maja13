@@ -145,3 +145,17 @@
   .chat__form .btn{padding:12px 16px}
 }
 [hidden]{display:none!important}
+
+/* modale de confirmation */
+.modal{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(5,4,6,.78);backdrop-filter:blur(4px);opacity:0;transition:opacity .2s}
+.modal.is-open{opacity:1}
+.modal__box{position:relative;width:min(440px,100%);border:1px solid var(--gold);background:linear-gradient(180deg,#17120c,#0b0909);padding:34px 32px 28px;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.7),0 0 40px rgba(201,164,92,.12);transform:translateY(12px);transition:transform .2s}
+.modal.is-open .modal__box{transform:none}
+.modal__box::before,.modal__box::after{content:"";position:absolute;width:22px;height:22px;border:1px solid var(--gold3)}
+.modal__box::before{top:-1px;left:-1px;border-right:0;border-bottom:0}
+.modal__box::after{bottom:-1px;right:-1px;border-left:0;border-top:0}
+.modal__box .eyebrow{margin-bottom:8px;font-size:10px}
+.modal__title{font-family:var(--display);font-size:36px;letter-spacing:.04em;color:var(--gold3);line-height:1;margin-bottom:12px}
+.modal__text{color:var(--ink2);font-size:17px;margin:0 0 24px}
+.modal__actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.modal__actions .btn{cursor:pointer;font-family:var(--serif);padding:12px 22px;font-size:11px}
