@@ -1,0 +1,23 @@
+# ════════════════════════════════════════════════════════════
+#  Synchronisation Discord → site (présences + annonces)
+#  GitHub exécute ce fichier automatiquement toutes les 5 min :
+#  il appelle les fonctions Supabase qui lisent Discord.
+#  Secrets GitHub requis : SUPABASE_URL et CRON_SECRET.
+# ════════════════════════════════════════════════════════════
+name: Sync Discord vers le site
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'   # toutes les 5 minutes
+  workflow_dispatch:         # + bouton "Run workflow" manuel sur GitHub
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Synchroniser les présences
+        run: curl --fail --silent --show-error --max-time 30 -H "x-cron-secret:${{ secrets.CRON_SECRET }}" "${{ secrets.SUPABASE_URL }}/functions/v1/sync-discord-presences"
+      - name: Synchroniser les événements
+        run: curl --fail --silent --show-error --max-time 30 -H "x-cron-secret:${{ secrets.CRON_SECRET }}" "${{ secrets.SUPABASE_URL }}/functions/v1/sync-discord-events"
+      - name: Synchroniser les annonces
+        run: curl --fail --silent --show-error --max-time 30 -H "x-cron-secret:${{ secrets.CRON_SECRET }}" "${{ secrets.SUPABASE_URL }}/functions/v1/sync-discord-annonces"
