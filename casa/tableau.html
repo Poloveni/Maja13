@@ -104,6 +104,18 @@
   const empty = (el, txt) => { el.innerHTML = `<li class="muted">${txt}</li>`; };
   const TAXE = { sporex: 'Sporex', heroine: 'Héroïne', vente: 'Vente', fertilisant: 'Fertilisant' };
   const api = url => fetch(url, { credentials: 'same-origin' }).then(async r => { if (r.status === 401) { location.replace('./'); throw 0; } if (r.status === 403) { location.replace('perfil.html'); throw 0; } return r.json(); });
+  let ACTIONS = false;
+  const refresh = () => api('../api/bot/dashboard').then(d => d && d.configured && render(d)).catch(() => {});
+  $('coffre').addEventListener('click', async e => {
+    const b = e.target.closest('.stock-edit'); if (!b) return;
+    const f = await casaForm([{ name: 'quantite', label: `Nouveau stock de ${b.dataset.item}`, type: 'number', required: true, min: 0, value: Number(b.dataset.q) }], { title: 'Corriger le coffre', text: 'Même effet que /set-stock : le message Stock Général est mis à jour.', ok: 'Corriger' });
+    if (f && await casaAction('POST', '../api/bot/stocks/set', { item: b.dataset.item, quantite: f.quantite })) refresh();
+  });
+  $('pending').addEventListener('click', async e => {
+    const b = e.target.closest('[data-vente]'); if (!b) return;
+    if (!(await casaConfirm(b.dataset.act === 'declarer' ? 'Marquer cette vente comme déclarée (en attente du dépôt d’argent) ?' : 'Marquer la drogue comme reposée dans le coffre ?', { title: 'Vente en attente', ok: 'Confirmer' }))) return;
+    if (await casaAction('POST', `../api/bot/ventes/${b.dataset.vente}/${b.dataset.act}`, {})) refresh();
+  });
 
   function render(d) {
     $('masse').textContent = money(d.masseSalariale);
@@ -121,12 +133,12 @@
     $('inactifs').textContent = d.inactifs.length ? `Sans déclaration cette semaine : ${d.inactifs.join(', ')}.` : '';
 
     const groups = {}; d.coffre.forEach(c => (groups[c.group || 'Autres'] = groups[c.group || 'Autres'] || []).push(c));
-    $('coffre').innerHTML = Object.entries(groups).map(([g, list]) => `<div class="coffre-group"><h4>${esc(g)}</h4><ul class="stat__list">${list.map(c => `<li class="${c.visible ? '' : 'muted'}"><span>${esc(c.item)}${c.vente ? ' <i class="tag">vente</i>' : ''}</span><b>${c.quantite}</b></li>`).join('')}</ul></div>`).join('') || '<p class="muted">Aucun item configuré (/config item).</p>';
+    $('coffre').innerHTML = Object.entries(groups).map(([g, list]) => `<div class="coffre-group"><h4>${esc(g)}</h4><ul class="stat__list">${list.map(c => `<li class="${c.visible ? '' : 'muted'}"><span>${esc(c.item)}${c.vente ? ' <i class="tag">vente</i>' : ''}</span><b>${ACTIONS ? `<button class="stock-edit" data-item="${esc(c.item)}" data-q="${c.quantite}" title="Corriger le stock">${c.quantite} ✎</button>` : c.quantite}</b></li>`).join('')}</ul></div>`).join('') || '<p class="muted">Aucun item configuré (/config item).</p>';
 
     $('history').innerHTML = d.history.length ? d.history.map(h => `<li><time>${when(h.timestamp)}</time><span><b>${esc(h.joueur)}</b> ${esc(h.action)} <b class="${h.quantite < 0 ? 'neg' : 'pos'}">${h.quantite > 0 ? '+' : ''}${h.quantite}</b> ${esc(h.item)} <i class="muted">(${h.stock_avant} → ${h.stock_apres})</i></span></li>`).join('') : '<li class="muted">Aucun mouvement enregistré.</li>';
 
     d.cooldowns.length ? $('cooldowns').innerHTML = d.cooldowns.map(c => `<li><span>${esc(c.name)} · ${esc(c.label)}</span><b>${countdown(c.expiresAt)}</b></li>`).join('') : empty($('cooldowns'), 'Aucun');
-    d.ventesEnAttente.length ? $('pending').innerHTML = d.ventesEnAttente.map(v => `<li><span>${esc(v.joueur)} · ${v.quantite} × ${esc(v.item)}</span><b>${v.montant ? money(v.montant) : '—'}</b></li>`).join('') : empty($('pending'), 'Aucune');
+    d.ventesEnAttente.length ? $('pending').innerHTML = d.ventesEnAttente.map(v => `<li><span>${esc(v.joueur)} · ${v.quantite} × ${esc(v.item)}</span>${ACTIONS ? `<span class="row-actions"><button class="btn btn--gold btn--sm" data-vente="${v.id}" data-act="declarer">Vendue</button><button class="btn btn--ghost btn--sm" data-vente="${v.id}" data-act="reposer">Reposée</button></span>` : `<b>${v.montant ? money(v.montant) : '—'}</b>`}</li>`).join('') : empty($('pending'), 'Aucune');
     d.fourrieres7j.length ? $('fourr').innerHTML = d.fourrieres7j.map(f => `<li><span>${esc(f.joueur)} · ${esc(f.plaque)}${f.modele ? ` (${esc(f.modele)})` : ''}</span><b>${date(f.timestamp)}</b></li>`).join('') : empty($('fourr'), 'Aucune');
 
     $('taxes').innerHTML = d.taxes.length ? d.taxes.map(t => { const late = new Date(t.echeance) < Date.now(); return `<tr class="${!t.paye || late ? 'is-warn' : ''}"><td><b>${esc(t.nom)}</b>${t.telephone ? `<br><small class="muted">${esc(t.telephone)}</small>` : ''}</td><td>${esc(TAXE[t.type] || t.type)}</td><td>${date(t.echeance)}</td><td><span class="status ${t.paye ? 'status--approved' : 'status--rejected'}">${t.paye ? 'Payée' : 'Impayée'}${late && !t.paye ? ' · en retard' : ''}</span></td></tr>`; }).join('') : '<tr><td colspan="4" class="muted">Aucune taxe active.</td></tr>';
@@ -138,6 +150,7 @@
     if (me.status !== 'approved') { location.replace('espera.html'); return; }
     if (!me.isAdmin) { location.replace('perfil.html'); return; }
     casaNav(me);
+    const st = await api('../api/bot/status').catch(() => null); ACTIONS = !!(st && st.actions);
     const d = await api('../api/bot/dashboard');
     $('loading').hidden = true;
     if (!d || !d.configured) { $('off').hidden = false; return; }

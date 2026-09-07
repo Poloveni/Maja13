@@ -60,3 +60,78 @@ document.addEventListener('DOMContentLoaded', () => {
   casaUnread(); setInterval(casaUnread, 30000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) casaUnread(); });
 });
+
+// Formulaire dans une modale (même style que casaConfirm). Résout avec les
+// valeurs saisies, ou null si annulé. fields : [{ name, label, type, options, value, placeholder, required, min, hint }]
+// type : text | number | select | multiselect | textarea
+window.casaForm = function (fields, { title = 'Saisie', text = '', ok = 'Valider', cancel = 'Annuler', danger = false } = {}) {
+  return new Promise(resolve => {
+    const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const wrap = document.createElement('div');
+    wrap.className = 'modal modal--form';
+    wrap.innerHTML = `
+      <form class="modal__box" role="dialog" aria-modal="true" novalidate>
+        <p class="eyebrow">La Maja 13</p>
+        <h3 class="modal__title"></h3>
+        <p class="modal__text" ${text ? '' : 'hidden'}></p>
+        <div class="modal__fields"></div>
+        <p class="modal__error" hidden></p>
+        <div class="modal__actions">
+          <button class="btn btn--ghost" type="button" data-cancel></button>
+          <button class="btn ${danger ? 'btn--ghost btn--danger' : 'btn--gold'}" type="submit" data-ok></button>
+        </div>
+      </form>`;
+    wrap.querySelector('.modal__title').textContent = title;
+    wrap.querySelector('.modal__text').textContent = text;
+    wrap.querySelector('[data-cancel]').textContent = cancel;
+    wrap.querySelector('[data-ok]').textContent = ok;
+    const box = wrap.querySelector('.modal__fields');
+    box.innerHTML = fields.map(f => {
+      const opts = (f.options || []).map(o => typeof o === 'string' ? { value: o, label: o } : o);
+      let ctrl;
+      if (f.type === 'select') ctrl = `<select class="admin-select" name="${esc(f.name)}" ${f.required ? 'required' : ''}>${f.placeholder ? `<option value="">${esc(f.placeholder)}</option>` : ''}${opts.map(o => `<option value="${esc(o.value)}" ${o.value === f.value ? 'selected' : ''}>${esc(o.label)}</option>`).join('')}</select>`;
+      else if (f.type === 'multiselect') ctrl = `<div class="modal__checks">${opts.length ? opts.map(o => `<label class="check"><input type="checkbox" name="${esc(f.name)}" value="${esc(o.value)}"><span>${esc(o.label)}</span></label>`).join('') : '<span class="muted">Personne à sélectionner</span>'}</div>`;
+      else if (f.type === 'textarea') ctrl = `<textarea class="admin-input" name="${esc(f.name)}" rows="3" ${f.required ? 'required' : ''} placeholder="${esc(f.placeholder || '')}">${esc(f.value || '')}</textarea>`;
+      else ctrl = `<input class="admin-input" type="${f.type === 'number' ? 'number' : 'text'}" name="${esc(f.name)}" value="${esc(f.value ?? '')}" ${f.required ? 'required' : ''} ${f.min != null ? `min="${f.min}"` : ''} ${f.max != null ? `max="${f.max}"` : ''} placeholder="${esc(f.placeholder || '')}" autocomplete="off" ${f.list ? `list="dl-${esc(f.name)}"` : ''}>${f.list ? `<datalist id="dl-${esc(f.name)}">${f.list.map(v => `<option value="${esc(v)}">`).join('')}</datalist>` : ''}`;
+      return `<label class="modal__field"><span>${esc(f.label)}${f.required ? ' *' : ''}</span>${ctrl}${f.hint ? `<small>${esc(f.hint)}</small>` : ''}</label>`;
+    }).join('');
+    const err = wrap.querySelector('.modal__error');
+    const close = v => { wrap.classList.remove('is-open'); setTimeout(() => wrap.remove(), 200); document.removeEventListener('keydown', onKey); resolve(v); };
+    const onKey = e => { if (e.key === 'Escape') close(null); };
+    wrap.querySelector('[data-cancel]').onclick = () => close(null);
+    wrap.onclick = e => { if (e.target === wrap) close(null); };
+    wrap.querySelector('form').onsubmit = e => {
+      e.preventDefault();
+      const out = {};
+      for (const f of fields) {
+        if (f.type === 'multiselect') out[f.name] = [...box.querySelectorAll(`input[name="${f.name}"]:checked`)].map(i => i.value);
+        else { const el = box.querySelector(`[name="${f.name}"]`); out[f.name] = f.type === 'number' ? (el.value === '' ? null : Number(el.value)) : el.value.trim(); }
+        if (f.required && (out[f.name] === '' || out[f.name] == null || (Array.isArray(out[f.name]) && !out[f.name].length))) { err.textContent = `« ${f.label} » est obligatoire.`; err.hidden = false; return; }
+        if (f.type === 'number' && out[f.name] != null && f.min != null && out[f.name] < f.min) { err.textContent = `« ${f.label} » doit être au moins ${f.min}.`; err.hidden = false; return; }
+      }
+      close(out);
+    };
+    document.addEventListener('keydown', onKey);
+    document.body.appendChild(wrap);
+    requestAnimationFrame(() => { wrap.classList.add('is-open'); const first = box.querySelector('input,select,textarea'); if (first) first.focus(); });
+  });
+};
+
+// Petit message furtif en bas de page (succès ou erreur)
+window.casaToast = function (message, ok = true) {
+  let t = document.getElementById('casaToast');
+  if (!t) { t = document.createElement('div'); t.id = 'casaToast'; t.className = 'toast'; document.body.appendChild(t); }
+  t.textContent = message; t.classList.toggle('toast--error', !ok); t.classList.add('is-on');
+  clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('is-on'), ok ? 3200 : 5200);
+};
+
+// Appel d'une action du bot via La Casa : renvoie la réponse, ou affiche l'erreur et renvoie null
+window.casaAction = async function (method, url, body) {
+  try {
+    const r = await fetch(url, { method, credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) { casaToast(d.error || 'Action refusée.', false); return null; }
+    if (d.message) casaToast(d.message, true);
+    return d;
+  } catch { casaToast('Le site ne répond pas.', false); return null; }
+};

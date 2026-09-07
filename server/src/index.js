@@ -151,7 +151,7 @@ app.patch('/api/me', requireAuth, requireApproved, async (req, res) => {
 // la familia : liste des membres visible par les membres connectés
 app.get('/api/familia', requireAuth, requireApproved, async (_req, res) => {
   const { rows } = await pool.query(`SELECT * FROM members WHERE status = 'approved' ORDER BY array_position($1::text[], rank), display_name`, [RANKS]);
-  res.json(rows.map(m => ({ displayName: m.display_name, username: m.username, rank: m.rank, rankLabel: RANK_LABEL[m.rank], avatarUrl: publicMember(m).avatarUrl })));
+  res.json(rows.map(m => ({ discordId: m.discord_id, displayName: m.display_name, username: m.username, rank: m.rank, rankLabel: RANK_LABEL[m.rank], avatarUrl: publicMember(m).avatarUrl })));
 });
 
 // ---------- Admin (Jefe / Segundo) ----------
@@ -338,7 +338,7 @@ const namesFor = async (ids) => {
 
 app.get('/api/bot/status', requireAuth, requireApproved, async (_req, res) => {
   if (!bot) return res.json({ configured: false });
-  try { const s = await botConfig(); res.json({ configured: true, tier: s.settings.type_groupe || s.settings.tier || null, hasQuotas: Object.keys(s.targets).length > 0, nextReset: nextReset() }); }
+  try { const s = await botConfig(); res.json({ configured: true, actions: botApiReady(), tier: s.settings.type_groupe || s.settings.tier || null, hasQuotas: Object.keys(s.targets).length > 0, nextReset: nextReset() }); }
   catch (e) { console.error(e); res.json({ configured: false, error: 'unreachable' }); }
 });
 
@@ -354,7 +354,7 @@ app.get('/api/bot/me', requireAuth, requireApproved, async (req, res) => {
     const [armes, fourr, ventes] = await Promise.all([
       botQuery('SELECT nom, reference, type, statut FROM armurerie WHERE pretee_a = ANY($1) ORDER BY nom', [names]),
       botQuery("SELECT count(*)::int AS n FROM fourrieres WHERE discord_id = $1 AND timestamp > now() - interval '7 days'", [id]),
-      botQuery("SELECT item, quantite, statut, montant, timestamp FROM pending_sales WHERE discord_id = $1 AND statut = 'en_attente' ORDER BY timestamp DESC LIMIT 10", [id])]);
+      botQuery("SELECT id, item, quantite, statut, montant, timestamp FROM pending_sales WHERE discord_id = $1 AND statut = 'en_attente' ORDER BY timestamp DESC LIMIT 10", [id])]);
     const sum = summarize(stats, cfg.rates);
     res.json({ configured: true, nextReset: nextReset(), quotas: QUOTA_TYPES.map(q => ({ type: q, label: QUOTA_LABEL[q], count: sum.byType[q], target: cfg.targets[q] ?? null, rate: cfg.rates[q] ?? null })),
       activities: sum.activities, salaire: sum.salaire, cooldowns: cds.map(c => ({ action: c.action, label: ACTIVITIES[c.action]?.label || c.action, expiresAt: c.expires_at })),
@@ -429,6 +429,63 @@ app.get('/api/bot/armurerie', requireAuth, requireApproved, requireAdmin, async 
       munitions: munitions.map(m => ({ vendeur: m.vendeur_username, acheteur: names[m.acheteur_id] || m.acheteur_id, quantite: m.quantite, prix: Number(m.prix), timestamp: m.timestamp })) });
   } catch (e) { console.error(e); res.status(502).json({ error: 'bot-unreachable' }); }
 });
+
+// ---------- Actions vers le bot (API interne du bot, voir server/deploy/bot-api-setup.sh) ----------
+// Le site ne modifie jamais la base du bot lui-même : chaque action passe par
+// le bot, qui applique sa propre logique et rafraîchit ses messages Discord.
+const BOT_API_URL = (process.env.BOT_API_URL || '').replace(/\/+$/, '');
+const BOT_API_TOKEN = process.env.BOT_API_TOKEN || '';
+const botApiReady = () => !!(BOT_API_URL && BOT_API_TOKEN);
+const botApi = async (method, path, body) => {
+  if (!botApiReady()) { const e = new Error('bot-api-off'); e.status = 503; throw e; }
+  const r = await fetch(BOT_API_URL + path, { method, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${BOT_API_TOKEN}` }, body: body ? JSON.stringify(body) : undefined, signal: AbortSignal.timeout(15000) });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || data.ok === false) { const e = new Error(data.error || `bot ${r.status}`); e.status = r.status >= 400 && r.status < 500 ? r.status : 502; throw e; }
+  return data;
+};
+const relay = fn => async (req, res) => {
+  try { res.json(await fn(req)); }
+  catch (e) {
+    if (e.status === 503) return res.status(503).json({ error: "Le bot n'est pas relié au site (API interne absente)." });
+    if (e.status && e.status < 500) return res.status(e.status).json({ error: e.message });
+    console.error('[bot-api]', e.message); res.status(502).json({ error: 'Le bot ne répond pas.' });
+  }
+};
+const who = req => ({ userId: req.member.discord_id, userTag: req.member.display_name || req.member.username });
+
+// activités : liste (avec cooldowns du membre) + déclaration + mes déclarations
+app.get('/api/bot/activites', requireAuth, requireApproved, relay(async req => {
+  if (!botApiReady()) return { configured: false };
+  const d = await botApi('GET', `/activites?user=${encodeURIComponent(req.member.discord_id)}`);
+  return { configured: true, ...d };
+}));
+app.post('/api/bot/activites/declarer', requireAuth, requireApproved, relay(async req => {
+  const b = req.body || {};
+  return botApi('POST', '/activites/declarer', { ...who(req), key: String(b.key || ''), type: b.type, quantite: b.quantite, tempsRestant: b.tempsRestant, partenaires: Array.isArray(b.partenaires) ? b.partenaires.slice(0, 25) : [] });
+}));
+app.get('/api/bot/activites/transactions', requireAuth, requireApproved, relay(async req => {
+  const all = canAdmin(req.member) && req.query.all === '1';
+  return botApi('GET', `/activites/transactions?limit=${all ? 100 : 30}${all ? '' : '&user=' + encodeURIComponent(req.member.discord_id)}`);
+}));
+app.delete('/api/bot/activites/transactions/:id', requireAuth, requireApproved, requireAdmin, relay(async req =>
+  botApi('DELETE', `/activites/transactions/${parseInt(req.params.id, 10)}`, { byTag: who(req).userTag, byId: req.member.discord_id })));
+
+// taxes (admins)
+app.get('/api/bot/taxes/types', requireAuth, requireApproved, requireAdmin, relay(() => botApi('GET', '/taxes/types')));
+app.post('/api/bot/taxes', requireAuth, requireApproved, requireAdmin, relay(req => botApi('POST', '/taxes', req.body || {})));
+app.post('/api/bot/taxes/:id/paye', requireAuth, requireApproved, requireAdmin, relay(req => botApi('POST', `/taxes/${parseInt(req.params.id, 10)}/paye`, req.body || {})));
+app.post('/api/bot/taxes/:id/renouveler', requireAuth, requireApproved, requireAdmin, relay(req => botApi('POST', `/taxes/${parseInt(req.params.id, 10)}/renouveler`, req.body || {})));
+app.delete('/api/bot/taxes/:id', requireAuth, requireApproved, requireAdmin, relay(req => botApi('DELETE', `/taxes/${parseInt(req.params.id, 10)}`)));
+
+// armurerie (admins) + munitions (tout membre validé)
+app.get('/api/bot/armurerie/types', requireAuth, requireApproved, requireAdmin, relay(() => botApi('GET', '/armurerie/types')));
+app.post('/api/bot/armurerie/armes', requireAuth, requireApproved, requireAdmin, relay(req => botApi('POST', '/armurerie/armes', req.body || {})));
+app.post('/api/bot/armurerie/armes/:id/:action(preter|rendre|perdue)', requireAuth, requireApproved, requireAdmin, relay(req => botApi('POST', `/armurerie/armes/${parseInt(req.params.id, 10)}/${req.params.action}`, req.body || {})));
+app.post('/api/bot/armurerie/munitions/:action(fabrication|vente)', requireAuth, requireApproved, relay(req => botApi('POST', `/armurerie/munitions/${req.params.action}`, { ...(req.body || {}), ...who(req) })));
+
+// coffre (admins) + ventes en attente (le joueur concerné ou un admin)
+app.post('/api/bot/stocks/set', requireAuth, requireApproved, requireAdmin, relay(req => botApi('POST', '/stocks/set', req.body || {})));
+app.post('/api/bot/ventes/:id/:action(declarer|reposer|quantite)', requireAuth, requireApproved, relay(req => botApi('POST', `/ventes/${parseInt(req.params.id, 10)}/${req.params.action}`, { ...(req.body || {}), userId: req.member.discord_id, isAdmin: canAdmin(req.member) })));
 
 // classement hebdo (tous les membres validés)
 const weekStart = () => { const end = new Date(nextReset()); return new Date(end.getTime() - 7 * 86400e3).toISOString(); };
