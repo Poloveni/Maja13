@@ -279,7 +279,19 @@ async function route(client: Client, method: string, path: string, body: Json, q
     return { message: `${quantite} munitions vendues à ${acheteur} pour ${prix} $.` };
   }
 
-  // Coffre
+  // Coffre — détail par salon de logs (table coffre_stocks, bot ≥ 09/09/2026 ; liste vide sur un bot plus ancien)
+  if (method === 'GET' && path === '/stocks/coffres') {
+    const out: Array<{ channelId: string; name: string; items: Array<{ item: string; quantite: number }> }> = [];
+    for (const channelId of configStore.get().CHANNELS.logs_coffres) {
+      const ch = client.channels.cache.get(channelId);
+      const name = ch && 'name' in ch && ch.name ? `#${ch.name}` : channelId;
+      let items: Array<{ item: string; quantite: number }> = [];
+      try { items = (await db.prisma.$queryRawUnsafe<Array<{ item: string; quantite: number }>>('SELECT item, quantite FROM coffre_stocks WHERE channel_id = $1 ORDER BY item', channelId)); }
+      catch { /* table absente (ancienne version du bot) */ }
+      out.push({ channelId, name, items });
+    }
+    return { coffres: out };
+  }
   if (method === 'POST' && path === '/stocks/set') {
     const wanted = str(body.item, 80), quantite = int(body.quantite);
     const item = configStore.get().ALLOWED_ITEMS.find(i => i.toLowerCase() === wanted.toLowerCase());

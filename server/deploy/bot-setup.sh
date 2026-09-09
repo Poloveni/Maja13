@@ -10,10 +10,17 @@ echo "=== Bot Discord La Maja 13 ==="
 [ -d "$BOT/.git" ] || git clone -q "$REPO" "$BOT"
 cd "$BOT"
 
-# ne pas publier le port Postgres sur Internet
+# Ne publie aucun port sur Internet (Postgres, et l'API REST OAuth du bot que
+# La Casa n'utilise pas : elle passe par l'API interne, voir bot-api-setup.sh).
+# Le service s'appelle « roxwood-network-famille » depuis la mise à jour du
+# 09/09/2026 (avant : « bot ») ; on fige le nom du conteneur pour que les
+# autres scripts et La Casa (BOT_API_URL) continuent de le trouver.
 cat > docker-compose.override.yml <<'YML'
 services:
   db:
+    ports: !reset []
+  roxwood-network-famille:
+    container_name: maja13-bot-bot-1
     ports: !reset []
 YML
 
@@ -38,9 +45,9 @@ ENV
 fi
 
 echo "=== Construction et démarrage (2-3 min la première fois) ==="
-docker compose up -d --build
+docker compose up -d --build --remove-orphans
 sleep 10
 echo "=== Derniers logs du bot ==="
 docker logs --tail 40 maja13-bot-bot-1 || true
 echo
-echo "Mise à jour plus tard :  cd $BOT && sudo git pull && sudo docker compose up -d --build"
+echo "Mise à jour plus tard :  cd $BOT && sudo git pull && sudo bash /opt/maja13/server/deploy/bot-api-setup.sh"

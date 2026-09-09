@@ -253,6 +253,8 @@
 .mini{display:block;height:3px;background:rgba(201,164,92,.12);margin-top:4px;max-width:90px}
 .mini b{display:block;height:100%;background:var(--gold)}
 .coffre-group{margin-bottom:16px}
+.coffre-detail{margin-top:8px;border-top:1px dashed var(--line);padding-top:10px}
+.coffre-detail summary{cursor:pointer;font-size:12px;color:var(--muted);margin-bottom:10px}
 .coffre-group h4{font-family:var(--serif);font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:var(--gold);margin:0 0 6px;padding-bottom:6px;border-bottom:1px solid var(--line)}
 .tag{font-style:normal;font-family:var(--serif);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold2);border:1px solid var(--line);padding:1px 6px;margin-left:6px}
 .feed{list-style:none;margin:0;padding:0;max-height:420px;overflow-y:auto}

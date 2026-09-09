@@ -134,6 +134,9 @@
 
     const groups = {}; d.coffre.forEach(c => (groups[c.group || 'Autres'] = groups[c.group || 'Autres'] || []).push(c));
     $('coffre').innerHTML = Object.entries(groups).map(([g, list]) => `<div class="coffre-group"><h4>${esc(g)}</h4><ul class="stat__list">${list.map(c => `<li class="${c.visible ? '' : 'muted'}"><span>${esc(c.item)}${c.vente ? ' <i class="tag">vente</i>' : ''}</span><b>${ACTIONS ? `<button class="stock-edit" data-item="${esc(c.item)}" data-q="${c.quantite}" title="Corriger le stock">${c.quantite} ✎</button>` : c.quantite}</b></li>`).join('')}</ul></div>`).join('') || '<p class="muted">Aucun item configuré (/config item).</p>';
+    // détail par coffre (plusieurs salons de logs) — seulement s'il y a quelque chose à distinguer
+    const coffres = (d.coffres || []).filter(c => c.items.length);
+    if (coffres.length > 1) $('coffre').insertAdjacentHTML('beforeend', `<details class="coffre-detail"><summary>Détail par coffre (${coffres.length})</summary>${coffres.map(c => `<div class="coffre-group"><h4>${esc(c.name)}</h4><ul class="stat__list">${c.items.map(i => `<li><span>${esc(i.item)}</span><b>${i.quantite}</b></li>`).join('')}</ul></div>`).join('')}</details>`);
 
     $('history').innerHTML = d.history.length ? d.history.map(h => `<li><time>${when(h.timestamp)}</time><span><b>${esc(h.joueur)}</b> ${esc(h.action)} <b class="${h.quantite < 0 ? 'neg' : 'pos'}">${h.quantite > 0 ? '+' : ''}${h.quantite}</b> ${esc(h.item)} <i class="muted">(${h.stock_avant} → ${h.stock_apres})</i></span></li>`).join('') : '<li class="muted">Aucun mouvement enregistré.</li>';
 

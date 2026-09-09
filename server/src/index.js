@@ -377,6 +377,9 @@ app.get('/api/bot/dashboard', requireAuth, requireApproved, requireAdmin, async 
       botQuery("SELECT id, joueur, discord_id, item, quantite, statut, montant, timestamp FROM pending_sales WHERE statut = 'en_attente' ORDER BY timestamp DESC LIMIT 30"),
       botQuery("SELECT action, count(*)::int AS n FROM braquages WHERE timestamp > now() - interval '7 days' GROUP BY action"),
       botQuery("SELECT joueur, plaque, modele, timestamp FROM fourrieres WHERE timestamp > now() - interval '7 days' ORDER BY timestamp DESC")]);
+    // détail par coffre (bot ≥ 09/09/2026) — facultatif : le tableau marche sans
+    let coffres = [];
+    if (botApiReady()) { try { coffres = (await botApi('GET', '/stocks/coffres')).coffres || []; } catch (e) { console.warn('coffres:', e.message); } }
     const qty = Object.fromEntries(stocks.map(s => [s.item, s.quantite]));
     const coffre = items.map(i => ({ item: i.name, group: i.stock_group, quantite: qty[i.name] ?? 0, visible: i.visible_stock, vente: i.vente }));
     for (const s of stocks) if (!items.some(i => i.name === s.item)) coffre.push({ item: s.item, group: null, quantite: s.quantite, visible: true, vente: false });
@@ -388,7 +391,7 @@ app.get('/api/bot/dashboard', requireAuth, requireApproved, requireAdmin, async 
     const { rows: approved } = await pool.query("SELECT discord_id, display_name FROM members WHERE status = 'approved'");
     const inactifs = approved.filter(m => !byUser[m.discord_id]).map(m => m.display_name);
     res.json({ configured: true, nextReset: nextReset(), targets: cfg.targets, rates: cfg.rates, quotaTypes: QUOTA_TYPES.map(q => ({ type: q, label: QUOTA_LABEL[q] })),
-      coffre, history, classement, masseSalariale: classement.reduce((s, c) => s + c.salaire, 0), inactifs,
+      coffre, coffres, history, classement, masseSalariale: classement.reduce((s, c) => s + c.salaire, 0), inactifs,
       cooldowns: cds.map(c => ({ name: names[c.user_id] || c.user_id, action: c.action, label: ACTIVITIES[c.action]?.label || c.action, expiresAt: c.expires_at })),
       taxes, armes, vehicules, ventesEnAttente: pending, braquages7j: braq.map(b => ({ action: b.action, label: ACTIVITIES[b.action]?.label || b.action, n: b.n })), fourrieres7j: fourr });
   } catch (e) { console.error(e); res.status(502).json({ error: 'bot-unreachable' }); }
