@@ -1,8 +1,8 @@
 {
-  "name": "MAJA 13 — M13 Hub",
+  "name": "MAJA 13 — La Casa",
   "short_name": "M13",
   "description": "Réseau privé de MAJA 13 — univers fictif GTA RP / FiveM.",
-  "start_url": "./espace-membre.html",
+  "start_url": "./casa/",
   "scope": "./",
   "id": "./m13-hub",
   "display": "standalone",
@@ -20,7 +20,7 @@
     }
   ],
   "shortcuts": [
-    { "name": "M13 Hub", "url": "./espace-membre.html", "icons": [{ "src": "assets/brand/logo-mark.svg", "sizes": "any", "type": "image/svg+xml" }] },
+    { "name": "La Casa", "url": "./casa/", "icons": [{ "src": "assets/brand/logo-mark.svg", "sizes": "any", "type": "image/svg+xml" }] },
     { "name": "M13 OS", "url": "./os.html", "icons": [{ "src": "assets/brand/logo-mark.svg", "sizes": "any", "type": "image/svg+xml" }] }
   ]
 }

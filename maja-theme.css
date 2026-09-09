@@ -1,9 +1,9 @@
-/* Identité transversale MAJA 13 — site, Hub, administration et M13 OS.
+/* Identité transversale MAJA 13 — site, La Casa et M13 OS.
    Palette sombre et cinématographique + accents oxblood et or, dans
    l'esprit du dossier MAJA 13 (origine San Salvador, mockup Hub sombre).
    Le hero reste une bande sombre avec photo mise en scène ; le reste du
-   site — cartes, tableaux de bord, formulaires — suit la même base sombre
-   que dashboard.css, avec l'identité de marque MAJA 13 par-dessus. */
+   site — cartes, tableaux de bord, formulaires — suit la même base sombre,
+   avec l'identité de marque MAJA 13 par-dessus. */
 :root {
   --maja-ink: #070708;
   --maja-night: #0d0d10;

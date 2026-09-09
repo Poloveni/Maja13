@@ -2,7 +2,7 @@
  * Configuration publique centralisée — MAJA 13
  *
  * Ce fichier est volontairement lisible par le navigateur. N'y placez JAMAIS
- * de secret Discord, de clé service_role Supabase ou de token privé.
+ * de secret Discord ou de token privé.
  */
 (function configureMaja13() {
   const config = {
@@ -36,25 +36,13 @@
       mainGuildId: '',
       recruitmentGuildId: ''
     },
-    supabase: {
-      url: '',
-      anonKey: ''
-    },
-    notifications: {
-      vapidPublicKey: ''
-    },
     gameplay: {
-      // Valeur de repli uniquement (avant configuration Supabase). Une fois
-      // la base installée, le quota réel de Petite Frappe par grade vit dans
-      // la table `grades_config` et prime sur cette valeur.
       weeklySalesTarget: 200
     }
   };
 
-  // Hiérarchie officielle MAJA 13 — doit rester alignée avec les 6 rôles
-  // de `comptes.role` (supabase/migrations/001_initial_schema.sql) et avec
-  // les valeurs de départ de `grades_config`. quotaPf/pourcentagePaie ne
-  // servent qu'avant la connexion à Supabase (le Hub lit ensuite la base).
+  // Hiérarchie officielle MAJA 13 — doit rester alignée avec les rôles
+  // gérés côté La Casa (server/sql/schema.sql).
   const ranks = [
     { nom: 'Jefe',        role: 'jefe',        color: '#9f2635', quotaPf: 0,  pourcentagePaie: 35, desc: 'Chef suprême de MAJA 13. Décide seul des affaires qui engagent la famille.' },
     { nom: 'Segundo',     role: 'segundo',     color: '#b6512f', quotaPf: 0,  pourcentagePaie: 30, desc: 'Bras droit du Jefe. Fait appliquer les décisions et gère les affaires courantes.' },
@@ -92,10 +80,6 @@
   window.MAJA_MEMBRES = members;
   window.MAJA_NOM_FIX = {};
   window.MAJA_QUOTA_DROGUE = config.gameplay.weeklySalesTarget;
-
-  // Les deux seules valeurs publiques nécessaires au client Supabase.
-  window.SUPABASE_URL = config.supabase.url;
-  window.SUPABASE_KEY = config.supabase.anonKey;
 
   // Seuls ces trois-là sont pilotables depuis config.js : ce sont les accents
   // de marque. Le reste de la palette (fond parchemin, cartes, texte) vit

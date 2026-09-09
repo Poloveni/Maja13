@@ -7,9 +7,6 @@
     "serve": "http-server . -p 4173 -c-1",
     "test": "node scripts/check-project.mjs"
   },
-  "dependencies": {
-    "web-push": "^3.6.7"
-  },
   "devDependencies": {
     "http-server": "^14.1.1"
   }
